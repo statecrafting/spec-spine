@@ -49,6 +49,52 @@
             "minLength": 1,
             "type": "string"
           },
+          "interface": {
+            "description": "What a dependent consumer pins (spec 164 3.5); present on every member from 1.1.0.",
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "digest": {
+                    "pattern": "^sha256:[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "spec-content-hash",
+                      "section-digest",
+                      "obligation-digest",
+                      "symbol-signature"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "digest"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "digest": {
+                    "type": "null"
+                  },
+                  "kind": {
+                    "enum": [
+                      "unavailable",
+                      "not-applicable"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "digest"
+                ],
+                "type": "object"
+              }
+            ]
+          },
           "item": {
             "additionalProperties": false,
             "properties": {

@@ -4,7 +4,7 @@ title: "A packet delta reproduces the packet it names"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -36,6 +36,13 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-types/src/context_packet.rs" }, nature: additive }
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-types/schemas/context-packet.schema.json" }, nature: additive }
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-core/src/context_packet.rs" }, nature: additive }
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-core/tests/context_packet.rs" }, nature: additive }
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_context.rs" }, nature: additive }
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs" }, nature: additive }
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "docs/context-packets.md" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap rows L and M" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/delta.rs" }, role: "path-level change classifier, distinguished in 3.11" }
@@ -516,6 +523,22 @@ reproduces from and which it refuses. Behavior is unchanged.
 **D-16 (2026-10-10, review): apply names where a reused closure comes from.**
 Review found that 3.7 step 3 used "the closure" without saying that a null
 `target.closure` means the predecessor's. Step 3 now says so, matching 3.6.
+
+**D-17 (2026-10-15, build): the interface constructions, exactly.** 3.5
+names each digest by reference; the build fixes the three it leaves open. The
+obligation digest is `sha256:` plus the spec 107 digest of a closure holding
+that obligation alone, which is exactly its piece under 107 D-8 (the piece
+name, a NUL, and the member's canonical JSON). The symbol digest is `sha256:`
+plus spec 077 `frame/1` over four text pieces, `identity`, `projection`
+(`"signature"`), `path` and `content`: the item framing of spec 155 without
+`span`. The signature is selected under the packet ceiling, never the
+request's `maxBytes`, so an interface does not depend on a caller's budget;
+any omission of the signature makes the interface `unavailable`.
+
+**D-18 (2026-10-15, build): D-9's edges, and two more.** Spec 159 has
+shipped, so the build declares the five `extends` edges D-9 deferred. It adds
+two for 159's core and CLI test files, whose version assertions move with the
+MINOR, so 164 owns every 159 file it edits.
 
 ## Verification
 

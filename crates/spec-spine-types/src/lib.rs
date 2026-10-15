@@ -85,9 +85,10 @@ pub use content::{
 };
 pub use context_packet::{
     ContextPacket, PACKET_DEFAULT_MAX_BYTES, PACKET_DEFAULT_MAX_ITEMS, PACKET_MAX_BYTES_LIMIT,
-    PACKET_MAX_ITEMS_LIMIT, PACKET_OPAQUE_LIMIT, PacketClosure, PacketMember, PacketMemberRequest,
-    PacketOmission, PacketOmissionReason, PacketOrigin, PacketProducer, PacketRequest,
-    PacketRequirement, PacketSnapshot, PacketWarning, PacketWarningCode,
+    PACKET_MAX_ITEMS_LIMIT, PACKET_OPAQUE_LIMIT, PacketClosure, PacketInterface,
+    PacketInterfaceKind, PacketMember, PacketMemberRequest, PacketOmission, PacketOmissionReason,
+    PacketOrigin, PacketProducer, PacketRequest, PacketRequirement, PacketSnapshot, PacketWarning,
+    PacketWarningCode,
 };
 pub use coverage::{
     CoverageReport, Enumeration, Inventory, InventoryProvenance, NearMissHeader, NearMissReason,

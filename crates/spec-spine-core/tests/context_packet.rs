@@ -9,8 +9,8 @@ use spec_spine_core::{
 use spec_spine_types::{
     CONTEXT_PACKET_SCHEMA, Config, ContentCompleteness, ContentDirtyState, ContentProjection,
     ContentSelector, ContentSnapshot, ContentSnapshotBinding, ContextPacket, Error, PacketClosure,
-    PacketMemberRequest, PacketOmissionReason, PacketOrigin, PacketRequest, PacketRequirement,
-    PacketWarningCode, RepoPath,
+    PacketInterfaceKind, PacketMemberRequest, PacketOmissionReason, PacketOrigin, PacketRequest,
+    PacketRequirement, PacketWarningCode, RepoPath,
 };
 
 const BODY: &str = "# 001\n\n## 3. Behavior\n\n### 3.1 The rule\n\nThe rule text.\n\n### 3.2 Retired\n\nOld text.\n";
@@ -546,7 +546,7 @@ fn malformed_requests_are_usage_and_unsupported_schemas_are_refused() {
     );
     assert!(matches!(bad_build, Err(Error::Usage(_))), "{bad_build:?}");
 
-    for version in ["2.0.0", "1.1.0"] {
+    for version in ["2.0.0", "1.2.0"] {
         let mut r = request("002", vec![]);
         r.consumer_schema_version = version.into();
         let refused = assemble(tmp.path(), &r);
@@ -643,7 +643,7 @@ fn emitted_packets_conform_and_the_facade_writes_the_same_bytes() {
             .map(|e| e.to_string())
             .collect();
         assert!(errors.is_empty(), "{}", errors.join("\n"));
-        assert_eq!(instance["schemaVersion"], "1.0.0");
+        assert_eq!(instance["schemaVersion"], "1.1.0");
     }
     let drifted = serde_json::json!({ "schemaVersion": "1.0.0", "members": [] });
     assert!(!validator.is_valid(&drifted));
@@ -680,4 +680,238 @@ fn the_documented_request_shape_parses_and_assembles() {
         packet.request.rationale.as_deref(),
         Some("fixture: the documented request shape")
     );
+}
+
+// ---- spec 164 3.5: interface digests ------------------------------------------
+
+fn member_request(selector: ContentSelector) -> PacketMemberRequest {
+    PacketMemberRequest {
+        selector,
+        requirement: PacketRequirement::Required,
+    }
+}
+
+fn interface_of<'a>(
+    packet: &'a ContextPacket,
+    identity: &str,
+) -> &'a spec_spine_types::PacketInterface {
+    packet
+        .members
+        .iter()
+        .find(|m| m.identity == identity)
+        .and_then(|m| m.interface.as_ref())
+        .unwrap_or_else(|| panic!("no interface for {identity}"))
+}
+
+#[test]
+fn spec_section_and_obligation_members_carry_the_digests_a_pin_holder_holds() {
+    let tmp = corpus();
+    let packet = assemble(
+        tmp.path(),
+        &request(
+            "002",
+            vec![
+                member_request(ContentSelector::SpecSection {
+                    spec: "001".into(),
+                    anchor: "3-1-the-rule".into(),
+                    projection: None,
+                    required: true,
+                }),
+                member_request(ContentSelector::Obligation {
+                    obligation: "001-a#R-1".into(),
+                    projection: None,
+                    required: true,
+                }),
+                file("notes/a.txt", PacketRequirement::Required),
+            ],
+        ),
+    )
+    .unwrap();
+    let cfg = Config::default();
+    let registry = spec_spine_core::load_committed_registry(&cfg, tmp.path()).unwrap();
+    let hashes = spec_spine_core::committed_content_hashes(&cfg, tmp.path()).unwrap();
+
+    let spec = interface_of(&packet, "spec:002-b");
+    assert_eq!(spec.kind, PacketInterfaceKind::SpecContentHash);
+    assert_eq!(
+        spec.digest.as_deref(),
+        Some(format!("sha256:{}", hashes["002-b"]).as_str()),
+        "the value a spec 110 reference pins as `digest`"
+    );
+
+    let record = registry.specs.iter().find(|s| s.id == "001-a").unwrap();
+    let section = interface_of(&packet, "section:001-a#3-1-the-rule");
+    assert_eq!(section.kind, PacketInterfaceKind::SectionDigest);
+    assert_eq!(
+        section.digest.as_deref(),
+        Some(format!("sha256:{}", record.section_digests["3-1-the-rule"]).as_str())
+    );
+
+    // The obligation piece digest is the digest of a closure holding that
+    // obligation alone (spec 107 3.4, D-8).
+    let alone = spec_spine_core::resolve_closure(
+        &registry,
+        &hashes,
+        &serde_json::from_value(serde_json::json!({ "obligations": ["001-a#R-1"] })).unwrap(),
+    )
+    .unwrap();
+    let obligation = interface_of(&packet, "obligation:001-a#R-1");
+    assert_eq!(obligation.kind, PacketInterfaceKind::ObligationDigest);
+    assert_eq!(
+        obligation.digest.as_deref(),
+        Some(format!("sha256:{}", alone.digest).as_str())
+    );
+
+    let plain = interface_of(&packet, "file:notes/a.txt");
+    assert_eq!(plain.kind, PacketInterfaceKind::NotApplicable);
+    assert_eq!(plain.digest, None);
+}
+
+#[test]
+fn an_obligation_interface_moves_with_its_anchor_section_under_an_equal_item() {
+    let tmp = corpus();
+    let req = request(
+        "002",
+        vec![member_request(ContentSelector::Obligation {
+            obligation: "001-a#R-1".into(),
+            projection: Some(ContentProjection::Declaration),
+            required: true,
+        })],
+    );
+    let before = assemble(tmp.path(), &req).unwrap();
+    // Edit the anchor section's prose; the obligation's frontmatter entry
+    // (what the declaration projection selects) is unchanged.
+    spec(
+        tmp.path(),
+        "001-a",
+        OBLIGATIONS,
+        &BODY.replace("The rule text.", "The rule text, amended."),
+    );
+    commit_ledger(tmp.path());
+    let after = assemble(tmp.path(), &req).unwrap();
+    let key = "obligation:001-a#R-1";
+    let item = |p: &ContextPacket| {
+        p.members
+            .iter()
+            .find(|m| m.identity == key)
+            .unwrap()
+            .item
+            .clone()
+    };
+    assert_eq!(item(&before).content, item(&after).content);
+    assert_ne!(
+        interface_of(&before, key).digest,
+        interface_of(&after, key).digest
+    );
+}
+
+#[test]
+fn every_emitted_member_carries_an_interface_and_validates() {
+    let tmp = corpus();
+    let packet = assemble(
+        tmp.path(),
+        &request(
+            "001",
+            vec![file("notes/z.txt", PacketRequirement::Optional)],
+        ),
+    )
+    .unwrap();
+    assert!(packet.members.iter().all(|m| m.interface.is_some()));
+    let document = context_packet_document(&packet).unwrap();
+    let instance: serde_json::Value = serde_json::from_str(&document).unwrap();
+    let schema: serde_json::Value = serde_json::from_str(CONTEXT_PACKET_SCHEMA).unwrap();
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    assert!(validator.is_valid(&instance));
+    // A digest kind without a digest, or a null kind with one, is refused.
+    let mut forged = instance.clone();
+    forged["members"][0]["interface"] =
+        serde_json::json!({ "kind": "spec-content-hash", "digest": null });
+    assert!(!validator.is_valid(&forged));
+    forged["members"][0]["interface"] = serde_json::json!({ "kind": "not-applicable", "digest": format!("sha256:{}", "a".repeat(64)) });
+    assert!(!validator.is_valid(&forged));
+}
+
+#[test]
+fn a_1_0_0_page_without_interfaces_still_reads_back_and_recomputes() {
+    let tmp = corpus();
+    let mut packet = assemble(tmp.path(), &request("002", vec![])).unwrap();
+    for m in &mut packet.members {
+        m.interface = None;
+    }
+    packet.schema_version = "1.0.0".into();
+    packet.packet_digest = packet_digest(&packet).unwrap();
+    let text = context_packet_document(&packet).unwrap();
+    assert!(!text.contains("\"interface\""));
+    let back: ContextPacket = serde_json::from_str(&text).unwrap();
+    assert_eq!(packet_digest(&back).unwrap(), back.packet_digest);
+}
+
+/// A crate with one function whose signature is line-bounded (its body opens
+/// on the next line) and one whose body opens on the signature line, with the
+/// committed registry and index.
+#[cfg(feature = "symbol-resolution")]
+fn symbol_corpus(signature: &str, body: &str) -> tempfile::TempDir {
+    use spec_spine_core::shard::{BY_PACKAGE_DIR, BY_SPEC_DIR};
+    let tmp = corpus();
+    let root = tmp.path();
+    write(
+        root,
+        "Cargo.toml",
+        "[package]\nname = \"demo\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+    );
+    write(
+        root,
+        "src/lib.rs",
+        &format!("{signature}\n{{\n    {body}\n}}\n\npub fn inline() -> u32 {{ 1 }}\n"),
+    );
+    let cfg = Config::default();
+    let outcome = spec_spine_core::index(&cfg, root).unwrap();
+    let dir = spec_spine_core::index_dir(&cfg, root);
+    let (by_spec, by_package) = spec_spine_core::index_shard_files(&outcome.shards).unwrap();
+    shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
+    shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+    fs::write(dir.join(inputs_name), inputs).unwrap();
+    tmp
+}
+
+#[cfg(feature = "symbol-resolution")]
+fn symbol(id: &str, projection: ContentProjection) -> PacketMemberRequest {
+    member_request(ContentSelector::Symbol {
+        id: id.into(),
+        projection: Some(projection),
+        required: true,
+    })
+}
+
+#[cfg(feature = "symbol-resolution")]
+#[test]
+fn a_symbol_interface_follows_its_signature_not_its_body() {
+    let sig = "pub fn alpha(x: u32) -> u32";
+    let req = request(
+        "002",
+        vec![
+            symbol("demo::alpha", ContentProjection::Body),
+            symbol("demo::inline", ContentProjection::Full),
+        ],
+    );
+    let key = "symbol:demo::alpha";
+    let base = symbol_corpus(sig, "x + 1");
+    let base_packet = assemble(base.path(), &req).unwrap();
+    let interface = interface_of(&base_packet, key);
+    assert_eq!(interface.kind, PacketInterfaceKind::SymbolSignature);
+    assert!(interface.digest.is_some());
+    assert_eq!(
+        interface_of(&base_packet, "symbol:demo::inline").kind,
+        PacketInterfaceKind::Unavailable,
+        "a body opening on the signature line has no signature"
+    );
+
+    let body_only = symbol_corpus(sig, "x + 2");
+    let body_packet = assemble(body_only.path(), &req).unwrap();
+    assert_eq!(interface_of(&body_packet, key), interface);
+
+    let new_sig = symbol_corpus("pub fn alpha(x: u64) -> u32", "x as u32");
+    let sig_packet = assemble(new_sig.path(), &req).unwrap();
+    assert_ne!(interface_of(&sig_packet, key).digest, interface.digest);
 }
