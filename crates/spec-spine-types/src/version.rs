@@ -233,7 +233,10 @@ pub const CATALOG_SCHEMA_VERSION: &str = "1.1.0";
 
 /// `schemaVersion` of a context packet (`context packet --json`,
 /// `context_packet_json`; spec 159 3.11): its own axis, from `1.0.0`.
-pub const CONTEXT_PACKET_SCHEMA_VERSION: &str = "1.0.0";
+///
+/// `1.1.0` (spec 164 3.5, D-10): additive. Each member gains `interface`, the
+/// digest a dependent consumer pins.
+pub const CONTEXT_PACKET_SCHEMA_VERSION: &str = "1.1.0";
 
 /// `schemaVersion` of a documentation manifest and of a freshness result
 /// (`documentation manifest validate|freshness`, spec 160 3.13): one axis for

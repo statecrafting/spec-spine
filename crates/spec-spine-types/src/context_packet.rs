@@ -121,6 +121,38 @@ pub struct PacketMember {
     pub requirement: PacketRequirement,
     pub origins: Vec<PacketOrigin>,
     pub item: ContentItem,
+    /// What a dependent consumer pins (spec 164 3.5), added at context-packet
+    /// `1.1.0`. Always present on a page this build emits; absent only on a
+    /// `1.0.0` page read back.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub interface: Option<PacketInterface>,
+}
+
+/// A member's interface kind (spec 164 3.5), decided by its selector kind.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PacketInterfaceKind {
+    /// A `spec` member: `sha256:` plus the registry content hash.
+    SpecContentHash,
+    /// A `spec-section` member: the registry section digest.
+    SectionDigest,
+    /// An `obligation` member: spec 107's obligation piece digest.
+    ObligationDigest,
+    /// A `symbol` member: the framed signature projection, span excluded.
+    SymbolSignature,
+    /// A `symbol` member whose signature this build cannot select.
+    Unavailable,
+    /// Every other selector kind.
+    NotApplicable,
+}
+
+/// One member's interface: its kind and, for the four digest kinds, a
+/// `sha256:` digest; `null` for `unavailable` and `not-applicable`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct PacketInterface {
+    pub kind: PacketInterfaceKind,
+    pub digest: Option<String>,
 }
 
 /// Why a member is absent (spec 159 3.6).

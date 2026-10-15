@@ -64,6 +64,25 @@ one key collapse: `required` wins and both origins are kept, `closure` before
 Members are ordered by identity, then projection name, bytewise. The order of
 the request's `members` never changes the packet or its digests.
 
+## Interfaces
+
+From schema `1.1.0` (spec 164 3.5) every member carries an `interface`,
+`{ "kind", "digest" }`: what a dependent consumer pins, independent of the
+item digest.
+
+| Selector kind | `kind` | `digest` |
+|---|---|---|
+| `spec` | `spec-content-hash` | `sha256:` plus the registry content hash, the value a spec 110 reference pins as `digest` |
+| `spec-section` | `section-digest` | `sha256:` plus the registry section digest, the value a spec 110 reference pins under `sections` |
+| `obligation` | `obligation-digest` | the spec 107 piece digest of the obligation: the digest of a closure holding that obligation alone, so its anchor section is included |
+| `symbol` | `symbol-signature` | `sha256:` over the spec 077 framing of the symbol's signature projection (identity, projection, path, content; no span) |
+| `symbol` with no selectable signature | `unavailable` | `null` |
+| any other | `not-applicable` | `null` |
+
+An obligation's anchor section, or a `body`-projected symbol's signature, can
+change under an equal item; an edit above a selected section moves its span
+and item digest but not its section digest.
+
 ## Omissions, warnings and completeness
 
 An omission names the member's key, requirement and origins, and exactly one

@@ -19,14 +19,15 @@ use sha2::{Digest, Sha256};
 use spec_spine_types::{
     CONTEXT_PACKET_SCHEMA_VERSION, Config, ContentCompleteness, ContentOmissionReason,
     ContentProjection, ContentSelector, ContentSnapshot, ContextPacket, Error,
-    PACKET_MAX_BYTES_LIMIT, PACKET_MAX_ITEMS_LIMIT, PACKET_OPAQUE_LIMIT, PacketMember,
-    PacketMemberRequest, PacketOmission, PacketOmissionReason, PacketOrigin, PacketProducer,
-    PacketRequest, PacketRequirement, PacketSnapshot, PacketWarning, PacketWarningCode,
-    parse_semver,
+    PACKET_MAX_BYTES_LIMIT, PACKET_MAX_ITEMS_LIMIT, PACKET_OPAQUE_LIMIT, PacketInterface,
+    PacketInterfaceKind, PacketMember, PacketMemberRequest, PacketOmission, PacketOmissionReason,
+    PacketOrigin, PacketProducer, PacketRequest, PacketRequirement, PacketSnapshot, PacketWarning,
+    PacketWarningCode, parse_semver,
 };
 
 use crate::closure::{ClosureMember, ClosureRequest, SectionRef};
 use crate::content::{Resolution, Selected, content_item, resolve_selectors, validate_snapshot};
+use crate::snapshot::{PieceKind, PieceSet};
 use crate::{Versioning, canonical_json, read_document};
 
 /// The build identity recorded when the binding supplies none (spec 159 3.5).
@@ -210,8 +211,10 @@ pub fn context_packet(
             projection: member.projection,
             requirement: member.requirement,
             origins: member.origins,
+            interface: None,
         });
     }
+    assign_interfaces(cfg, repo_root, &mut page)?;
 
     omissions.sort_by(|a, b| {
         key_cmp((&a.identity, a.projection), (&b.identity, b.projection))
@@ -289,6 +292,170 @@ pub fn context_packet(
     };
     packet.packet_digest = packet_digest(&packet)?;
     Ok(packet)
+}
+
+/// Give every page member its interface (spec 164 3.5). The registry is read
+/// only when a member is a spec, section or obligation, and the resolver runs
+/// only for symbols; both read the same export the members came from.
+fn assign_interfaces(
+    cfg: &Config,
+    repo_root: &Path,
+    page: &mut [PacketMember],
+) -> Result<(), Error> {
+    let needs_registry = page.iter().any(|m| {
+        matches!(
+            m.item.selector,
+            ContentSelector::Spec { .. }
+                | ContentSelector::SpecSection { .. }
+                | ContentSelector::Obligation { .. }
+        )
+    });
+    let ledger = if needs_registry {
+        Some((
+            crate::compile::load_committed_registry(cfg, repo_root)?,
+            crate::closure::committed_content_hashes(cfg, repo_root)?,
+        ))
+    } else {
+        None
+    };
+    // One resolver pass selects every symbol member's signature. The budget
+    // is the packet ceiling, not the request's: an interface must not depend
+    // on the caller's budget.
+    let symbols: Vec<ContentSelector> = page
+        .iter()
+        .filter_map(|m| match &m.item.selector {
+            ContentSelector::Symbol { id, .. } => Some(ContentSelector::Symbol {
+                id: id.clone(),
+                projection: Some(ContentProjection::Signature),
+                required: true,
+            }),
+            _ => None,
+        })
+        .collect();
+    let mut signatures = if symbols.is_empty() {
+        Vec::new()
+    } else {
+        resolve_selectors(
+            cfg,
+            repo_root,
+            &symbols,
+            ContentProjection::Signature,
+            PACKET_MAX_BYTES_LIMIT,
+        )?
+    }
+    .into_iter();
+
+    for member in page.iter_mut() {
+        let digest_of_kind = |kind, digest: String| PacketInterface {
+            kind,
+            digest: Some(digest),
+        };
+        let none = |kind| PacketInterface { kind, digest: None };
+        let interface = match &member.item.selector {
+            ContentSelector::Spec { .. } => {
+                let (_, hashes) = ledger.as_ref().expect("registry loaded");
+                let id = member_spec_id(&member.identity, "spec:")?;
+                let hash = hashes.get(id).ok_or_else(|| {
+                    Error::Internal(format!("spec '{id}' has no committed shard"))
+                })?;
+                digest_of_kind(
+                    PacketInterfaceKind::SpecContentHash,
+                    format!("sha256:{hash}"),
+                )
+            }
+            ContentSelector::SpecSection { anchor, .. } => {
+                let (registry, _) = ledger.as_ref().expect("registry loaded");
+                let id = member_spec_id(&member.identity, "section:")?;
+                let digest = registry
+                    .specs
+                    .iter()
+                    .find(|r| r.id == id)
+                    .and_then(|r| r.section_digests.get(anchor))
+                    .ok_or_else(|| {
+                        Error::Internal(format!(
+                            "section '{id}#{anchor}' has no section digest in the ledger"
+                        ))
+                    })?;
+                digest_of_kind(
+                    PacketInterfaceKind::SectionDigest,
+                    format!("sha256:{digest}"),
+                )
+            }
+            ContentSelector::Obligation { .. } => {
+                let (registry, hashes) = ledger.as_ref().expect("registry loaded");
+                let reference = member
+                    .identity
+                    .strip_prefix("obligation:")
+                    .ok_or_else(|| Error::Internal("obligation member identity".into()))?;
+                let one = crate::closure::resolve_closure(
+                    registry,
+                    hashes,
+                    &ClosureRequest {
+                        obligations: vec![reference.to_string()],
+                        ..ClosureRequest::default()
+                    },
+                )?;
+                // A one-member closure digests exactly that member's piece
+                // (spec 107 3.4, D-8): the obligation piece digest.
+                digest_of_kind(
+                    PacketInterfaceKind::ObligationDigest,
+                    format!("sha256:{}", one.digest),
+                )
+            }
+            ContentSelector::Symbol { .. } => {
+                let resolution = signatures.next().ok_or_else(|| {
+                    Error::Internal("the resolver returned fewer signatures than symbols".into())
+                })?;
+                match resolution.outcome {
+                    Ok(selected) => {
+                        let mut set = PieceSet::new();
+                        set.insert(
+                            "identity".into(),
+                            PieceKind::Text,
+                            member.identity.as_bytes().to_vec(),
+                        );
+                        set.insert(
+                            "projection".into(),
+                            PieceKind::Text,
+                            serde_json::to_string(&ContentProjection::Signature)
+                                .map_err(|e| Error::Internal(e.to_string()))?
+                                .into_bytes(),
+                        );
+                        set.insert(
+                            "path".into(),
+                            PieceKind::Text,
+                            selected.path.as_str().as_bytes().to_vec(),
+                        );
+                        set.insert(
+                            "content".into(),
+                            PieceKind::Text,
+                            selected.content.into_bytes(),
+                        );
+                        let digest = set
+                            .digest()
+                            .ok_or_else(|| Error::Internal("empty signature framing".into()))?;
+                        digest_of_kind(
+                            PacketInterfaceKind::SymbolSignature,
+                            format!("sha256:{digest}"),
+                        )
+                    }
+                    Err(_) => none(PacketInterfaceKind::Unavailable),
+                }
+            }
+            _ => none(PacketInterfaceKind::NotApplicable),
+        };
+        member.interface = Some(interface);
+    }
+    Ok(())
+}
+
+/// The spec id a resolved member identity carries after `prefix`, up to any
+/// `#` (spec ids hold no `#`).
+fn member_spec_id<'a>(identity: &'a str, prefix: &str) -> Result<&'a str, Error> {
+    identity
+        .strip_prefix(prefix)
+        .map(|rest| rest.split_once('#').map_or(rest, |(id, _)| id))
+        .ok_or_else(|| Error::Internal(format!("member identity '{identity}' is not {prefix}")))
 }
 
 /// Write one packet page as its canonical document: sorted keys, two-space

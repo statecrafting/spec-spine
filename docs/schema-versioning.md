@@ -21,7 +21,7 @@
 | traceability report (`registry traceability --json`, `traceability_json`; spec 169) | `traceabilityVersion` | `1.0.0` | library (beside the read stamp) |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.2.0` | library |
 | capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.1.0` | library |
-| context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.0.0` | library |
+| context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.1.0` | library |
 | read-only tool projection (`capabilities --projection --json`, `tool_projection_json()`, spec 167) | `schemaVersion` | `1.0.0` | library |
 | documentation manifest and freshness result (`documentation manifest validate\|freshness --json`, spec 160) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -427,6 +427,10 @@ carries `schemaVersion` = `CONTEXT_PACKET_SCHEMA_VERSION`, starting at
 normalized request and `requestDigest`, the spec 107 closure and its digest,
 ordered members carrying complete spec 155 items, omissions, warnings,
 `completeness`, an opaque `continuation`, and `packetDigest`.
+
+**`1.1.0` (spec 164 3.5, D-10).** Additive: each member gains `interface`,
+`{ "kind", "digest" }`, the digest a dependent consumer pins. A `1.0.0` page
+still reads back; a request naming `1.0.0` is still served.
 
 The axis moves MINOR for an added optional member, and MAJOR for a removed or
 reinterpreted member, ordering rule, digest input or enum value. PATCH changes

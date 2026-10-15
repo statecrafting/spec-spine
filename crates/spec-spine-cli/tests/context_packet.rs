@@ -112,7 +112,7 @@ fn a_clean_head_and_an_exported_revision_bind_the_packet_to_git_objects() {
             String::from_utf8_lossy(&out.stderr)
         );
         let doc = json(&out);
-        assert_eq!(doc["schemaVersion"], "1.0.0");
+        assert_eq!(doc["schemaVersion"], "1.1.0");
         assert_eq!(doc["snapshot"]["revision"], head);
         assert_eq!(doc["snapshot"]["tree"], tree);
         assert_eq!(doc["snapshot"]["dirtyState"], dirty);
@@ -219,5 +219,5 @@ fn capabilities_name_the_verb_and_its_own_axis() {
         .find(|verb| verb["path"] == "context packet")
         .expect("context packet is listed");
     assert_eq!(verb["json"][0]["axis"], "context-packet");
-    assert_eq!(verb["json"][0]["version"], "1.0.0");
+    assert_eq!(verb["json"][0]["version"], "1.1.0");
 }
