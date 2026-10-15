@@ -23,6 +23,20 @@ const OBLIGATIONS: &str = "obligations:\n  - id: \"R-1\"\n    kind: requirement\
 const BUILD: &str = "sha256:abababababababababababababababababababababababababababababababab";
 const OTHER_BUILD: &str = "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd";
 
+/// `BUILD` and `OTHER_BUILD` are well-formed: `sha256:` and 64 lowercase
+/// hex digits, as `context_packet` requires of a producer build.
+#[test]
+fn the_fixture_build_digests_are_well_formed() {
+    for build in [BUILD, OTHER_BUILD] {
+        let hex = build.strip_prefix("sha256:").unwrap();
+        assert_eq!(hex.len(), 64, "{build}");
+        assert!(
+            hex.bytes()
+                .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+        );
+    }
+}
+
 fn write(root: &Path, rel: &str, text: &str) {
     let path = root.join(rel);
     fs::create_dir_all(path.parent().unwrap()).unwrap();

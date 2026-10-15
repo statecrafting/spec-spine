@@ -606,7 +606,10 @@ fn build_delta(
     } else {
         Some(first.closure.clone())
     };
-    let closure_changed = predecessor[0].closure_digest != first.closure_digest;
+    // 3.8 over-selects on a changed closure. A predecessor whose digest is
+    // equal but whose document is not (forged) changed it too.
+    let closure_changed =
+        predecessor[0].closure_digest != first.closure_digest || closure.is_some();
 
     let candidates = candidates(
         manifests,
