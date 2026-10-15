@@ -138,6 +138,21 @@ pub fn validate_documentation_manifest(
     snapshot: &PacketSnapshot,
     outputs: &OutputBytes,
 ) -> Result<DocumentationManifest, Error> {
+    let m = validate_manifest_inputs(manifest, pages, snapshot)?;
+    check_outputs(&m, outputs)?;
+    Ok(m)
+}
+
+/// Everything [`validate_documentation_manifest`] checks except the output
+/// bytes: structure and digest, the snapshot, the complete page set, and
+/// every input and omission against those pages. The edit planner (spec 165
+/// 3.7) validates a replacement manifest this way, because the outputs it
+/// describes are what the change itself writes.
+pub(crate) fn validate_manifest_inputs(
+    manifest: &DocumentationManifest,
+    pages: &[ContextPacket],
+    snapshot: &PacketSnapshot,
+) -> Result<DocumentationManifest, Error> {
     let m = check_structure(manifest)?;
     if snapshot != &m.packet.snapshot {
         return Err(Error::Refused(
@@ -204,6 +219,12 @@ pub fn validate_documentation_manifest(
             }
         }
     }
+    Ok(m)
+}
+
+/// Spec 160 3.7 to 3.9: every output exists in the snapshot with its recorded
+/// digest, length and region coverage.
+fn check_outputs(m: &DocumentationManifest, outputs: &OutputBytes) -> Result<(), Error> {
     for output in &m.outputs {
         let bytes = outputs
             .get(output.path.as_str())
@@ -245,7 +266,7 @@ pub fn validate_documentation_manifest(
             }
         }
     }
-    Ok(m)
+    Ok(())
 }
 
 /// Evaluate a manifest's freshness (spec 160 3.10, 3.11, 3.14) against one
