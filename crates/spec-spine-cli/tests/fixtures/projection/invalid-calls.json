@@ -1,0 +1,47 @@
+[
+  {
+    "tool": "spec_spine_registry_show",
+    "arguments": { "id": "001", "repo": "/elsewhere" },
+    "why": "the bound repository is never a property"
+  },
+  {
+    "tool": "spec_spine_registry_show",
+    "arguments": {},
+    "why": "a required positional is missing"
+  },
+  {
+    "tool": "spec_spine_registry_show",
+    "arguments": { "id": "--json" },
+    "why": "a value beginning with a dash could be read as a flag"
+  },
+  {
+    "tool": "spec_spine_verify_plan",
+    "arguments": { "id": "001", "affected-by": "HEAD" },
+    "why": "a sibling variant's selector is not this tool's to pass"
+  },
+  {
+    "tool": "spec_spine_verify_plan",
+    "arguments": { "id": "001", "plan": false },
+    "why": "a fixed selector is not a property"
+  },
+  {
+    "tool": "spec_spine_index_coverage",
+    "arguments": { "paths-from": "/etc/passwd" },
+    "why": "an optional host path is left out of the schema"
+  },
+  {
+    "tool": "spec_spine_lint",
+    "arguments": { "fail-on-warn": "yes" },
+    "why": "a switch is a boolean"
+  },
+  {
+    "tool": "spec_spine_capabilities_verify",
+    "arguments": { "expect": "capabilities=sha256:00" },
+    "why": "a repeatable flag is an array"
+  },
+  {
+    "tool": "spec_spine_registry_closure",
+    "arguments": { "request": "request.json" },
+    "why": "a document request is an object, never a path"
+  }
+]

@@ -4,7 +4,7 @@ title: "Project cataloged reads as read-only tools"
 status: draft
 kind: "governance"
 created: "2026-10-10"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -27,9 +27,9 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/schemas/tool-projection.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/projection.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/projection.rs" }
-  - { kind: file, path: "crates/spec-spine-cli/tests/projection.rs", planned: true }
-  - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/projection/", planned: true }
-  - { kind: file, path: "docs/read-only-projection.md", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/tests/projection.rs" }
+  - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/projection/" }
+  - { kind: section, file: "docs/read-only-projection.md", anchor: "the-read-only-tool-projection" }
 amends:
   - "162-capability-catalog"   # D-14: a CLI binding names the flags that select its operation
 extends:
@@ -534,6 +534,24 @@ tool declares a budget, so §3.6's `maxBytes` and `maxItems` properties have
 no tool to appear on yet; `content.select` and `context.packet` carry their
 budgets inside the request document, and project once their verbs read it
 from stdin. The core test pins this list.
+
+**D-17 (2026-10-14, build): what the CLI half had to decide.** Five choices
+the text left open. (1) An adapter error's `kind` is its §3.7 code, as §3.7
+says, although the verdict's `error.kind` vocabulary (spec 132) is closed and
+does not hold those codes: the envelope's verb is `projection`, which no
+spec-spine verb uses, so a consumer branching on `kind` branches on `verb`
+first; `docs/read-only-projection.md` says so. (2) The §3.11 round trip
+compares the arguments clap parses (each option and its value, each
+positional in its position, a document request by content), not the token
+order: an example writes its flags in any order and the mapping emits them in
+one. (3) Acceptance 6 leaves spec 170's `verbs` list gaining only the flag, so
+the `capabilities` entry's `json` axes are unchanged; the catalog records the
+projection's axis as a conditional response of `capabilities` (D-7), and the
+facade census sees `tool_projection_json` on that operation. (4) The catalog
+gains the example `capabilities-projection`, so spec 162's example suite runs
+the new form against the built binary too. (5)
+`docs/read-only-projection.md` is claimed as its top section, as spec 162 claims its document, so the claim is hashed through
+the section's span (`L-008`) rather than adding a governance input.
 
 ## Verification
 

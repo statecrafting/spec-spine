@@ -488,7 +488,7 @@ fn operations() -> Vec<Operation> {
             "State what this binary supports: every verb, its flags, and the schema its `--json` output carries (spec 170). Reads no repository and writes nothing",
             &["162-capability-catalog", "170-a-consumer-is-served-answers-not-access"],
         )
-        .cli("capabilities", "read-document", &["--json", "--operation=NAME"])
+        .cli("capabilities", "read-document", &["--json", "--operation=NAME", "--projection"])
         .reads(&[])
         .before_the_pin()
         .finding(&["not-found"])
@@ -503,6 +503,13 @@ fn operations() -> Vec<Operation> {
             schema_id("capability-catalog.schema.json"),
         )
         .response(Some("--operation"), "catalog", "catalog-operation", None)
+        // Spec 167 D-7: the projection is another answer of this operation.
+        .response(
+            Some("--projection"),
+            "tool-projection",
+            "tool-projection",
+            schema_id("tool-projection.schema.json"),
+        )
         .facade("capability_catalog_json", None, false)
         // Spec 167 D-7: the projection is an answer of this operation.
         .facade("tool_projection_json", None, false)
@@ -521,6 +528,13 @@ fn operations() -> Vec<Operation> {
             &["capabilities", "--operation", "no.such-operation", "--json"],
             1,
             &["\"kind\": \"not-found\""],
+        )
+        .example(
+            "capabilities-projection",
+            None,
+            &["capabilities", "--projection", "--json"],
+            0,
+            &["\"projectionDigest\"", "\"spec_spine_check\""],
         )
         .done(),
         op(

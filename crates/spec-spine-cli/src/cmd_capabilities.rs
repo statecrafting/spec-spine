@@ -15,6 +15,8 @@
 //! the document carries the capability catalog under `catalog`,
 //! `--operation <name>` shows one of its records, and `capabilities verify`
 //! checks pinned operation digests against it (162 §3.11, §3.12).
+//! `--projection` shows the catalog's judging-tier reads as read-only tools
+//! (spec 167 §3.8), a form of this verb rather than a verb of its own.
 
 use std::collections::BTreeMap;
 
@@ -45,13 +47,24 @@ pub enum CapabilitiesAction {
     },
 }
 
-/// Route `capabilities`: the document, one record, or the pin check.
+/// Route `capabilities`: the document, one record, the tool projection, or
+/// the pin check.
 pub fn dispatch(
     cli: &clap::Command,
     json: bool,
     operation: Option<&str>,
+    projection: bool,
     action: Option<&CapabilitiesAction>,
 ) -> Result<u8, Error> {
+    if projection {
+        if action.is_some() || operation.is_some() {
+            return Err(Error::Usage(
+                "`--projection` shows the tool projection; give it without `--operation` or `verify`"
+                    .to_string(),
+            ));
+        }
+        return show_projection(json);
+    }
     match (action, operation) {
         (Some(CapabilitiesAction::Verify { .. }), Some(_)) => Err(Error::Usage(
             "`--operation` shows one record and `verify` checks pins; give one, not both"
@@ -69,6 +82,20 @@ pub fn dispatch(
         (None, Some(name)) => show_operation(name, json),
         (None, None) => run(cli, json),
     }
+}
+
+/// `--projection`: the read-only tool projection (spec 167 §3.8). The JSON
+/// form is `tool_projection_json()`'s bytes, the same code the facade
+/// exposes; the human form names each tool and its operation.
+fn show_projection(json: bool) -> Result<u8, Error> {
+    if json {
+        out!("{}", spec_spine_core::tool_projection_json()?);
+    } else {
+        for tool in spec_spine_core::tool_projection()?.tools {
+            outln!("{}  {}", tool.name, tool.operation);
+        }
+    }
+    Ok(0)
 }
 
 /// `--operation <name>`: one catalog record (162 §3.12).
