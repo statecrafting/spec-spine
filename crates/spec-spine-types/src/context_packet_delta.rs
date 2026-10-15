@@ -141,7 +141,9 @@ pub struct DeltaEntry {
     pub reason: Option<PacketOmissionReason>,
     /// For `changed`: which of content, span, requirement and origins differ,
     /// each once and in declaration order. Empty when the difference lies
-    /// elsewhere in the record (D-19).
+    /// elsewhere in the record (D-19). A repeated field is refused on read, as
+    /// the schema's `uniqueItems` refuses it.
+    #[serde(deserialize_with = "unique_fields")]
     pub fields: BTreeSet<ChangedField>,
     /// For `interface-changed`: both interfaces, so a spec 110 pin holder can
     /// match either digest.
@@ -150,6 +152,19 @@ pub struct DeltaEntry {
     /// The complete target member, for `changed`, `interface-changed` and
     /// `newly-available`; null otherwise.
     pub record: Option<PacketMember>,
+}
+
+/// Read `fields`, refusing a repeated entry rather than collapsing it.
+fn unique_fields<'de, D>(deserializer: D) -> Result<BTreeSet<ChangedField>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let listed = Vec::<ChangedField>::deserialize(deserializer)?;
+    let set: BTreeSet<ChangedField> = listed.iter().copied().collect();
+    if set.len() != listed.len() {
+        return Err(serde::de::Error::custom("`fields` repeats an entry"));
+    }
+    Ok(set)
 }
 
 /// Every change kind's count, zeros included (spec 164 3.6).
@@ -307,12 +322,21 @@ mod tests {
     }
 
     #[test]
-    fn changed_fields_are_a_set_in_declaration_order() {
-        let fields: BTreeSet<ChangedField> =
-            serde_json::from_str(r#"["origins","content","content","span"]"#).unwrap();
+    fn changed_fields_are_unique_and_written_in_declaration_order() {
+        let entry = |fields: &str| {
+            format!(
+                r#"{{"key":{{"identity":"file:a","projection":"full"}},"change":"changed","basis":"digest","priorState":"present","priorItemDigest":null,"priorReason":null,"reason":null,"fields":{fields},"priorInterface":null,"interface":null,"record":null}}"#
+            )
+        };
+        let read: DeltaEntry =
+            serde_json::from_str(&entry(r#"["origins","content","span"]"#)).unwrap();
         assert_eq!(
-            serde_json::to_string(&fields).unwrap(),
-            r#"["content","span","origins"]"#
+            serde_json::to_value(&read).unwrap()["fields"],
+            serde_json::json!(["content", "span", "origins"])
+        );
+        assert!(
+            serde_json::from_str::<DeltaEntry>(&entry(r#"["content","content"]"#)).is_err(),
+            "a repeated field is refused, as uniqueItems refuses it"
         );
     }
 
