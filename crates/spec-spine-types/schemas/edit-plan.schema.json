@@ -176,7 +176,10 @@
           "status": {
             "const": "refused"
           }
-        }
+        },
+        "required": [
+          "status"
+        ]
       },
       "properties": {
         "authorityEffect": {
