@@ -19,8 +19,8 @@ summary: >
   reproduces the target byte for byte or falls back explicitly, plus pure
   invalidation candidates over spec-160 manifests. No session state.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/context_packet_delta.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-types/schemas/context-packet-delta.schema.json", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/context_packet_delta.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/context-packet-delta.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/context_packet_delta.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-core/tests/context_packet_delta.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet-delta/", planned: true }
@@ -43,6 +43,8 @@ extends:
   - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_context.rs" }, nature: additive }
   - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs" }, nature: additive }
   - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "docs/context-packets.md" }, nature: additive }
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap rows L and M" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/delta.rs" }, role: "path-level change classifier, distinguished in 3.11" }
@@ -529,9 +531,11 @@ names each digest by reference; the build fixes the three it leaves open. The
 obligation digest is `sha256:` plus the spec 107 digest of a closure holding
 that obligation alone, which is exactly its piece under 107 D-8 (the piece
 name, a NUL, and the member's canonical JSON). The symbol digest is `sha256:`
-plus spec 077 `frame/1` over four text pieces, `identity`, `projection`
-(`"signature"`), `path` and `content`: the item framing of spec 155 without
-`span`. The signature is selected under the packet ceiling, never the
+plus spec 077 `frame/1` over four text pieces, `identity`, `projection`,
+`path` and `content`: the item framing of spec 155 without `span`, each piece
+encoded exactly as that framing encodes it. So `projection` is the JSON string
+`"signature"`, quotes included (11 bytes), as `content_item` writes every item's
+projection piece, and the other three are raw UTF-8. The signature is selected under the packet ceiling, never the
 request's `maxBytes`, so an interface does not depend on a caller's budget;
 any omission of the signature makes the interface `unavailable`.
 
@@ -539,6 +543,36 @@ any omission of the signature makes the interface `unavailable`.
 shipped, so the build declares the five `extends` edges D-9 deferred. It adds
 two for 159's core and CLI test files, whose version assertions move with the
 MINOR, so 164 owns every 159 file it edits.
+
+**D-19 (2026-10-15, build): what the build fixed that 3.3 to 3.9 leave
+open.** Seven choices, none changing a stated behavior:
+
+1. Row 3's structural check also requires every page to carry the same
+   omission list (spec 159 repeats the complete list on each page) and no key
+   to be both a member and an omission. A set failing either is not one set.
+2. Rows 2 to 7 are decided before the target is assembled, so a fallback
+   never depends on the target snapshot's ledger. Row 8 needs the target and
+   runs after it.
+3. The predecessor's closure document is reused (`target.closure` null) only
+   when it equals the target's exactly. An equal `closureDigest` beside a
+   different document is a forged predecessor, and D-2 decides reuse by
+   record equality.
+4. A `changed` entry's `fields` lists the four 3.4 names that differ, and is
+   empty when the difference lies elsewhere in the record (its path,
+   selector or item schema). Every entry member is always present; one that
+   does not apply is null or empty.
+5. A manifest's `omissions` are inputs for 3.9: each carries its own
+   identity and `uses`, with requirement `optional`. This is what makes
+   3.8's `closure-changed` reachable at all, since a closure member is
+   required and spec 160 records an omitted required member nowhere else.
+6. `apply` refuses a malformed delta (a repeated entry key, a record on a
+   kind that carries none or a missing one on a kind that does, a record
+   for another key, a carried record no layout uses, a layout key neither
+   side holds, an envelope carrying `members`, `omissions` or `closure`) as
+   a usage error. A fallback document is not a delta and is a usage error.
+7. The delta document has no `completeness`. `context delta` exits 1 when
+   any target layout's envelope records `incomplete`, which
+   `delta_target_incomplete` reads.
 
 ## Verification
 

@@ -22,6 +22,7 @@
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.2.0` | library |
 | capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.1.0` | library |
 | context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.1.0` | library |
+| context-packet delta (`context delta --json`, `context_packet_delta_json`, spec 164) | `schemaVersion` | `1.0.0` | library |
 | read-only tool projection (`capabilities --projection --json`, `tool_projection_json()`, spec 167) | `schemaVersion` | `1.0.0` | library |
 | documentation manifest and freshness result (`documentation manifest validate\|freshness --json`, spec 160) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -437,6 +438,23 @@ reinterpreted member, ordering rule, digest input or enum value. PATCH changes
 only descriptions or constraints and accepts and emits the same instances. A
 request names the version it reads in `consumerSchemaVersion`; the producer
 refuses another major or a minor above its own.
+
+## The context-packet-delta axis: spec 164
+
+A context-packet delta request, delta and fallback share one axis of their own,
+`CONTEXT_PACKET_DELTA_SCHEMA_VERSION`, starting at `1.0.0`, distinct from spec
+071's `DELTA_SCHEMA_VERSION`. Their schema is embedded as
+`CONTEXT_PACKET_DELTA_SCHEMA` (`schemas/context-packet-delta.schema.json`): the
+root validates a delta or a fallback, and `$defs/request` is the request.
+
+**`1.0.0` (spec 164).** The first delta (producer, predecessor and target
+snapshots and page digests, the reused-or-carried closure, per-page layouts,
+change entries in six closed kinds, counts, invalidation candidates,
+`deltaDigest`) and fallback (reason, request digest, predecessor page digests,
+target snapshot, candidates, `deltaDigest`).
+
+Additive optional members are MINOR. Removing or reinterpreting a member,
+change kind, basis, fallback reason, ordering rule or digest input is MAJOR.
 
 ## The documentation-manifest axis: spec 160
 

@@ -14,13 +14,13 @@ use sha2::{Digest, Sha256};
 use spec_spine_types::{
     ATTESTATION_SCHEMA_VERSION, AddedEffects, BUILD_META_SCHEMA_VERSION, Bound, Budget,
     CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
-    CONTEXT_PACKET_SCHEMA_VERSION, CapabilitiesDiscovery, CapabilityCatalog,
-    CapabilityVerifyReport, CapabilityVerifyRequest, CatalogDiscovery, CliBinding,
-    ConditionalEffects, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION, Effects,
-    Error, Example, ExitOutcome, FacadeBinding, Flag, INDEX_SCHEMA_VERSION, InterfaceDiscovery,
-    Operation, PinResult, Precondition, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef,
-    ResponseRef, SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION,
-    TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    CONTEXT_PACKET_DELTA_SCHEMA_VERSION, CONTEXT_PACKET_SCHEMA_VERSION, CapabilitiesDiscovery,
+    CapabilityCatalog, CapabilityVerifyReport, CapabilityVerifyRequest, CatalogDiscovery,
+    CliBinding, ConditionalEffects, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
+    Effects, Error, Example, ExitOutcome, FacadeBinding, Flag, INDEX_SCHEMA_VERSION,
+    InterfaceDiscovery, Operation, PinResult, Precondition, READ_SCHEMA_VERSION,
+    REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef, SNAPSHOT_SCHEMA_VERSION,
+    SPEC_ATTESTATION_SCHEMA_VERSION, TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
 };
 
 use crate::canonical_json;
@@ -42,6 +42,7 @@ pub fn compatibility() -> BTreeMap<String, String> {
         ("catalog", CATALOG_SCHEMA_VERSION),
         ("config", CONFIG_VERSION),
         ("context-packet", CONTEXT_PACKET_SCHEMA_VERSION),
+        ("context-packet-delta", CONTEXT_PACKET_DELTA_SCHEMA_VERSION),
         ("delta", DELTA_SCHEMA_VERSION),
         (
             "documentation-manifest",

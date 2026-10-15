@@ -25,6 +25,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/capability.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/context_packet.rs",
         "source": "spec-edge"
       },
@@ -37,6 +41,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/schemas/context-packet-delta.schema.json",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/schemas/context-packet.schema.json",
         "source": "spec-edge"
       },
@@ -45,7 +53,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/src/context_packet_delta.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/schema.rs",
         "source": "spec-edge"
       },
       {
@@ -120,7 +136,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/context-packet-delta.schema.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -129,7 +149,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/context_packet_delta.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -187,6 +211,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/capability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
         }
       },
       {
@@ -265,6 +302,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
         }
       },
       {
@@ -407,5 +457,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "0778d1457e717e92621a03247fbdb231cda7a5bec21e31423dd1a2aef1a99b7e"
+  "shardHash": "287fc0bc400d50ec732a92f1890a0e750fbeb68861b9a62368908346840c7649"
 }

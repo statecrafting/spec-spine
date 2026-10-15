@@ -238,6 +238,11 @@ pub const CATALOG_SCHEMA_VERSION: &str = "1.1.0";
 /// digest a dependent consumer pins.
 pub const CONTEXT_PACKET_SCHEMA_VERSION: &str = "1.1.0";
 
+/// `schemaVersion` of a context-packet delta request, delta and fallback
+/// (`context delta --json`, `context_packet_delta_json`; spec 164 3.10): its
+/// own axis from `1.0.0`, distinct from spec 071's [`DELTA_SCHEMA_VERSION`].
+pub const CONTEXT_PACKET_DELTA_SCHEMA_VERSION: &str = "1.0.0";
+
 /// `schemaVersion` of a documentation manifest and of a freshness result
 /// (`documentation manifest validate|freshness`, spec 160 3.13): one axis for
 /// both documents, from `1.0.0`.
