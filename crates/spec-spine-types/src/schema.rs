@@ -59,3 +59,9 @@ pub const CAPABILITY_CATALOG_SCHEMA: &str =
 /// 159). Its own axis: `schemaVersion` is
 /// [`crate::CONTEXT_PACKET_SCHEMA_VERSION`].
 pub const CONTEXT_PACKET_SCHEMA: &str = include_str!("../schemas/context-packet.schema.json");
+
+/// JSON Schema (draft 2020-12) for a context-packet delta or fallback (spec
+/// 164 3.6), whose `$defs/request` is the delta request, under
+/// [`crate::CONTEXT_PACKET_DELTA_SCHEMA_VERSION`].
+pub const CONTEXT_PACKET_DELTA_SCHEMA: &str =
+    include_str!("../schemas/context-packet-delta.schema.json");

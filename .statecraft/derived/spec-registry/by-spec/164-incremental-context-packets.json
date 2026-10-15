@@ -11,13 +11,11 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/context_packet_delta.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/context_packet_delta.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/schemas/context-packet-delta.schema.json",
-        "planned": true
+        "path": "crates/spec-spine-types/schemas/context-packet-delta.schema.json"
       },
       {
         "kind": "file",
@@ -174,6 +172,30 @@
           "kind": "file",
           "path": "docs/context-packets.md"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "160-documentation-manifest-and-freshness",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/documentation_manifest.rs"
+        }
       }
     ],
     "id": "164-incremental-context-packets",
@@ -269,7 +291,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "700c711f65101c6deaa63d4a5c174ddec5478ba7982a9b2015a414934cff543e",
-      "164-a-packet-delta-reproduces-the-packet-it-names": "0cccb5bd15f37f82d0f4b1e8a0be93ada1aee04346f726afb2923fa57eda7ef6",
+      "164-a-packet-delta-reproduces-the-packet-it-names": "c93c82d04c4e7debe9c00a2a498b1be9931ca0978e789cff8654ab8766089f3d",
       "2-territory": "c5ecc4a65a5ddea87920c9174fcbfd6c1ac891b4bb36f08f67470386ff3502f5",
       "3-1-a-delta-relates-two-complete-page-sets-of-one-request": "7cf10ee029dc3d9acd4de6f1ec5c84ea2c4fe807419a3863bd450ae87932fb21",
       "3-10-ordering-limits-canonical-bytes-and-schema": "829353abbbc3e042650d9199e37589aa83203426b6551b6c7769ac3c271cd921",
@@ -287,7 +309,7 @@
       "3-behavior": "daaa57c59a696da5ea049f4029487a1be41d0aece134c71bc968d0216bee9fab",
       "4-acceptance-criteria": "92d6ae5054d86fd38847255ffd20981d0ddad581144e7d660512866e52d37f08",
       "5-out-of-scope": "191e63a5661d535c1272886eecf2e499bda2ab128b51ddf021d06d1c8906c831",
-      "6-resolved-decisions": "80c9dc97bdc927b21e1083606286a13179ada9181910b536fab0b8bdd54e76ec",
+      "6-resolved-decisions": "e880b00b18928c441aa980890725cd7663ca9aa4f848a8d7074a10ea7fbd7f18",
       "verification": "c02969c322a97857511077ae27e2fef7f2af6cffd1f697339a6b9bc288a28e15"
     },
     "sectionHeadings": [
@@ -318,6 +340,6 @@
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "2749439bea96fd5b5e05c32af66084ba92ab37b22e0710a3d5ed81898245b117",
+  "shardHash": "7953abc068813cca399d06890ce095ab00b8b049caa86c5bc54ccd2bb0fef3c8",
   "specVersion": "1.10.0"
 }
