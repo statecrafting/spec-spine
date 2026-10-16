@@ -223,6 +223,22 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/capability.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "167-read-only-tool-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/projection.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "167-read-only-tool-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/projection.rs"
+        }
       }
     ],
     "id": "164-incremental-context-packets",
@@ -367,6 +383,6 @@
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "4c2e37d4ea697d0745589b9ce9880a5dd18eae3e32ca49afc18cd55f5bfe23aa",
+  "shardHash": "b4ee519b2ed645a37c3334c26fafe70c8541a5f4ac9a86f746e5c72e8ad424ce",
   "specVersion": "1.10.0"
 }

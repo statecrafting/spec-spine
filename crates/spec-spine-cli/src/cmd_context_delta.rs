@@ -96,8 +96,15 @@ pub fn run_apply(
     let mut written = Vec::with_capacity(reproduced.len());
     for (i, page) in reproduced.iter().enumerate() {
         let path = out_dir.join(format!("page-{:04}.json", i + 1));
-        std::fs::write(&path, page)
-            .map_err(|e| Error::Io(format!("write {}: {e}", path.display())))?;
+        if let Err(e) = std::fs::write(&path, page) {
+            // The directory was new or empty, so every page-NNNN.json in it
+            // is ours: remove them, the partial one included, so a failed
+            // write leaves none (all or none).
+            for done in (0..=i).map(|j| out_dir.join(format!("page-{:04}.json", j + 1))) {
+                let _ = std::fs::remove_file(done);
+            }
+            return Err(Error::Io(format!("write {}: {e}", path.display())));
+        }
         written.push(path.display().to_string());
     }
     if json {

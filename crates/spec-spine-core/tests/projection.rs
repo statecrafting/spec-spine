@@ -16,14 +16,17 @@ use spec_spine_types::{
 /// Host-path arguments, restated for the independent rule (167 D-15).
 const HOST_PATHS: &[&str] = &[
     "--attestation",
+    "--delta",
     "--export",
     "--key",
     "--manifest",
     "--map-out",
+    "--out-dir",
     "--output-root",
     "--packet",
     "--paths-from",
     "--plan-file",
+    "--predecessor",
     "--pr-body",
     "--public-key",
     "--request",

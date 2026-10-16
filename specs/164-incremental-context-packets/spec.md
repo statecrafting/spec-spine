@@ -50,6 +50,8 @@ extends:
   - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }, nature: additive }
   - { spec: "160-documentation-manifest-and-freshness", unit: { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }, nature: additive }
   - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "167-read-only-tool-projection", unit: { kind: file, path: "crates/spec-spine-core/src/projection.rs" }, nature: additive }
+  - { spec: "167-read-only-tool-projection", unit: { kind: file, path: "crates/spec-spine-core/tests/projection.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap rows L and M" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/delta.rs" }, role: "path-level change classifier, distinguished in 3.11" }
