@@ -458,6 +458,56 @@ fn member_spec_id<'a>(identity: &'a str, prefix: &str) -> Result<&'a str, Error>
         .ok_or_else(|| Error::Internal(format!("member identity '{identity}' is not {prefix}")))
 }
 
+/// Every page spec 159 assembles for `request` on `snapshot`, following each
+/// continuation to the terminal page (spec 164 3.1): one complete page set.
+/// `request` carries no continuation of its own.
+pub fn context_packet_pages(
+    cfg: &Config,
+    repo_root: &Path,
+    request: &PacketRequest,
+    snapshot: &ContentSnapshot,
+    producer_build: Option<&str>,
+) -> Result<Vec<ContextPacket>, Error> {
+    if request.continuation.is_some() {
+        return Err(Error::Usage(
+            "a page set starts from a request with no continuation".into(),
+        ));
+    }
+    let mut pages = Vec::new();
+    let mut next = request.clone();
+    loop {
+        let page = context_packet(cfg, repo_root, &next, snapshot, producer_build)?;
+        let continuation = page.continuation.clone();
+        // A continuation resumes strictly after the page's last member, so a
+        // page that carries one and no member would never advance.
+        if continuation.is_some() && page.members.is_empty() {
+            return Err(Error::Internal(format!(
+                "context packet page {} carries a continuation and no member",
+                pages.len() + 1
+            )));
+        }
+        pages.push(page);
+        // One complete set is what a delta names as its predecessor, so it
+        // holds no more pages than a delta request may carry (spec 164 3.2).
+        if continuation.is_some() && pages.len() == spec_spine_types::DELTA_MAX_PREDECESSOR_PAGES {
+            return Err(Error::Refused(format!(
+                "limit-exceeded: the page set exceeds {} pages",
+                spec_spine_types::DELTA_MAX_PREDECESSOR_PAGES
+            )));
+        }
+        match continuation {
+            Some(token) => next.continuation = Some(token),
+            None => return Ok(pages),
+        }
+    }
+}
+
+/// `requestDigest` for `request`: `sha256:` over the canonical normalized
+/// request (spec 159 3.10).
+pub(crate) fn normalized_request_digest(request: &PacketRequest) -> Result<String, Error> {
+    digest_of(&normalize(request))
+}
+
 /// Write one packet page as its canonical document: sorted keys, two-space
 /// indent, LF and one trailing newline, under its own `schemaVersion`.
 pub fn context_packet_document(packet: &ContextPacket) -> Result<String, Error> {
