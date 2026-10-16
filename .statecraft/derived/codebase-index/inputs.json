@@ -135,6 +135,9 @@
     "crates/spec-spine-types/schemas/documentation-manifest.schema.json": {
       "contentHash": "89f3bd531cd8644c4a93866c04c8db0672329236596db782a4d863ff0a9bb187"
     },
+    "crates/spec-spine-types/schemas/edit-plan.schema.json": {
+      "contentHash": "00446af4f3099cc682d0d281e504cf31cce7ae2af061f93eb65973d7bdddb3c9"
+    },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
       "contentHash": "d6c8f74046544df93527f2a9ebc971a28ed74c221d7881760f33f5ee0cd4b592"
     },
@@ -169,7 +172,7 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "051229d776f0f2b7651589146f20aad4b3975f7130505352a7857025ce507b9c"
+      "contentHash": "3b71a71953910c5bcefb4d43f17120d35d89febd72362f177b6f0b35ebd99a73"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"

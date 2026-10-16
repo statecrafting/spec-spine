@@ -11,13 +11,11 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/edit_plan.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/edit_plan.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/schemas/edit-plan.schema.json",
-        "planned": true
+        "path": "crates/spec-spine-types/schemas/edit-plan.schema.json"
       },
       {
         "kind": "file",
@@ -45,8 +43,9 @@
         "planned": true
       },
       {
-        "kind": "file",
-        "path": "docs/edit-plans.md",
+        "anchor": "edit-plans",
+        "file": "docs/edit-plans.md",
+        "kind": "section",
         "planned": true
       }
     ],
@@ -115,10 +114,34 @@
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
+        }
       }
     ],
     "id": "165-digest-guarded-edit-plans",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "intent": {
       "goal": "let an agent obtain a reviewable, digest-guarded, authority-classified proposal for a governed edit without spec-spine ever applying it",
       "nonGoals": [
@@ -226,7 +249,7 @@
     "sectionDigests": {
       "1-1-why-spec-spine-and-not-statecraft": "a263fc98188d016fbbbb2e3acba9a9cd790cdf66e16303af94bada26321131ef",
       "1-purpose": "c8280af450042d2c118ef6a66407ecd8f1be6b802e3b50bca6f426d257fab8a8",
-      "165-plan-a-governed-edit-without-applying-it": "2d519cb09afb3d73ac6b7815b7b3aa135aca6b99c89ed11b880855b99383c27a",
+      "165-plan-a-governed-edit-without-applying-it": "b2b7ffa654f9a6e60f20a95fc497c46dfc841f4cc183c3c999e19737584b7a33",
       "2-territory": "4ff731200375d04312b86e66d03b8d130af76f1a475ac112578c3f09af18c71f",
       "3-1-one-request-one-snapshot-one-subject": "5c5b47dfba9beca28d11437172d5758121e841001af0a2913bcc304d206f2956",
       "3-10-authority-is-checked-before-a-preview-exists": "bbdc3181694310d462b476d9c7f05c5f35847336766a594efb56c2a0ae856409",
@@ -247,7 +270,7 @@
       "3-behavior": "dfc04557e0bc49fe374d7d659292fd84b1c51ba40c1178fd2b5d8754b888347d",
       "4-acceptance-criteria": "034ef0fea52fd7221d8753e86590bcf9ef82e19517a7abe8e353cf2160bddf72",
       "5-out-of-scope": "1ac3db9a56392ea9529ea6dab32e1c871f3ce68951b901e9d64a7c01fdffc01d",
-      "6-resolved-decisions": "62603a963c33ade5db2ebd59de389d35cfb51e153b4454f47536b5dfe26ac753",
+      "6-resolved-decisions": "eafdac396ec30c117f5070ef4f9d1fd894e66e36faea35ae00e573dcaae5d5de",
       "verification": "08958d5f8531da5a2479625438afc8c3e868a71803b3d9afbfed47e2567cbd38"
     },
     "sectionHeadings": [
@@ -282,6 +305,6 @@
     "summary": "Adds a pure, read-only edit-plan producer: a closed list of governed operations, each guarded by the digest of the target it was planned against, checked against ownership, a work scope and the amendment rules, previewed as exact post-image bytes, and classified by authority effect. Refusals come from a closed set. Nothing in spec-spine applies a plan.\n",
     "title": "Plan a governed edit without applying it"
   },
-  "shardHash": "621c2a89e88a35a831c47f66b07775869936021ee8189ea8363142044ffb0598",
+  "shardHash": "b50c57682d7f70945bf212630ac3ebf6519a5378e861e5d188f89b9ceb2ab1f7",
   "specVersion": "1.10.0"
 }

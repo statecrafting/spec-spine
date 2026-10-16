@@ -4,7 +4,7 @@ title: "Plan a governed edit without applying it"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
@@ -20,14 +20,14 @@ summary: >
   previewed as exact post-image bytes, and classified by authority effect.
   Refusals come from a closed set. Nothing in spec-spine applies a plan.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/edit_plan.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-types/schemas/edit-plan.schema.json", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/edit_plan.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/edit-plan.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/edit_plan.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-core/tests/edit_plan.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/edit-plan/", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_edit_plan.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/edit_plan.rs", planned: true }
-  - { kind: file, path: "docs/edit-plans.md", planned: true }
+  - { kind: section, file: "docs/edit-plans.md", anchor: "edit-plans", planned: true }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -37,6 +37,9 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
   - { spec: "152-a-refusal-says-what-it-is-in-every-form", unit: { kind: file, path: "crates/spec-spine-cli/tests/refusal_envelopes.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap row K" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/compact.rs" }, role: "plan and apply precedent" }
@@ -557,6 +560,51 @@ dropped: spec 169's traceability declarations remain a build prerequisite of
 this spec, and its build MUST NOT start before 169 is implemented. That
 ordering is now this decision's to state, because `registry plan` can no longer
 derive it from an edge. Specs 162 D-18 and 167 D-13 made the same correction.
+
+**D-17 (2026-10-15, build): `update-manifest` carries its pages.** 3.7
+requires spec 160's packet and input digests to be checked against the
+snapshot, and a manifest names its packet only by digest. The operation
+therefore carries `pages`, the replacement's complete page set as exact
+strings, and the planner runs spec 160's validation without the output check
+(`validate_manifest_inputs`): structure and `manifestDigest`, the snapshot,
+the page set, and every input and omission against those pages. Outputs stay
+for freshness to judge after application, as 3.7 says.
+
+**D-18 (2026-10-15, build): target shapes and identities.** `add-claim` and
+`add-trace-relation` target the subject as a spec 155 `spec` selector, guarded
+by its `full` item digest; their target identity is the subject's `spec.md`
+path (3.11). `replace-unit` accepts a `spec-section`, a `file` whose path ends
+in `.md`, or an `owned-unit` whose unit names such a file, and its identity is
+the spec 155 identity. `propose-amendment` and `update-manifest` target a
+repository path. A `replace-unit` of a whole file takes the whole file as its
+span. An owned unit binding two locations is `ambiguous-target`, and so is an
+interface naming two of the subject's references; an interface naming none is
+`unresolved-interface`.
+
+**D-19 (2026-10-15, build): what the planner decides that 3.4 to 3.12 leave
+open.**
+
+1. `afterDigest` hashes the post-image's bytes exactly as `beforeRawDigest`
+   hashes the pre-image's.
+2. Two frontmatter additions in one plan that render the same entry (for a
+   trace entry, the same `id`) are `duplicate-declaration`, because the
+   single-spec compile sees one file, not the plan that wrote it twice.
+3. A unit's existence is checked for the units that name a path (file,
+   directory, the file of a section); symbol, module and crate units are not
+   resolved at plan time.
+4. Check 4 of 3.10 counts unit and header owners, not a package floor, and
+   treats a manifest file like any documentation path.
+5. A non-draft spec (approved, superseded or retired) is approved text for
+   3.8.
+6. `predictedFindings` carries the single-spec compile's warnings. Lint judges
+   a whole corpus and is not run on a post-image.
+7. `stale-ledger` and `plan-too-large` are plan-wide refusals with a null
+   index, and such a plan lists no operations.
+8. `stales` names `spec-registry` when a spec file changes and
+   `codebase-index` whenever any file does.
+9. `docs/edit-plans.md` is claimed as its top-level section, as spec 159
+   claims `docs/context-packets.md`, so the claim is hashed through its span
+   (`L-008`) without adding the file to `extra_hashed_inputs`.
 
 ## Verification
 
