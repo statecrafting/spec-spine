@@ -41,14 +41,17 @@ const FORBIDDEN_AUTHORITY: &[&str] = &[
 /// repository.
 pub const HOST_PATH_ARGUMENTS: &[(&str, &str)] = &[
     ("*", "--attestation"),
+    ("*", "--delta"),
     ("*", "--export"),
     ("*", "--key"),
     ("*", "--manifest"),
     ("*", "--map-out"),
+    ("*", "--out-dir"),
     ("*", "--output-root"),
     ("*", "--packet"),
     ("*", "--paths-from"),
     ("*", "--plan-file"),
+    ("*", "--predecessor"),
     ("*", "--pr-body"),
     ("*", "--public-key"),
     ("*", "--resolutions"),

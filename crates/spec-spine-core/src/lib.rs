@@ -97,8 +97,8 @@ pub use context_packet::{
     context_packet_pages, packet_digest,
 };
 pub use context_packet_delta::{
-    context_packet_apply, context_packet_delta, context_packet_delta_document,
-    delta_target_incomplete, parse_delta,
+    context_packet_apply, context_packet_apply_json, context_packet_delta,
+    context_packet_delta_document, context_packet_delta_json, delta_target_incomplete, parse_delta,
 };
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DeletionProvenance, DiffFile, DiffInput, PriorOwnership,

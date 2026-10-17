@@ -27,18 +27,15 @@
       },
       {
         "kind": "directory",
-        "path": "crates/spec-spine-core/tests/fixtures/context-packet-delta/",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/fixtures/context-packet-delta/"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_context_delta.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_context_delta.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/context_packet_delta.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/context_packet_delta.rs"
       }
     ],
     "extends": [
@@ -181,6 +178,38 @@
       },
       {
         "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "160-documentation-manifest-and-freshness",
         "unit": {
           "kind": "file",
@@ -194,10 +223,26 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/capability.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "167-read-only-tool-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/projection.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "167-read-only-tool-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/projection.rs"
+        }
       }
     ],
     "id": "164-incremental-context-packets",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "intent": {
       "goal": "let a long-running consumer refresh a context packet from bytes it already holds with a provably exact, content-minimal delta",
       "nonGoals": [
@@ -289,7 +334,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "700c711f65101c6deaa63d4a5c174ddec5478ba7982a9b2015a414934cff543e",
-      "164-a-packet-delta-reproduces-the-packet-it-names": "dc30af413fea8b32b9a9ea5db8e16d641ebfaa434abfa105f746ec2e07b70de0",
+      "164-a-packet-delta-reproduces-the-packet-it-names": "855832a06a8291a8e2fc3e89e2ff653b41f156bc2fb964f5e7e61442fe39d493",
       "2-territory": "c5ecc4a65a5ddea87920c9174fcbfd6c1ac891b4bb36f08f67470386ff3502f5",
       "3-1-a-delta-relates-two-complete-page-sets-of-one-request": "7cf10ee029dc3d9acd4de6f1ec5c84ea2c4fe807419a3863bd450ae87932fb21",
       "3-10-ordering-limits-canonical-bytes-and-schema": "829353abbbc3e042650d9199e37589aa83203426b6551b6c7769ac3c271cd921",
@@ -307,7 +352,7 @@
       "3-behavior": "daaa57c59a696da5ea049f4029487a1be41d0aece134c71bc968d0216bee9fab",
       "4-acceptance-criteria": "92d6ae5054d86fd38847255ffd20981d0ddad581144e7d660512866e52d37f08",
       "5-out-of-scope": "191e63a5661d535c1272886eecf2e499bda2ab128b51ddf021d06d1c8906c831",
-      "6-resolved-decisions": "701d0b32b2895748550bc5b6dd2b77fb1d12358cbf63609a2c936dd665a0f92c",
+      "6-resolved-decisions": "1bb7fce422fb3798b606d2abda2318fe154f4dcc27cb63bf65eeafb8a455540f",
       "verification": "c02969c322a97857511077ae27e2fef7f2af6cffd1f697339a6b9bc288a28e15"
     },
     "sectionHeadings": [
@@ -338,6 +383,6 @@
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "f01b547a5e68450f202ee0086283e91b309c9b3c7be416e220d5cf8fbe96f67e",
+  "shardHash": "b4ee519b2ed645a37c3334c26fafe70c8541a5f4ac9a86f746e5c72e8ad424ce",
   "specVersion": "1.10.0"
 }

@@ -165,3 +165,49 @@ It does not prove correctness, approval, evidence admission, acceptance,
 release, adoption, or freshness anywhere else. One packet covers one
 repository. Composing packets across repositories, and deciding what a caller
 may disclose, belong to the consumer (Statecraft).
+
+## Deltas
+
+A consumer that already holds a complete page set can refresh it with
+`context delta` (spec 164) instead of re-reading every page. The delta
+compares the held predecessor pages with the set this request yields on a
+new snapshot, member by member, and names each difference as exactly one of
+six changes, decided by the first matching row:
+
+| Predecessor | Target | Change |
+|---|---|---|
+| present | present; interface differs, or is `unavailable` | `interface-changed` |
+| present | present; record differs | `changed` (with the `fields` that differ) |
+| present or omitted | absent | `removed` |
+| anything else | omitted for a resolution reason | `newly-unresolved` |
+| anything else | omitted for a selection reason | `newly-omitted` |
+| omitted or absent | present | `newly-available` |
+
+Records are compared after the four snapshot fields an item repeats are
+restamped with the target's. Only `changed`, `interface-changed` and
+`newly-available` carry content: the complete target member. Per-page
+layouts carry every page envelope, its member order and its omissions, so
+`context apply` reproduces each target page byte for byte, `packetDigest`
+included, or refuses and writes nothing. Reproduced pages are a valid
+predecessor for the next delta; spec-spine keeps no state between calls.
+
+Reuse is decided by record equality, never trust: a delta computed from
+forged but self-consistent predecessor bytes still yields the true target
+when applied to those bytes, and applying a delta to any other bytes
+refuses. No predecessor byte appears in a delta.
+
+The producer falls back to a full packet, explicitly and with no content,
+when the predecessor cannot be verified (`predecessor-unverifiable`), is not
+one complete set (`predecessor-incomplete`), or names another repository,
+schema version, budget or request (`repository-changed`,
+`schema-version-changed`, `budget-changed`, `request-changed`), or when the
+delta would exceed 4 MiB (`delta-too-large`). A fallback exits `0`: the
+caller runs `context packet` again.
+
+`--manifest` names spec 160 documentation manifests. A manifest bound to the
+predecessor (its request and page digests) yields one invalidation candidate
+per input whose key changed; one bound elsewhere, and every manifest on a
+fallback, yields a whole-manifest candidate. A candidate states that a
+declared identity changed. It carries no severity or disposition; what it
+means is the consumer's (Statecraft's) to decide.
+

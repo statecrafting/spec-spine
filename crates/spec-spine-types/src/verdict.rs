@@ -68,6 +68,14 @@ pub mod verb {
     /// `spec-spine context packet` (spec 159). Its success is the bare packet
     /// document; an incomplete packet is a finding whose envelope reports it.
     pub const CONTEXT_PACKET: &str = "context.packet";
+    /// `spec-spine context delta` (spec 164). Its success is the bare delta or
+    /// fallback document; a delta whose target is incomplete is a finding
+    /// whose envelope reports the delta.
+    pub const CONTEXT_DELTA: &str = "context.delta";
+    /// `spec-spine context apply` (spec 164). It writes page files; under
+    /// `--json` its success is the JSON array of the paths it wrote, and a
+    /// refusal is an envelope.
+    pub const CONTEXT_APPLY: &str = "context.apply";
     /// `spec-spine documentation manifest validate` (spec 160). Its success is
     /// the bare canonical manifest; a mismatch is a refusal.
     pub const DOCUMENTATION_MANIFEST_VALIDATE: &str = "documentation.manifest.validate";

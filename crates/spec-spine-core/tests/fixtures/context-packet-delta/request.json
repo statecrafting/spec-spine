@@ -1,0 +1,23 @@
+{
+  "consumerSchemaVersion": "1.0.0",
+  "manifests": [],
+  "predecessorPages": [
+    "PAGE-1"
+  ],
+  "request": {
+    "closure": {
+      "root": "002"
+    },
+    "consumerSchemaVersion": "1.1.0",
+    "members": [
+      {
+        "requirement": "optional",
+        "selector": {
+          "kind": "file",
+          "path": "notes/a.txt"
+        }
+      }
+    ],
+    "rationale": "fixture: the documented delta request shape"
+  }
+}

@@ -191,7 +191,7 @@
           {
             "file": "docs/context-packets.md",
             "span": {
-              "endLine": 167,
+              "endLine": 213,
               "startLine": 1
             }
           }
@@ -378,7 +378,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 564,
+              "endLine": 580,
               "startLine": 1
             }
           }
@@ -422,5 +422,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "bc4f648fbc70b0abd9e1ffd9b73c0b85f40dde5ce712df737ac5adb5d7fd09b8"
+  "shardHash": "4d3afa19992a266513a0ed6dcb9371f270ac74c1448f306ec83b2b38dda425db"
 }
