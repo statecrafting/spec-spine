@@ -344,6 +344,9 @@ fn every_facade_function_is_cataloged_and_nothing_else_is() {
         let source = match name.as_str() {
             "selected_content_json" => "crates/spec-spine-core/src/content.rs",
             "context_packet_json" => "crates/spec-spine-core/src/context_packet.rs",
+            "context_packet_delta_json" | "context_packet_apply_json" => {
+                "crates/spec-spine-core/src/context_packet_delta.rs"
+            }
             "traceability_json" => "crates/spec-spine-core/src/traceability.rs",
             "documentation_manifest_json" | "documentation_freshness_json" => {
                 "crates/spec-spine-core/src/documentation_manifest.rs"

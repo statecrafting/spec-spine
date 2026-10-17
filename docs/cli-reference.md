@@ -185,6 +185,8 @@ Under `--json`, failures use the `content.select` verdict envelope.
 
 ```text
 spec-spine context packet --request <FILE> --repository <IDENTITY> [--revision <REV>] --json
+spec-spine context delta --request <FILE> --predecessor <PAGE>... [--manifest <FILE>]... --repository <IDENTITY> [--revision <REV>] --json
+spec-spine context apply --predecessor <PAGE>... --delta <FILE> --out-dir <DIR> [--json]
 ```
 
 Assemble one page of a repository-scoped context packet (spec 159; see
@@ -197,6 +199,20 @@ required member omitted) exits `1` with the `context.packet` verdict envelope,
 whose `report` is the whole packet. A malformed request or continuation exits
 `3`; a dirty tree, an unsupported consumer schema, a closure document that does
 not recompute and a stale continuation exit `2`.
+
+`context delta` (spec 164) relates the complete predecessor page set named by
+`--predecessor`, in page order, to the set `context packet` would write for
+the same request on the bound snapshot. It writes the canonical delta, or an
+explicit fallback naming its reason, at exit `0`. A delta whose target is
+incomplete exits `1` with the `context.delta` envelope, whose `report` is the
+delta. `--manifest` names spec 160 manifests whose changed inputs become
+invalidation candidates. A malformed request, a continuation in the request,
+an unparseable page or an invalid manifest exits `3`; a dirty or moving
+snapshot exits `2`. `context apply` reproduces every target page and writes
+`page-0001.json` onward into a new or empty `--out-dir`, printing each path
+(a JSON array under `--json`). A predecessor that is not the one the delta
+names, or a page that does not reproduce its recorded digest, exits `2`
+having written nothing; a malformed delta or a non-empty directory exits `3`.
 
 ## documentation
 

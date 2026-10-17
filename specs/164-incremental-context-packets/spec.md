@@ -4,7 +4,7 @@ title: "A packet delta reproduces the packet it names"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -23,9 +23,9 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/schemas/context-packet-delta.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/context_packet_delta.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/context_packet_delta.rs" }
-  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet-delta/", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_context_delta.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/context_packet_delta.rs", planned: true }
+  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet-delta/" }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_context_delta.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/context_packet_delta.rs" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -44,8 +44,14 @@ extends:
   - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs" }, nature: additive }
   - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "docs/context-packets.md" }, nature: additive }
   - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }, nature: additive }
   - { spec: "160-documentation-manifest-and-freshness", unit: { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }, nature: additive }
   - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "167-read-only-tool-projection", unit: { kind: file, path: "crates/spec-spine-core/src/projection.rs" }, nature: additive }
+  - { spec: "167-read-only-tool-projection", unit: { kind: file, path: "crates/spec-spine-core/tests/projection.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap rows L and M" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/delta.rs" }, role: "path-level change classifier, distinguished in 3.11" }
@@ -577,6 +583,18 @@ open.** Eight choices, none changing a stated behavior:
 8. The delta document has no `completeness`. `context delta` exits 1 when
    any target layout's envelope records `incomplete`, which
    `delta_target_incomplete` reads.
+
+**D-20 (2026-10-15, build): what the CLI fixed that 3.12 leaves open.**
+`context apply` takes an optional `--json`: without it each written path is
+printed on its own line, and with it the paths are one JSON array and a
+refusal is a spec 152 envelope, so `context.apply` is a verdict verb like the
+reads. Every page is reproduced and checked before the first file is written.
+A missing `--out-dir` is created; a non-directory path is a usage error, like
+a non-empty one. Both verbs are cataloged under D-11 as `experimental`, with
+the effects D-11 names (`context apply` reads no configuration of its own;
+only the shared version-pin check reads `spec-spine.toml`). Its catalog
+response is the unversioned `written-paths` array; the pages themselves are
+context-packet documents, the axis `capabilities` names for the verb.
 
 ## Verification
 

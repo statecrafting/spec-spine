@@ -5,8 +5,9 @@ use std::fs;
 use std::path::Path;
 
 use spec_spine_core::{
-    context_packet_apply, context_packet_delta, context_packet_delta_document,
-    context_packet_document, context_packet_pages, manifest_digest, packet_digest, shard,
+    context_packet_apply, context_packet_apply_json, context_packet_delta,
+    context_packet_delta_document, context_packet_delta_json, context_packet_document,
+    context_packet_pages, manifest_digest, packet_digest, shard,
 };
 use spec_spine_types::{
     CONTEXT_PACKET_DELTA_SCHEMA, ChangeBasis, ChangedField, Config, ContentDirtyState,
@@ -1008,4 +1009,61 @@ fn deltas_and_fallbacks_conform_to_the_embedded_schema() {
     let mut drifted = instance.clone();
     drifted["outcome"] = "delta".into();
     assert!(!validator.is_valid(&drifted), "a fallback is not a delta");
+}
+
+#[test]
+fn facades_match_the_typed_api() {
+    let tmp = corpus();
+    let root = tmp.path();
+    let req = request("002", notes(&["a", "b"]));
+    let before = pages_at(root, &req, '1', BUILD);
+    write(root, "notes/a.txt", "alpha 2\n");
+    let dreq = delta_request(&req, before.clone());
+    let typed = context_packet_delta_document(
+        &context_packet_delta(&Config::default(), root, &dreq, &snapshot('2'), None).unwrap(),
+    )
+    .unwrap();
+    let facade = context_packet_delta_json(
+        &serde_json::to_string(&Config::default()).unwrap(),
+        root.to_str().unwrap(),
+        &serde_json::to_string(&dreq).unwrap(),
+        &serde_json::to_string(&snapshot('2')).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(typed, facade);
+
+    let schema: serde_json::Value = serde_json::from_str(CONTEXT_PACKET_DELTA_SCHEMA).unwrap();
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    let instance: serde_json::Value = serde_json::from_str(&typed).unwrap();
+    let errors: Vec<String> = validator
+        .iter_errors(&instance)
+        .map(|e| e.to_string())
+        .collect();
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+
+    let applied =
+        context_packet_apply_json(&serde_json::to_string(&before).unwrap(), &facade).unwrap();
+    let applied: Vec<String> = serde_json::from_str(&applied).unwrap();
+    let expected: Vec<String> =
+        context_packet_pages(&Config::default(), root, &req, &snapshot('2'), None)
+            .unwrap()
+            .iter()
+            .map(|p| context_packet_document(p).unwrap())
+            .collect();
+    assert_eq!(applied, expected);
+}
+
+#[test]
+fn the_documented_delta_request_shape_parses_and_answers() {
+    let tmp = corpus();
+    let root = tmp.path();
+    let text = include_str!("fixtures/context-packet-delta/request.json");
+    let mut dreq: ContextDeltaRequest = serde_json::from_str(text).unwrap();
+    dreq.predecessor_pages = pages_at(root, &dreq.request, '1', BUILD);
+    let d = delta(compute(root, &dreq, '2', BUILD).unwrap());
+    assert!(d.changes.is_empty());
+    assert_eq!(
+        context_packet_apply(&dreq.predecessor_pages, &d).unwrap(),
+        pages_at(root, &dreq.request, '2', BUILD)
+    );
 }

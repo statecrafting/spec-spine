@@ -237,6 +237,33 @@ its own `schemaVersion` (`CONTEXT_PACKET_SCHEMA_VERSION`, schema
 request_json, snapshot_json)` is the JSON facade; it has no build identity to
 supply, so its packets record `unverified`. `packet_digest(&ContextPacket)`
 recomputes `packetDigest`. See `docs/context-packets.md`.
+`context_packet_pages(...)` takes the same arguments as `context_packet` and
+follows every continuation, returning one complete page set.
+
+### Context-packet deltas
+
+`context_packet_delta(&Config, repo_root, &ContextDeltaRequest,
+&ContentSnapshot, producer_build)` (spec 164) relates a caller's complete
+predecessor page set, supplied as exact strings, to the page set
+`context_packet_pages` assembles for the same request. It returns a
+`ContextDeltaResult`: a `ContextPacketDelta` (change entries in six closed
+kinds, per-page layouts, the reused or carried closure, invalidation
+candidates over the supplied spec 160 manifests) or a `ContextPacketFallback`
+naming one of seven reasons. Every delta is applied to its own predecessor
+and compared with the target before it is returned; a failure is `Internal`.
+`delta_target_incomplete(&delta)` says whether the target omits a required
+member.
+
+`context_packet_apply(pages, &delta)` reproduces every target page as its
+canonical document, or refuses: a predecessor that is not the one the delta
+names, or a page that does not reproduce its digest, is `Refused`; a malformed
+delta is `Usage`. `parse_delta(text)` reads a delta for it.
+`context_packet_delta_document(&result)` writes the canonical document under
+`CONTEXT_PACKET_DELTA_SCHEMA_VERSION` (schema `CONTEXT_PACKET_DELTA_SCHEMA`).
+The JSON facades are `context_packet_delta_json(config_json, repo_root,
+request_json, snapshot_json)`, whose target pages record `unverified`, and
+`context_packet_apply_json(predecessor_pages_json, delta_json)`, which takes
+and returns JSON arrays of page strings. See `docs/context-packets.md`.
 
 ### Documentation manifests
 

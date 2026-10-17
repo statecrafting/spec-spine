@@ -139,6 +139,10 @@ fn every_json_verb_names_its_schema_axes() {
             "documentation-manifest",
             spec_spine_types::DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
         ),
+        (
+            "context-packet-delta",
+            spec_spine_types::CONTEXT_PACKET_DELTA_SCHEMA_VERSION,
+        ),
     ];
     let mut unnamed = Vec::new();
     for verb in doc["verbs"].as_array().unwrap() {
