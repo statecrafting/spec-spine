@@ -371,3 +371,36 @@ fn a_flow_sequence_layout_is_refused_rather_than_reserialized() {
     );
     assert_eq!(reasons(&p), vec![RefusalReason::UnsupportedLayout]);
 }
+
+// ---- containment -------------------------------------------------------------
+
+/// A linked parent directory is refused as a link at the last component is.
+/// The link stays inside the repository: one leaving it is refused earlier,
+/// by the repository-wide walk (spec 144), so only this case reaches the
+/// per-component check. Without it the target reads as present.
+#[cfg(unix)]
+#[test]
+fn a_target_under_a_linked_directory_is_refused_not_read() {
+    let tmp = corpus();
+    let root = tmp.path();
+    write(root, "elsewhere/spec.md", "elsewhere\n");
+    std::os::unix::fs::symlink("../elsewhere", root.join("specs/003-amend")).unwrap();
+    let err = edit_plan(
+        &spec_spine_types::Config::default(),
+        root,
+        &request(vec![serde_json::json!({
+            "op": "propose-amendment",
+            "target": "specs/003-amend/spec.md",
+            "expected": "absent",
+            "spec": "003-amend",
+            "obligations": ["001-base#R-1"],
+            "content": "---\nid: \"003-amend\"\n---\n",
+        })]),
+        &snapshot(),
+    )
+    .unwrap_err();
+    assert!(
+        matches!(&err, spec_spine_types::Error::Refused(m) if m.contains("symbolic link")),
+        "{err:?}"
+    );
+}

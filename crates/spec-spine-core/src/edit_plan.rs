@@ -529,7 +529,26 @@ fn check_operation(view: &View<'_>, index: usize, op: &EditOperation) -> Result<
 /// The raw bytes of a file in the export, or `None` when it does not exist.
 fn read_raw(view: &View<'_>, path: &str) -> Result<Option<Vec<u8>>, Error> {
     let rel = spec_spine_types::RepoPath::parse(path).map_err(Error::Usage)?;
-    let full = view.root.join(rel.as_str());
+    // Every component is checked, not only the last: a linked parent
+    // directory would otherwise carry the read outside the root.
+    let mut full = view.root.to_path_buf();
+    let mut parts = rel.as_str().split('/').peekable();
+    while let Some(part) = parts.next() {
+        full.push(part);
+        if parts.peek().is_none() {
+            break;
+        }
+        match fs::symlink_metadata(&full) {
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(e) => return Err(Error::Io(format!("read {path}: {e}"))),
+            Ok(meta) if meta.file_type().is_symlink() => {
+                return Err(Error::Refused(format!(
+                    "containment: '{path}' is reached through a symbolic link"
+                )));
+            }
+            Ok(_) => {}
+        }
+    }
     match fs::symlink_metadata(&full) {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(Error::Io(format!("read {path}: {e}"))),
@@ -1458,7 +1477,7 @@ fn slice_lines(text: &str, span: Span) -> String {
             let mut out: String = text
                 .split_inclusive('\n')
                 .skip(a.saturating_sub(1))
-                .take(b + 1 - a)
+                .take((b + 1).saturating_sub(a))
                 .collect();
             if !out.ends_with('\n') && !out.is_empty() {
                 out.push('\n');
