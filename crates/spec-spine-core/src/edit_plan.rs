@@ -526,39 +526,44 @@ fn check_operation(view: &View<'_>, index: usize, op: &EditOperation) -> Result<
     Ok(c)
 }
 
-/// The raw bytes of a file in the export, or `None` when it does not exist.
-fn read_raw(view: &View<'_>, path: &str) -> Result<Option<Vec<u8>>, Error> {
+/// The metadata of a path in the export, or `None` when it does not exist.
+/// Every component is checked, not only the last: a linked parent directory
+/// would otherwise carry the read outside the root, so a link anywhere on the
+/// path is refused.
+fn contained_metadata(
+    view: &View<'_>,
+    path: &str,
+) -> Result<Option<(std::path::PathBuf, fs::Metadata)>, Error> {
     let rel = spec_spine_types::RepoPath::parse(path).map_err(Error::Usage)?;
-    // Every component is checked, not only the last: a linked parent
-    // directory would otherwise carry the read outside the root.
     let mut full = view.root.to_path_buf();
     let mut parts = rel.as_str().split('/').peekable();
     while let Some(part) = parts.next() {
         full.push(part);
-        if parts.peek().is_none() {
-            break;
-        }
+        let last = parts.peek().is_none();
         match fs::symlink_metadata(&full) {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
             Err(e) => return Err(Error::Io(format!("read {path}: {e}"))),
             Ok(meta) if meta.file_type().is_symlink() => {
-                return Err(Error::Refused(format!(
-                    "containment: '{path}' is reached through a symbolic link"
-                )));
+                return Err(Error::Refused(if last {
+                    format!("containment: '{path}' is a symbolic link")
+                } else {
+                    format!("containment: '{path}' is reached through a symbolic link")
+                }));
             }
+            Ok(meta) if last => return Ok(Some((full, meta))),
             Ok(_) => {}
         }
     }
-    match fs::symlink_metadata(&full) {
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(Error::Io(format!("read {path}: {e}"))),
-        Ok(meta) if meta.file_type().is_symlink() => Err(Error::Refused(format!(
-            "containment: '{path}' is a symbolic link"
-        ))),
-        Ok(meta) if !meta.is_file() => Ok(None),
-        Ok(_) => fs::read(&full)
+    Ok(None)
+}
+
+/// The raw bytes of a file in the export, or `None` when it does not exist.
+fn read_raw(view: &View<'_>, path: &str) -> Result<Option<Vec<u8>>, Error> {
+    match contained_metadata(view, path)? {
+        Some((full, meta)) if meta.is_file() => fs::read(&full)
             .map(Some)
             .map_err(|e| Error::Io(format!("read {path}: {e}"))),
+        _ => Ok(None),
     }
 }
 
@@ -862,8 +867,7 @@ fn read_raw_exists(view: &View<'_>, path: &str) -> Result<Option<()>, Error> {
     if trimmed.is_empty() {
         return Ok(Some(()));
     }
-    let rel = spec_spine_types::RepoPath::parse(trimmed).map_err(Error::Usage)?;
-    Ok(view.root.join(rel.as_str()).exists().then_some(()))
+    Ok(contained_metadata(view, trimmed)?.map(|_| ()))
 }
 
 /// The repository path a unit names, when it names one.
@@ -1103,12 +1107,9 @@ fn check_amendment(
             format!("unauthorized-target: a new spec '{spec}' lives at {specs_dir}/{spec}/spec.md"),
         ));
     }
-    if expected != EXPECTED_ABSENT || read_raw(view, target)?.is_some() {
-        let current = if read_raw(view, target)?.is_some() {
-            "present"
-        } else {
-            EXPECTED_ABSENT
-        };
+    let present = read_raw(view, target)?.is_some();
+    if expected != EXPECTED_ABSENT || present {
+        let current = if present { "present" } else { EXPECTED_ABSENT };
         stale(c, expected, current);
     }
     // The ordinal must be unused and next free (contiguity).

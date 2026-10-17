@@ -404,3 +404,31 @@ fn a_target_under_a_linked_directory_is_refused_not_read() {
         "{err:?}"
     );
 }
+
+/// The existence check a claim makes follows the same containment as a read:
+/// a unit reached through a link, at the last component or a parent, is
+/// refused rather than resolved through it.
+#[cfg(unix)]
+#[test]
+fn a_claim_reached_through_a_link_is_refused_not_resolved() {
+    let tmp = corpus();
+    let root = tmp.path();
+    std::os::unix::fs::symlink("new.rs", root.join("src/alias.rs")).unwrap();
+    std::os::unix::fs::symlink("src", root.join("linked")).unwrap();
+    for path in ["src/alias.rs", "linked/new.rs"] {
+        let err = edit_plan(
+            &spec_spine_types::Config::default(),
+            root,
+            &request(vec![claim(
+                root,
+                serde_json::json!({ "kind": "file", "path": path }),
+            )]),
+            &snapshot(),
+        )
+        .unwrap_err();
+        assert!(
+            matches!(&err, spec_spine_types::Error::Refused(m) if m.contains("symbolic link")),
+            "{path}: {err:?}"
+        );
+    }
+}
