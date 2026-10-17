@@ -943,24 +943,37 @@ fn has_anchor_or_alias(text: &str) -> bool {
         (*b == b'&' || *b == b'*')
             && (i == 0 || matches!(bytes[i - 1], b' ' | b'[' | b'{' | b',' | b':'))
             && bytes.get(i + 1).is_some_and(|n| n.is_ascii_alphanumeric())
-            && !in_double_quotes(text, i)
+            && !in_quotes(text, i)
     })
 }
 
-fn in_double_quotes(text: &str, at: usize) -> bool {
-    let mut inside = false;
+/// Whether byte `at` sits inside a quoted YAML scalar, double-quoted (with
+/// backslash escapes) or single-quoted (where `''` is a literal quote and
+/// toggles out and back in). A single quote opens a scalar only where one can
+/// start; an apostrophe inside a plain word does not, so it cannot hide a
+/// real anchor from the check.
+fn in_quotes(text: &str, at: usize) -> bool {
+    let bytes = text.as_bytes();
+    let mut double = false;
+    let mut single = false;
     let mut escaped = false;
     for (i, ch) in text.char_indices() {
         if i >= at {
             break;
         }
         match ch {
-            '\\' if inside => escaped = !escaped,
-            '"' if !escaped => inside = !inside,
+            '\\' if double => escaped = !escaped,
+            '"' if !single && !escaped => double = !double,
+            '\'' if single => single = false,
+            '\'' if !double
+                && (i == 0 || matches!(bytes[i - 1], b' ' | b'[' | b'{' | b',' | b':' | b'\'')) =>
+            {
+                single = true;
+            }
             _ => escaped = false,
         }
     }
-    inside
+    double || single
 }
 
 /// A JSON value as one YAML flow node: strings double-quoted, the closed
@@ -1400,7 +1413,7 @@ fn check_replace(
     let spec_record = view.registry.specs.iter().find(|r| r.spec_path == path);
     match spec_record {
         Some(r) if r.status != Status::Draft => {
-            let decision_anchor = decisions_anchor(&text, &path);
+            let decision_anchor = decisions_anchor(&text);
             let is_append = matches!(target, ContentSelector::SpecSection { anchor, .. }
                 if decision_anchor.as_deref() == Some(anchor.as_str()))
                 && content.starts_with(&old)
@@ -1449,7 +1462,7 @@ fn check_replace(
 
 /// The anchor of the one level-2 decisions heading (3.8), or `None` when
 /// there is not exactly one.
-fn decisions_anchor(text: &str, path: &str) -> Option<String> {
+fn decisions_anchor(text: &str) -> Option<String> {
     let body = spec_spine_types::split_frontmatter(text)
         .map(|(_, b)| b)
         .unwrap_or_default();
@@ -1467,7 +1480,6 @@ fn decisions_anchor(text: &str, path: &str) -> Option<String> {
         })
         .map(crate::sections::anchor_of)
         .collect();
-    let _ = path;
     (found.len() == 1).then(|| found[0].clone())
 }
 
@@ -1969,6 +1981,17 @@ fn sha256_bytes(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_quoted_ampersand_is_text_and_a_bare_one_is_an_anchor() {
+        assert!(!has_anchor_or_alias("- 'a &b *c'"));
+        assert!(!has_anchor_or_alias("- 'it''s &b'"));
+        assert!(!has_anchor_or_alias("- \"a &b\""));
+        assert!(has_anchor_or_alias("- &x \"a\""));
+        assert!(has_anchor_or_alias("- { path: 'a', ref: *x }"));
+        // An apostrophe inside a plain word opens no scalar to hide behind.
+        assert!(has_anchor_or_alias("- { note: it's, ref: *x }"));
+    }
 
     #[test]
     fn a_frontmatter_entry_appends_to_its_block_or_adds_the_key() {

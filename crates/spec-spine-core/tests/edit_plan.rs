@@ -372,6 +372,35 @@ fn a_flow_sequence_layout_is_refused_rather_than_reserialized() {
     assert_eq!(reasons(&p), vec![RefusalReason::UnsupportedLayout]);
 }
 
+/// A single-quoted scalar holding `&` or `*` is text, not an anchor or alias,
+/// so the block sequence it sits in is still edited in place.
+#[test]
+fn an_ampersand_inside_a_single_quoted_scalar_is_not_an_anchor() {
+    let tmp = corpus();
+    let root = tmp.path();
+    write(
+        root,
+        "specs/002-work/spec.md",
+        &WORK.replace(
+            "  - { kind: file, path: \"docs/work.md\" }\n",
+            "  - { kind: file, path: \"docs/work.md\" }\n  - { kind: file, path: 'docs/a &b *c.md', planned: true }\n",
+        ),
+    );
+    commit_ledger(root);
+    let p = plan(
+        root,
+        vec![claim(
+            root,
+            serde_json::json!({ "kind": "file", "path": "src/new.rs" }),
+        )],
+    );
+    assert_eq!(p.status, PlanStatus::Ready, "{:?}", p.refusals);
+    assert!(
+        after(&p, "specs/002-work/spec.md")
+            .contains("path: 'docs/a &b *c.md', planned: true }\n  - ")
+    );
+}
+
 // ---- containment -------------------------------------------------------------
 
 /// A linked parent directory is refused as a link at the last component is.
