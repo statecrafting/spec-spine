@@ -1,0 +1,530 @@
+{
+  "$defs": {
+    "operation": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "edge": {
+              "enum": [
+                "establishes",
+                "extends"
+              ]
+            },
+            "expected": {
+              "type": "string"
+            },
+            "nature": {
+              "type": "string"
+            },
+            "op": {
+              "const": "add-claim"
+            },
+            "spec": {
+              "type": "string"
+            },
+            "target": {
+              "required": [
+                "kind"
+              ],
+              "type": "object"
+            },
+            "unit": {}
+          },
+          "required": [
+            "op",
+            "target",
+            "expected",
+            "edge",
+            "unit"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "entry": {
+              "type": "object"
+            },
+            "expected": {
+              "type": "string"
+            },
+            "op": {
+              "const": "add-trace-relation"
+            },
+            "target": {
+              "required": [
+                "kind"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "expected",
+            "entry"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "type": "string"
+            },
+            "expected": {
+              "type": "string"
+            },
+            "obligations": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "op": {
+              "const": "propose-amendment"
+            },
+            "spec": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "expected",
+            "spec",
+            "obligations",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "expected": {
+              "type": "string"
+            },
+            "manifest": {
+              "type": "object"
+            },
+            "op": {
+              "const": "update-manifest"
+            },
+            "pages": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "target": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "expected",
+            "manifest",
+            "pages"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "type": "string"
+            },
+            "expected": {
+              "type": "string"
+            },
+            "op": {
+              "const": "replace-unit"
+            },
+            "target": {
+              "required": [
+                "kind"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "expected",
+            "content"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "plan": {
+      "additionalProperties": false,
+      "else": {
+        "properties": {
+          "refusals": {
+            "maxItems": 0
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "const": "refused"
+          }
+        }
+      },
+      "properties": {
+        "authorityEffect": {
+          "enum": [
+            "none",
+            "claims-territory",
+            "changes-obligation",
+            "requires-human-ratification"
+          ]
+        },
+        "conflicts": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "index": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "kind": {
+                "enum": [
+                  "shared-ownership",
+                  "declared-conflict"
+                ]
+              },
+              "specs": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "index",
+              "target",
+              "specs"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "operations": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "authorityEffect": {
+                "enum": [
+                  "none",
+                  "claims-territory",
+                  "changes-obligation",
+                  "requires-human-ratification"
+                ]
+              },
+              "expected": {
+                "type": "string"
+              },
+              "index": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "op": {
+                "enum": [
+                  "add-claim",
+                  "add-trace-relation",
+                  "propose-amendment",
+                  "update-manifest",
+                  "replace-unit"
+                ]
+              },
+              "predictedState": {
+                "enum": [
+                  "resolved",
+                  "unresolved",
+                  "ambiguous",
+                  "unsupported",
+                  "unknown",
+                  "withdrawn"
+                ]
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "index",
+              "op",
+              "target",
+              "expected",
+              "authorityEffect"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "planDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "predictedFindings": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": [
+                  "warning",
+                  "info"
+                ]
+              }
+            },
+            "required": [
+              "path",
+              "code",
+              "severity",
+              "message"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "previews": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "afterContent": {
+                "type": "string"
+              },
+              "afterDigest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "beforeRawDigest": {
+                "oneOf": [
+                  {
+                    "pattern": "^sha256:[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "const": "absent"
+                  }
+                ]
+              },
+              "diff": {
+                "type": "string"
+              },
+              "path": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "beforeRawDigest",
+              "afterDigest",
+              "afterContent",
+              "diff"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "refusals": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "detail": {
+                "type": "string"
+              },
+              "index": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "reason": {
+                "enum": [
+                  "stale-target",
+                  "stale-ledger",
+                  "ambiguous-target",
+                  "unresolved-target",
+                  "unresolved-interface",
+                  "unsupported-target-kind",
+                  "unsupported-layout",
+                  "unsupported-encoding",
+                  "overlapping-operations",
+                  "duplicate-declaration",
+                  "generated-target",
+                  "out-of-scope",
+                  "unowned-target",
+                  "unauthorized-target",
+                  "approved-spec-text",
+                  "amendment-target-not-approved",
+                  "unamendable-anchor",
+                  "manifest-invalid",
+                  "post-image-invalid",
+                  "plan-too-large"
+                ]
+              },
+              "target": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "index",
+              "target",
+              "reason",
+              "detail"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "requestDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "snapshot": {
+          "additionalProperties": false,
+          "properties": {
+            "dirtyState": {
+              "enum": [
+                "clean-working-tree",
+                "clean-export"
+              ]
+            },
+            "repository": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "revision": {
+              "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+              "type": "string"
+            },
+            "tree": {
+              "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "repository",
+            "revision",
+            "tree",
+            "dirtyState"
+          ],
+          "type": "object"
+        },
+        "stales": {
+          "items": {
+            "enum": [
+              "spec-registry",
+              "codebase-index"
+            ]
+          },
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "refused"
+          ]
+        },
+        "subject": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "status",
+        "snapshot",
+        "subject",
+        "requestDigest",
+        "authorityEffect",
+        "operations",
+        "refusals",
+        "conflicts",
+        "previews",
+        "predictedFindings",
+        "stales",
+        "planDigest"
+      ],
+      "then": {
+        "properties": {
+          "previews": {
+            "maxItems": 0
+          },
+          "refusals": {
+            "minItems": 1
+          }
+        }
+      },
+      "type": "object"
+    },
+    "request": {
+      "additionalProperties": false,
+      "properties": {
+        "consumerSchemaVersion": {
+          "type": "string"
+        },
+        "manifests": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "operations": {
+          "items": {
+            "$ref": "#/$defs/operation"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "scope": {
+          "required": [
+            "ownSpec"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "scope",
+        "operations",
+        "consumerSchemaVersion"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://spec-spine.dev/schemas/edit-plan.schema.json",
+  "$ref": "#/$defs/plan",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "A digest-guarded, authority-classified proposal for a governed edit (spec 165). The root validates a plan; $defs/request is the request. A plan grants nothing and nothing in spec-spine applies it.",
+  "title": "spec-spine edit plan"
+}

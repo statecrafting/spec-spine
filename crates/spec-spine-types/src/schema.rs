@@ -65,3 +65,7 @@ pub const CONTEXT_PACKET_SCHEMA: &str = include_str!("../schemas/context-packet.
 /// [`crate::CONTEXT_PACKET_DELTA_SCHEMA_VERSION`].
 pub const CONTEXT_PACKET_DELTA_SCHEMA: &str =
     include_str!("../schemas/context-packet-delta.schema.json");
+
+/// JSON Schema (draft 2020-12) for an edit plan (spec 165 3.15), whose
+/// `$defs/request` is the request, under [`crate::EDIT_PLAN_SCHEMA_VERSION`].
+pub const EDIT_PLAN_SCHEMA: &str = include_str!("../schemas/edit-plan.schema.json");

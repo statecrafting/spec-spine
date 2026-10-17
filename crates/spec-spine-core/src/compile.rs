@@ -1611,8 +1611,29 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
         .map_err(|e| Error::Io(format!("read {}: {e}", spec_md.display())))?;
     let spec_path = rel_posix(repo_root, &spec_md);
 
+    // Siblings as committed. A registry that has never been compiled is an
+    // empty corpus rather than an error: a first spec in a fresh repository is
+    // exactly the case this verb is for.
+    let committed: Vec<SpecRecord> = load_committed_registry(cfg, repo_root)
+        .map(|r| r.specs)
+        .unwrap_or_default();
+    Ok(check_spec_source(cfg, committed, dirname, spec_path, &raw).0)
+}
+
+/// [`compile_spec`] over source text already in memory: one spec's bytes
+/// judged against `committed` siblings, with the record it compiles to when
+/// its frontmatter parses. The edit planner (spec 165 3.12) compiles a
+/// post-image through this path, so a plan and `compile --spec` cannot judge
+/// one text differently.
+pub(crate) fn check_spec_source(
+    cfg: &Config,
+    committed: Vec<SpecRecord>,
+    dirname: String,
+    spec_path: String,
+    raw: &str,
+) -> (SpecCheckReport, Option<SpecRecord>) {
     let mut violations: Vec<Violation> = Vec::new();
-    let fm = match parse_frontmatter_with(&raw, &cfg.frontmatter.extra_known_keys) {
+    let fm = match parse_frontmatter_with(raw, &cfg.frontmatter.extra_known_keys) {
         Ok(fm) => fm,
         // The same two skip-and-report arms `compile` uses: a spec whose
         // frontmatter did not parse has no record to build, and that is the
@@ -1625,7 +1646,7 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
                 ),
                 Some(spec_path.clone()),
             ));
-            return Ok(finish_spec_report(dirname, spec_path, violations));
+            return (finish_spec_report(dirname, spec_path, violations), None);
         }
         Err(FrontmatterIssue::Malformed(m)) => {
             violations.push(error(
@@ -1633,16 +1654,9 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
                 format!("malformed frontmatter: {m}"),
                 Some(spec_path.clone()),
             ));
-            return Ok(finish_spec_report(dirname, spec_path, violations));
+            return (finish_spec_report(dirname, spec_path, violations), None);
         }
     };
-
-    // Siblings as committed. A registry that has never been compiled is an
-    // empty corpus rather than an error: a first spec in a fresh repository is
-    // exactly the case this verb is for.
-    let committed: Vec<SpecRecord> = load_committed_registry(cfg, repo_root)
-        .map(|r| r.specs)
-        .unwrap_or_default();
 
     let mut fm = fm;
     let mut all_ids: std::collections::BTreeSet<String> =
@@ -1663,8 +1677,9 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
 
     validate_spec(cfg, &dirname, &spec_path, &fm, &all_ids, &mut violations);
 
-    let body = split_frontmatter(&raw).map(|(_, b)| b).unwrap_or_default();
+    let body = split_frontmatter(raw).map(|(_, b)| b).unwrap_or_default();
     let record = build_record(fm, spec_path.clone(), &body);
+    let compiled = record.clone();
     let mut records: Vec<SpecRecord> = committed
         .into_iter()
         .filter(|r| r.id != record.id)
@@ -1701,7 +1716,10 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
         }
     }
 
-    Ok(finish_spec_report(dirname, spec_path, violations))
+    (
+        finish_spec_report(dirname, spec_path, violations),
+        Some(compiled),
+    )
 }
 
 fn finish_spec_report(

@@ -243,6 +243,12 @@ pub const CONTEXT_PACKET_SCHEMA_VERSION: &str = "1.1.0";
 /// own axis from `1.0.0`, distinct from spec 071's [`DELTA_SCHEMA_VERSION`].
 pub const CONTEXT_PACKET_DELTA_SCHEMA_VERSION: &str = "1.0.0";
 
+/// `schemaVersion` of an edit plan (`edit-plan --json`, `edit_plan_json`;
+/// spec 165 3.15): its own axis from `1.0.0`. A new operation, effect or
+/// refusal reason, or a change to ordering, digest input or overlap rules,
+/// is MAJOR.
+pub const EDIT_PLAN_SCHEMA_VERSION: &str = "1.0.0";
+
 /// `schemaVersion` of a documentation manifest and of a freshness result
 /// (`documentation manifest validate|freshness`, spec 160 3.13): one axis for
 /// both documents, from `1.0.0`.
