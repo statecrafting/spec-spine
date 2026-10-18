@@ -136,7 +136,7 @@
       "contentHash": "89f3bd531cd8644c4a93866c04c8db0672329236596db782a4d863ff0a9bb187"
     },
     "crates/spec-spine-types/schemas/edit-plan.schema.json": {
-      "contentHash": "00446af4f3099cc682d0d281e504cf31cce7ae2af061f93eb65973d7bdddb3c9"
+      "contentHash": "979d800094b5c4c92b4956aec83c08c621386f6d21882b1a92940975622ed8cc"
     },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
       "contentHash": "d6c8f74046544df93527f2a9ebc971a28ed74c221d7881760f33f5ee0cd4b592"
