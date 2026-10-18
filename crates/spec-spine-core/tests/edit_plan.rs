@@ -401,6 +401,27 @@ fn an_ampersand_inside_a_single_quoted_scalar_is_not_an_anchor() {
     );
 }
 
+/// A stale amendment target is the whole answer, as for every other target:
+/// nothing else about the operation is judged until the caller re-plans.
+#[test]
+fn a_stale_amendment_target_says_only_that_it_is_stale() {
+    let tmp = corpus();
+    let root = tmp.path();
+    write(root, "specs/003-amend/spec.md", "already here\n");
+    let p = plan(
+        root,
+        vec![serde_json::json!({
+            "op": "propose-amendment",
+            "target": "specs/003-amend/spec.md",
+            "expected": "absent",
+            "spec": "003-amend",
+            "obligations": ["001-base#R-99"],
+            "content": "not a spec\n",
+        })],
+    );
+    assert_eq!(reasons(&p), vec![RefusalReason::StaleTarget]);
+}
+
 // ---- containment -------------------------------------------------------------
 
 /// A linked parent directory is refused as a link at the last component is.

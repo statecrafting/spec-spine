@@ -1128,6 +1128,9 @@ fn check_amendment(
     if expected != EXPECTED_ABSENT || present {
         let current = if present { "present" } else { EXPECTED_ABSENT };
         stale(c, expected, current);
+        // As every other target check: the rest is judged against a refreshed
+        // target, so nothing more is said about this one.
+        return Ok(());
     }
     // The ordinal must be unused and next free (contiguity).
     let ordinal = |id: &str| -> Option<u32> { crate::spec_id::leading_segment(id).parse().ok() };
