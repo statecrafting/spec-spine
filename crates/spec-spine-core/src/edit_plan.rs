@@ -942,7 +942,11 @@ fn has_anchor_or_alias(text: &str) -> bool {
     bytes.iter().enumerate().any(|(i, b)| {
         (*b == b'&' || *b == b'*')
             && (i == 0 || matches!(bytes[i - 1], b' ' | b'[' | b'{' | b',' | b':'))
-            && bytes.get(i + 1).is_some_and(|n| n.is_ascii_alphanumeric())
+            // YAML's ns-anchor-char: any non-blank character but a flow
+            // indicator, so `&_root` and `*-x` are names too.
+            && bytes
+                .get(i + 1)
+                .is_some_and(|n| !n.is_ascii_whitespace() && !b",[]{}".contains(n))
             && !in_quotes(text, i)
     })
 }
@@ -1999,6 +2003,9 @@ mod tests {
         assert!(!has_anchor_or_alias("- 'it''s &b'"));
         assert!(!has_anchor_or_alias("- \"a &b\""));
         assert!(has_anchor_or_alias("- &x \"a\""));
+        assert!(has_anchor_or_alias("- &_root \"a\""));
+        assert!(has_anchor_or_alias("- { path: 'a', ref: *-x }"));
+        assert!(!has_anchor_or_alias("- { note: a & b }"));
         assert!(has_anchor_or_alias("- { path: 'a', ref: *x }"));
         // An apostrophe inside a plain word opens no scalar to hide behind.
         assert!(has_anchor_or_alias("- { note: it's, ref: *x }"));
