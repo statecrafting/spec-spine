@@ -334,7 +334,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "700c711f65101c6deaa63d4a5c174ddec5478ba7982a9b2015a414934cff543e",
-      "164-a-packet-delta-reproduces-the-packet-it-names": "855832a06a8291a8e2fc3e89e2ff653b41f156bc2fb964f5e7e61442fe39d493",
+      "164-a-packet-delta-reproduces-the-packet-it-names": "20564ceb458b74dbdb0b1e94a95c6fea7d2bcca84c9231b204e19012c70c46ee",
       "2-territory": "c5ecc4a65a5ddea87920c9174fcbfd6c1ac891b4bb36f08f67470386ff3502f5",
       "3-1-a-delta-relates-two-complete-page-sets-of-one-request": "7cf10ee029dc3d9acd4de6f1ec5c84ea2c4fe807419a3863bd450ae87932fb21",
       "3-10-ordering-limits-canonical-bytes-and-schema": "829353abbbc3e042650d9199e37589aa83203426b6551b6c7769ac3c271cd921",
@@ -352,7 +352,7 @@
       "3-behavior": "daaa57c59a696da5ea049f4029487a1be41d0aece134c71bc968d0216bee9fab",
       "4-acceptance-criteria": "92d6ae5054d86fd38847255ffd20981d0ddad581144e7d660512866e52d37f08",
       "5-out-of-scope": "191e63a5661d535c1272886eecf2e499bda2ab128b51ddf021d06d1c8906c831",
-      "6-resolved-decisions": "1bb7fce422fb3798b606d2abda2318fe154f4dcc27cb63bf65eeafb8a455540f",
+      "6-resolved-decisions": "b01254e927a393d2613c5dfc748d0ea495f466017bc291700f597bdbc65a7c93",
       "verification": "c02969c322a97857511077ae27e2fef7f2af6cffd1f697339a6b9bc288a28e15"
     },
     "sectionHeadings": [
@@ -379,10 +379,10 @@
       "Verification"
     ],
     "specPath": "specs/164-incremental-context-packets/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "b4ee519b2ed645a37c3334c26fafe70c8541a5f4ac9a86f746e5c72e8ad424ce",
+  "shardHash": "cae28220c78428952024d6bcd20ae6f77adcf0b44d9c932115d859bbec1cac3e",
   "specVersion": "1.10.0"
 }

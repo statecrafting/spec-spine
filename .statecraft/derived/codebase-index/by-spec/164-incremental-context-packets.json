@@ -613,8 +613,8 @@
       }
     ],
     "specId": "164-incremental-context-packets",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "a659f510db65920a77d6c84037ce0518c1b0bd0c3742be2e2f6cb08bf6b0f450"
+  "shardHash": "fd9e0760232150b41bd8f54a940a43fe5204730ccac3c4a83c103b2c3f5c8fb7"
 }

@@ -1,7 +1,7 @@
 ---
 id: "164-incremental-context-packets"
 title: "A packet delta reproduces the packet it names"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-27"
 implementation: complete
@@ -461,11 +461,11 @@ use, so a fallback exits 0 and names its reason.
 unused, not reassigned, so the identifiers other entries cite (D-5 in D-10)
 keep their meaning (noted 2026-10-10, review).
 
-**D-5 (draft, owner to confirm): any schema-version difference falls back.**
+**D-5 (2026-10-17, owner ruling): any schema-version difference falls back.**
 Row 5 includes MINOR differences because reused records must equal the
 target's bytes. Tolerating a MINOR needs a per-member projection rule.
 
-**D-6 (draft, owner to confirm): apply refusals exit 2.** A predecessor mismatch
+**D-6 (2026-10-17, owner ruling): apply refusals exit 2.** A predecessor mismatch
 and a non-reproducing page leave nothing done. Exit 1 would read as a finding
 about the repository, exit 4 as an internal failure.
 
@@ -474,7 +474,7 @@ about the repository, exit 4 as an internal failure.
 into its `1.0.0` avoids a MINOR on day one. D-10 records why that condition
 does not hold.
 
-**D-8 (draft, owner to confirm): candidates cover packet members only.**
+**D-8 (2026-10-17, owner ruling): candidates cover packet members only.**
 Covering spec-160 interface inputs would duplicate its freshness read; deferred
 unless Statecraft needs one call.
 
