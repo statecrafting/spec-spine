@@ -525,8 +525,8 @@
       }
     ],
     "specId": "165-digest-guarded-edit-plans",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "04ee82f54fc8da882fbb8edeeb25faabba285ca57a98c0350648f72d28534ed2"
+  "shardHash": "01579c2640d10202c8949213ecfb4fae583a2d34741c82fd5014e3bad70b4ba1"
 }
