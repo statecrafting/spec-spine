@@ -79,6 +79,11 @@ fn spec_digest(root: &Path, dir: &Path) -> String {
             "--json",
         ],
     );
+    assert!(
+        out.status.success(),
+        "content select failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let doc: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     doc["items"][0]["digest"].as_str().unwrap().to_string()
 }
