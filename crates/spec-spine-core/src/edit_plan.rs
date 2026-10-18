@@ -1130,7 +1130,7 @@ fn check_amendment(
         stale(c, expected, current);
     }
     // The ordinal must be unused and next free (contiguity).
-    let ordinal = |id: &str| -> Option<u32> { id.split('-').next()?.parse().ok() };
+    let ordinal = |id: &str| -> Option<u32> { crate::spec_id::leading_segment(id).parse().ok() };
     let max = view
         .registry
         .specs
