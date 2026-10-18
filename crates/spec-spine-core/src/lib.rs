@@ -29,6 +29,7 @@ pub mod delta;
 pub mod dep_only;
 pub mod diagnostics;
 pub mod documentation_manifest;
+pub mod edit_plan;
 mod hash;
 pub mod impact;
 pub mod index;
@@ -128,6 +129,7 @@ pub use documentation_manifest::{
     freshness_digest, manifest_digest, packet_snapshot, parse_documentation_manifest,
     read_documentation_outputs, validate_documentation_manifest,
 };
+pub use edit_plan::{edit_plan, edit_plan_document};
 pub use impact::{ConflictEntry, ImpactEntry, ImpactSet, impacts};
 pub use index::{
     BlockingClaim, Freshness, INPUTS_FILE, IndexFreshnessReport, IndexOutcome, IndexShardSet,

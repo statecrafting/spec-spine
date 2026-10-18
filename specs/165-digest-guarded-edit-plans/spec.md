@@ -22,8 +22,8 @@ summary: >
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/edit_plan.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/edit-plan.schema.json" }
-  - { kind: file, path: "crates/spec-spine-core/src/edit_plan.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/edit_plan.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/edit_plan.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/edit_plan.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/edit-plan/", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_edit_plan.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/edit_plan.rs", planned: true }
@@ -39,6 +39,7 @@ extends:
   - { spec: "152-a-refusal-says-what-it-is-in-every-form", unit: { kind: file, path: "crates/spec-spine-cli/tests/refusal_envelopes.rs" }, nature: additive }
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
   - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "160-documentation-manifest-and-freshness", unit: { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }, nature: additive }
   - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap row K" }

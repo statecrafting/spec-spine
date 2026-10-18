@@ -19,13 +19,11 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/edit_plan.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/edit_plan.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/edit_plan.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/edit_plan.rs"
       },
       {
         "kind": "directory",
@@ -129,6 +127,14 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "160-documentation-manifest-and-freshness",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/documentation_manifest.rs"
         }
       },
       {
@@ -305,6 +311,6 @@
     "summary": "Adds a pure, read-only edit-plan producer: a closed list of governed operations, each guarded by the digest of the target it was planned against, checked against ownership, a work scope and the amendment rules, previewed as exact post-image bytes, and classified by authority effect. Refusals come from a closed set. Nothing in spec-spine applies a plan.\n",
     "title": "Plan a governed edit without applying it"
   },
-  "shardHash": "b50c57682d7f70945bf212630ac3ebf6519a5378e861e5d188f89b9ceb2ab1f7",
+  "shardHash": "89d801b97634cea1fc92e6fc3fbaaa26a2d23395627bad21453c4ce36f646b2f",
   "specVersion": "1.10.0"
 }
