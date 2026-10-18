@@ -1667,11 +1667,13 @@ fn repeated_declarations(checked: &mut [Checked]) {
     }
 }
 
-/// The `id` of a rendered trace entry, which alone identifies it.
+/// The `id` of a rendered trace entry, which alone identifies it. `flow`
+/// renders it as a JSON string, so it is read as one: a quoted id holding
+/// `, ` is not cut short at the first separator.
 fn trace_id(line: &str) -> Option<String> {
     let rest = line.strip_prefix("{ id: ")?;
-    let end = rest.find(", ")?;
-    Some(rest[..end].to_string())
+    let mut values = serde_json::Deserializer::from_str(rest).into_iter::<String>();
+    values.next()?.ok()
 }
 
 /// One file's pre- and post-image.
@@ -1981,6 +1983,15 @@ fn sha256_bytes(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_trace_id_is_read_as_the_quoted_string_flow_renders() {
+        let line = flow(&serde_json::json!({ "id": "a, b", "relation": "implements" }));
+        assert_eq!(trace_id(&line).as_deref(), Some("a, b"));
+        let line = flow(&serde_json::json!({ "id": "T-1", "relation": "implements" }));
+        assert_eq!(trace_id(&line).as_deref(), Some("T-1"));
+        assert_eq!(trace_id("{ kind: file }"), None);
+    }
 
     #[test]
     fn a_quoted_ampersand_is_text_and_a_bare_one_is_an_anchor() {
