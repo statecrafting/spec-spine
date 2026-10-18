@@ -1,7 +1,7 @@
 ---
 id: "165-digest-guarded-edit-plans"
 title: "Plan a governed edit without applying it"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-27"
 implementation: complete
@@ -473,19 +473,19 @@ they are not proposals, and a draft author writes them directly.
 partial application, which is exactly the recovery problem this spec leaves
 to Statecraft; listing every refusal saves a caller one round per defect.
 
-**D-4 (2026-09-27, draft, owner to confirm): a decision append on an approved
+**D-4 (2026-10-18, owner ruling): a decision append on an approved
 spec is `requires-human-ratification`.** AGENTS.md calls a dated decision
 entry legitimate, but a planner cannot test whether the spec was silent on the
 choice, and a decision entry can restate a requirement. The alternative is
 `none` with a warning.
 
-**D-5 (2026-09-27, draft, owner to confirm): ship `update-manifest` and
+**D-5 (2026-10-18, owner ruling): ship `update-manifest` and
 `replace-unit` with the claim operations.** Design note 09 recommends starting
 with add-claim and add-trace only. If the owner prefers, the build may defer
 both to a later spec; the vocabulary stays closed and a deferred kind is a
 usage error until then.
 
-**D-6 (2026-09-27, draft, owner to confirm): the spec-155 item digest is the
+**D-6 (2026-10-18, owner ruling): the spec-155 item digest is the
 text guard.** The alternative, a spec's registry `shardHash`, covers only
 whole specs and not documentation units; it is still checked indirectly
 through `stale-ledger`.
