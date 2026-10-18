@@ -227,6 +227,7 @@ fn module_operations() -> BTreeMap<&'static str, Vec<&'static str>> {
                 "documentation.manifest.validate",
             ],
         ),
+        ("cmd_edit_plan.rs", vec!["edit-plan"]),
         (
             "cmd_index.rs",
             vec![
@@ -469,6 +470,7 @@ fn the_capabilities_document_carries_the_catalog() {
         "delta",
         "documentation.manifest.freshness",
         "documentation.manifest.validate",
+        "edit-plan",
         "index.build",
         "index.check",
         "index.coverage",

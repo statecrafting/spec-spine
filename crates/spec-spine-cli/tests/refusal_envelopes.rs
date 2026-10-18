@@ -223,6 +223,17 @@ fn every_json_read_answers_a_failure_with_an_envelope() {
                 "--json",
             ],
         ),
+        (
+            "edit-plan",
+            &[
+                "edit-plan",
+                "--request",
+                request,
+                "--repository",
+                "test",
+                "--json",
+            ],
+        ),
         ("registry.list", &["registry", "list", "--json"]),
         ("registry.show", &["registry", "show", "001", "--json"]),
         (

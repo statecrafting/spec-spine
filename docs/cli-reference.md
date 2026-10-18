@@ -214,6 +214,20 @@ snapshot exits `2`. `context apply` reproduces every target page and writes
 names, or a page that does not reproduce its recorded digest, exits `2`
 having written nothing; a malformed delta or a non-empty directory exits `3`.
 
+## edit-plan
+
+```text
+spec-spine edit-plan --request <FILE> --repository <IDENTITY> [--revision <REV>] --json
+```
+
+Plan a governed edit without applying it (spec 165; see `docs/edit-plans.md`).
+The snapshot is bound as `content select` binds it. A ready plan, with exact
+post-image bytes for every changed file, is written as the bare document at
+exit `0`. A refused plan exits `1` with the `edit-plan` envelope, whose
+`report` is the plan listing every refusal. A dirty tree exits `2`, and a
+malformed request or an unknown operation exits `3`. Nothing is written, and
+there is no apply flag.
+
 ## documentation
 
 ```text

@@ -4,7 +4,7 @@ title: "Plan a governed edit without applying it"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
@@ -24,10 +24,10 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/schemas/edit-plan.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/edit_plan.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/edit_plan.rs" }
-  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/edit-plan/", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_edit_plan.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/edit_plan.rs", planned: true }
-  - { kind: section, file: "docs/edit-plans.md", anchor: "edit-plans", planned: true }
+  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/edit-plan/" }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_edit_plan.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/edit_plan.rs" }
+  - { kind: section, file: "docs/edit-plans.md", anchor: "edit-plans" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -40,7 +40,12 @@ extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
   - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
   - { spec: "160-documentation-manifest-and-freshness", unit: { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }, nature: additive }
+  - { spec: "034-machine-readable-verdicts", unit: { kind: file, path: "crates/spec-spine-types/src/verdict.rs" }, nature: additive }
   - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap row K" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/compact.rs" }, role: "plan and apply precedent" }

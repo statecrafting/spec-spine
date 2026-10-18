@@ -375,6 +375,22 @@ pub fn edit_plan_document(plan: &EditPlan) -> Result<String, Error> {
     read_document(plan, Versioning::Preexisting("schemaVersion"))
 }
 
+/// JSON facade for [`edit_plan`] (spec 165 §2).
+pub fn edit_plan_json(
+    config_json: &str,
+    repo_root: &str,
+    request_json: &str,
+    snapshot_json: &str,
+) -> Result<String, Error> {
+    let cfg: Config = serde_json::from_str(config_json)
+        .map_err(|e| Error::Usage(format!("invalid config JSON: {e}")))?;
+    let request: EditPlanRequest = serde_json::from_str(request_json)
+        .map_err(|e| Error::Usage(format!("invalid edit-plan request: {e}")))?;
+    let snapshot: ContentSnapshot = serde_json::from_str(snapshot_json)
+        .map_err(|e| Error::Usage(format!("invalid content snapshot: {e}")))?;
+    edit_plan_document(&edit_plan(&cfg, Path::new(repo_root), &request, &snapshot)?)
+}
+
 fn finish(mut plan: EditPlan) -> Result<EditPlan, Error> {
     let mut value = serde_json::to_value(&plan).map_err(|e| Error::Internal(e.to_string()))?;
     if let Some(map) = value.as_object_mut() {

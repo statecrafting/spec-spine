@@ -874,6 +874,36 @@ fn operations() -> Vec<Operation> {
         ])
         .done(),
         op(
+            "edit-plan",
+            "Plan a governed edit without applying it: a digest-guarded, authority-classified proposal with exact post-image bytes (spec 165)",
+            &["165-digest-guarded-edit-plans"],
+        )
+        .experimental()
+        .cli(
+            "edit-plan",
+            "read-document",
+            &["--request=FILE!", "--repository=REPOSITORY!", "--revision=REVISION", "--json!"],
+        )
+        .reads(&["caller-file", "clock", "config", "corpus", "derived-ledger", "source-tree"])
+        .writes(&["temporary"])
+        .executes(&["git"])
+        .pre("clean-tree", &[2])
+        .pre("git-repository", &[4])
+        .finding(&["not-found", "stale", "validation"])
+        .request_document()
+        .response(None, "edit-plan", "edit-plan", schema_id("edit-plan.schema.json"))
+        .verdict()
+        .facade("edit_plan_json", None, true)
+        .pinned_example(&[
+            "edit-plan",
+            "--request",
+            "plan-request.json",
+            "--repository",
+            "example/fixture",
+            "--json",
+        ])
+        .done(),
+        op(
             "documentation.manifest.validate",
             "Validate a documentation manifest against the snapshot it records: its packet pages, inputs, outputs and regions",
             &["160-documentation-manifest-and-freshness"],

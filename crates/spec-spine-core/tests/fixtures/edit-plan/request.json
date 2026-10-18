@@ -1,0 +1,74 @@
+{
+  "consumerSchemaVersion": "1.0.0",
+  "manifests": [],
+  "operations": [
+    {
+      "edge": "establishes",
+      "expected": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "op": "add-claim",
+      "target": {
+        "kind": "spec",
+        "spec": "002-work"
+      },
+      "unit": {
+        "kind": "file",
+        "path": "src/new.rs"
+      }
+    },
+    {
+      "entry": {
+        "id": "T-1",
+        "obligation": "002-work#R-1",
+        "relation": "documented-by",
+        "target": {
+          "kind": "documentation",
+          "selector": {
+            "kind": "file",
+            "path": "docs/work.md"
+          }
+        }
+      },
+      "expected": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "op": "add-trace-relation",
+      "target": {
+        "kind": "spec",
+        "spec": "002-work"
+      }
+    },
+    {
+      "content": "---\nid: \"003-amend\"\n---\n",
+      "expected": "absent",
+      "obligations": [
+        "001-base#R-1"
+      ],
+      "op": "propose-amendment",
+      "spec": "003-amend",
+      "target": "specs/003-amend/spec.md"
+    },
+    {
+      "expected": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "manifest": {},
+      "op": "update-manifest",
+      "pages": [],
+      "target": "docs/manifest.json"
+    },
+    {
+      "content": "### 3.2 Notes\n\nNew.\n",
+      "expected": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "op": "replace-unit",
+      "target": {
+        "anchor": "3-2-notes",
+        "kind": "spec-section",
+        "spec": "002-work"
+      }
+    }
+  ],
+  "scope": {
+    "mutable": [
+      "specs/002-work/",
+      "specs/003-amend/",
+      "docs/"
+    ],
+    "ownSpec": "002-work"
+  }
+}

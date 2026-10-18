@@ -76,6 +76,9 @@ pub mod verb {
     /// `--json` its success is the JSON array of the paths it wrote, and a
     /// refusal is an envelope.
     pub const CONTEXT_APPLY: &str = "context.apply";
+    /// `spec-spine edit-plan` (spec 165). A ready plan is the bare document;
+    /// a refused plan is a finding whose envelope reports it.
+    pub const EDIT_PLAN: &str = "edit-plan";
     /// `spec-spine documentation manifest validate` (spec 160). Its success is
     /// the bare canonical manifest; a mismatch is a refusal.
     pub const DOCUMENTATION_MANIFEST_VALIDATE: &str = "documentation.manifest.validate";
