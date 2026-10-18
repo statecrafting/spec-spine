@@ -422,6 +422,27 @@ fn a_stale_amendment_target_says_only_that_it_is_stale() {
     assert_eq!(reasons(&p), vec![RefusalReason::StaleTarget]);
 }
 
+/// Nor is authority judged on a stale target: an out-of-scope amendment
+/// whose target already exists reports only that it is stale.
+#[test]
+fn a_stale_target_out_of_scope_says_only_that_it_is_stale() {
+    let tmp = corpus();
+    let root = tmp.path();
+    write(root, "specs/004-out/spec.md", "already here\n");
+    let p = plan(
+        root,
+        vec![serde_json::json!({
+            "op": "propose-amendment",
+            "target": "specs/004-out/spec.md",
+            "expected": "absent",
+            "spec": "004-out",
+            "obligations": ["001-base#R-1"],
+            "content": "not a spec\n",
+        })],
+    );
+    assert_eq!(reasons(&p), vec![RefusalReason::StaleTarget]);
+}
+
 // ---- containment -------------------------------------------------------------
 
 /// A linked parent directory is refused as a link at the last component is.

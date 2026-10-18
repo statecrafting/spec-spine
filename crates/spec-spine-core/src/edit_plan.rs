@@ -517,7 +517,14 @@ fn check_operation(view: &View<'_>, index: usize, op: &EditOperation) -> Result<
             content,
         } => check_replace(view, target, expected, content, &mut c)?,
     }
-    if let Some(located) = c.located.clone() {
+    // A stale target is the whole answer for its operation (every check
+    // returns there), so authority is not judged against bytes the caller
+    // must first refresh.
+    let stale_target = c
+        .refusals
+        .iter()
+        .any(|(reason, _)| *reason == RefusalReason::StaleTarget);
+    if let Some(located) = c.located.clone().filter(|_| !stale_target) {
         let created = matches!(op, EditOperation::ProposeAmendment { .. });
         if let Some((reason, detail)) = authority(view, &located, created) {
             c.refusals.push((reason, detail));
