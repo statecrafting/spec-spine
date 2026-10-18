@@ -30,6 +30,7 @@ mod cmd_context_delta;
 mod cmd_couple;
 mod cmd_delta;
 mod cmd_documentation;
+mod cmd_edit_plan;
 mod cmd_index;
 mod cmd_interface;
 mod cmd_lint;
@@ -148,6 +149,22 @@ enum Command {
     Context {
         #[command(subcommand)]
         action: cmd_context::ContextAction,
+    },
+    /// Plan a governed edit without applying it: a digest-guarded,
+    /// authority-classified proposal with exact post-image bytes (spec 165).
+    EditPlan {
+        /// JSON edit-plan request document.
+        #[arg(long, value_name = "FILE")]
+        request: std::path::PathBuf,
+        /// Opaque repository identity carried into the plan.
+        #[arg(long)]
+        repository: String,
+        /// Commit-ish to export. Omit to bind the clean working tree at HEAD.
+        #[arg(long)]
+        revision: Option<String>,
+        /// Emit the canonical plan document.
+        #[arg(long, required = true)]
+        json: bool,
     },
     /// Validate a documentation manifest, or evaluate its freshness, against
     /// one clean repository snapshot (spec 160). Runs nothing it names.
@@ -451,6 +468,12 @@ fn main() -> ExitCode {
         Command::Content { action } => cmd_content::run(&repo, action),
         Command::Context { action } => cmd_context::run(&repo, action),
         Command::Documentation { action } => cmd_documentation::run(&repo, action),
+        Command::EditPlan {
+            request,
+            repository,
+            revision,
+            json: _,
+        } => cmd_edit_plan::run(&repo, request, repository, revision.as_deref()),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Interface { action } => cmd_interface::run(&repo, action),
@@ -657,6 +680,7 @@ impl Command {
             Command::Context {
                 action: cmd_context::ContextAction::Apply { json: true, .. },
             } => Some(verb::CONTEXT_APPLY),
+            Command::EditPlan { json: true, .. } => Some(verb::EDIT_PLAN),
             Command::Documentation {
                 action: cmd_documentation::DocumentationAction::Manifest { action },
             } => match action {

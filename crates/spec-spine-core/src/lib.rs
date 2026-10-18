@@ -129,7 +129,7 @@ pub use documentation_manifest::{
     freshness_digest, manifest_digest, packet_snapshot, parse_documentation_manifest,
     read_documentation_outputs, validate_documentation_manifest,
 };
-pub use edit_plan::{edit_plan, edit_plan_document};
+pub use edit_plan::{edit_plan, edit_plan_document, edit_plan_json};
 pub use impact::{ConflictEntry, ImpactEntry, ImpactSet, impacts};
 pub use index::{
     BlockingClaim, Freshness, INPUTS_FILE, IndexFreshnessReport, IndexOutcome, IndexShardSet,

@@ -27,24 +27,20 @@
       },
       {
         "kind": "directory",
-        "path": "crates/spec-spine-core/tests/fixtures/edit-plan/",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/fixtures/edit-plan/"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_edit_plan.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_edit_plan.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/edit_plan.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/edit_plan.rs"
       },
       {
         "anchor": "edit-plans",
         "file": "docs/edit-plans.md",
-        "kind": "section",
-        "planned": true
+        "kind": "section"
       }
     ],
     "extends": [
@@ -139,15 +135,55 @@
       },
       {
         "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "162-capability-catalog",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/capability.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
       }
     ],
     "id": "165-digest-guarded-edit-plans",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "intent": {
       "goal": "let an agent obtain a reviewable, digest-guarded, authority-classified proposal for a governed edit without spec-spine ever applying it",
       "nonGoals": [
@@ -311,6 +347,6 @@
     "summary": "Adds a pure, read-only edit-plan producer: a closed list of governed operations, each guarded by the digest of the target it was planned against, checked against ownership, a work scope and the amendment rules, previewed as exact post-image bytes, and classified by authority effect. Refusals come from a closed set. Nothing in spec-spine applies a plan.\n",
     "title": "Plan a governed edit without applying it"
   },
-  "shardHash": "89d801b97634cea1fc92e6fc3fbaaa26a2d23395627bad21453c4ce36f646b2f",
+  "shardHash": "51aeb977db21df16902df4116cabc0f431d27532b3b4a40d78ed8cacda135b95",
   "specVersion": "1.10.0"
 }

@@ -347,6 +347,7 @@ fn every_facade_function_is_cataloged_and_nothing_else_is() {
             "context_packet_delta_json" | "context_packet_apply_json" => {
                 "crates/spec-spine-core/src/context_packet_delta.rs"
             }
+            "edit_plan_json" => "crates/spec-spine-core/src/edit_plan.rs",
             "traceability_json" => "crates/spec-spine-core/src/traceability.rs",
             "documentation_manifest_json" | "documentation_freshness_json" => {
                 "crates/spec-spine-core/src/documentation_manifest.rs"

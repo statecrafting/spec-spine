@@ -265,6 +265,20 @@ request_json, snapshot_json)`, whose target pages record `unverified`, and
 `context_packet_apply_json(predecessor_pages_json, delta_json)`, which takes
 and returns JSON arrays of page strings. See `docs/context-packets.md`.
 
+### Edit plans
+
+`edit_plan(&Config, repo_root, &EditPlanRequest, &ContentSnapshot)` (spec
+165) plans a governed edit against one export. Its operations are
+`add-claim`, `add-trace-relation`, `propose-amendment`, `update-manifest` and
+`replace-unit`, each guarded by the digest its caller read the target at. It
+returns an `EditPlan`, `ready` with exact `previews` or `refused` with every
+refusal and no preview. A refused plan is a finding, not an error. A
+malformed request is `Usage`, and a scope whose subject does not resolve is
+`NotFound`. `edit_plan_document(&EditPlan)` writes the canonical document
+(`EDIT_PLAN_SCHEMA_VERSION`, schema `EDIT_PLAN_SCHEMA`), and
+`edit_plan_json(config_json, repo_root, request_json, snapshot_json)` is the
+JSON facade. The library has no apply function. See `docs/edit-plans.md`.
+
 ### Documentation manifests
 
 `parse_documentation_manifest(text)` reads a manifest (spec 160), checking the
