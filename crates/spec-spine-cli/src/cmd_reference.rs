@@ -75,8 +75,6 @@ fn generate(repo: &Path, request_path: &Path, json: bool) -> Result<u8, Error> {
     let (cfg, request) = load(repo, request_path)?;
     let export = reference_generate(&cfg, repo, &request)?;
     let dir = repo.join(&request.output_dir);
-    std::fs::create_dir_all(&dir)
-        .map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
     let mut written = Vec::new();
     let mut unchanged = Vec::new();
     for (path, text) in &export.pages {
@@ -85,6 +83,10 @@ fn generate(repo: &Path, request_path: &Path, json: bool) -> Result<u8, Error> {
         if same {
             unchanged.push(path.clone());
         } else {
+            // Only a page to write creates the directory: an empty selection
+            // leaves the tree as it was.
+            std::fs::create_dir_all(&dir)
+                .map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
             std::fs::write(&target, text).map_err(|e| Error::Io(format!("write {path}: {e}")))?;
             written.push(path.clone());
         }
@@ -144,7 +146,7 @@ fn check(repo: &Path, request_path: &Path, json: bool) -> Result<u8, Error> {
             let kind = serde_json::to_value(f.kind)
                 .ok()
                 .and_then(|v| v.as_str().map(str::to_string))
-                .unwrap_or_default();
+                .ok_or_else(|| Error::Internal(format!("unnamed finding kind {:?}", f.kind)))?;
             let regions = if f.regions.is_empty() {
                 String::new()
             } else {

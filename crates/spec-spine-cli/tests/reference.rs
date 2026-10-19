@@ -209,3 +209,22 @@ fn every_verb_documents_itself() {
         assert!(String::from_utf8_lossy(&out.stdout).contains("--request"));
     }
 }
+
+#[test]
+fn an_empty_selection_creates_no_output_directory() {
+    let repo = corpus();
+    let root = repo.path();
+    fs::write(
+        root.join("reference-request.json"),
+        r#"{"schemaVersion":"1.0.0","outputDir":"docs/reference","specs":{"ids":[]}}"#,
+    )
+    .unwrap();
+    let out = run(root, "generate", true);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    let doc: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert!(doc["written"].as_array().unwrap().is_empty());
+    assert!(
+        !root.join("docs/reference").exists(),
+        "a generation that writes no page creates no directory"
+    );
+}
