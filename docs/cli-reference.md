@@ -264,7 +264,8 @@ Generate, check or model one deterministic reference page per exported spec
 authored `notes` region, and removes orphaned pages whose notes are empty. A
 stale ledger or an unknown spec exits `1`; a containment failure, an orphan
 with notes, a malformed committed page or a limit excess exits `2`, with
-nothing written. `check` never writes and exits `1` on any `page-missing`,
+nothing written. `generate --json` lists the `written`, `unchanged` and
+`removed` paths; a page already current is left untouched. `check` never writes and exits `1` on any `page-missing`,
 `page-changed`, `page-orphaned`, `page-malformed` or `ledger-stale` finding.
 `model --json` writes every page model as one document. A malformed request
 exits `3`. No verb runs an example.

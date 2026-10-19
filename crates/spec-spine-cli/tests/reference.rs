@@ -78,13 +78,20 @@ fn generate_writes_one_page_per_spec_and_check_then_passes() {
     let out = run(root, "generate", true);
     assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
     let doc: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
-    assert_eq!(doc["pages"].as_array().unwrap().len(), 5);
     let names: Vec<String> = fs::read_dir(root.join("docs/reference"))
         .unwrap()
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
     assert_eq!(names.len(), 5);
+    assert_eq!(doc["written"].as_array().unwrap().len(), 5);
+    assert!(doc["unchanged"].as_array().unwrap().is_empty());
     let first = fs::read(root.join("docs/reference/001-alpha.md")).unwrap();
+    // A rerun writes nothing, and the JSON says so (D-21: written paths only).
+    let again = run(root, "generate", true);
+    assert_eq!(code(&again), 0);
+    let doc: serde_json::Value = serde_json::from_slice(&again.stdout).unwrap();
+    assert!(doc["written"].as_array().unwrap().is_empty());
+    assert_eq!(doc["unchanged"].as_array().unwrap().len(), 5);
     assert_eq!(code(&run(root, "generate", false)), 0);
     assert_eq!(
         fs::read(root.join("docs/reference/001-alpha.md")).unwrap(),

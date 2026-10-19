@@ -69,6 +69,11 @@ fn corpus() -> tempfile::TempDir {
 fn fixture_catalog() -> serde_json::Value {
     let mut catalog = spec_spine_core::capability_catalog().unwrap();
     catalog.operations.retain(|o| o.name == "registry.list");
+    assert_eq!(
+        catalog.operations.len(),
+        1,
+        "the catalog must hold exactly one registry.list operation"
+    );
     let examples: Vec<spec_spine_types::Example> = serde_json::from_str(
         &fs::read_to_string(Path::new(FIXTURE).join("examples.json")).unwrap(),
     )

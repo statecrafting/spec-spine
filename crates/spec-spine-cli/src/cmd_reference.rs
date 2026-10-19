@@ -22,7 +22,7 @@ pub enum ReferenceAction {
         /// JSON export request document.
         #[arg(long, value_name = "FILE")]
         request: std::path::PathBuf,
-        /// List the written and removed paths as JSON; a refusal is an envelope.
+        /// List the written, unchanged and removed paths as JSON; a refusal is an envelope.
         #[arg(long)]
         json: bool,
     },
@@ -83,26 +83,30 @@ fn generate(repo: &Path, request_path: &Path, json: bool) -> Result<u8, Error> {
     for (path, text) in &export.pages {
         let target = repo.join(path);
         let same = std::fs::read(&target).is_ok_and(|b| b == text.as_bytes());
-        if !same {
-            std::fs::write(&target, text).map_err(|e| Error::Io(format!("write {path}: {e}")))?;
-        } else {
+        if same {
             unchanged.insert(path.clone());
+        } else {
+            std::fs::write(&target, text).map_err(|e| Error::Io(format!("write {path}: {e}")))?;
+            written.push(path.clone());
         }
-        written.push(path.clone());
     }
     for path in &export.remove {
         std::fs::remove_file(repo.join(path))
             .map_err(|e| Error::Io(format!("remove {path}: {e}")))?;
     }
     if json {
-        let doc = serde_json::json!({ "pages": written, "removed": export.remove });
+        let doc = serde_json::json!({
+            "written": written,
+            "unchanged": unchanged,
+            "removed": export.remove,
+        });
         let mut text =
             serde_json::to_string_pretty(&doc).map_err(|e| Error::Internal(e.to_string()))?;
         text.push('\n');
         out!("{text}");
     } else {
         // A page already current is left untouched (D-20), and said so.
-        for path in &written {
+        for (path, _) in &export.pages {
             if unchanged.contains(path) {
                 outln!("unchanged {path}");
             } else {
