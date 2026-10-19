@@ -26,8 +26,9 @@ use spec_spine_types::{
     ReferenceCheck, ReferenceEvidence, ReferenceEvidenceInputs, ReferenceFinding,
     ReferenceFindingKind, ReferenceHeader, ReferenceInput, ReferenceLifecycle, ReferenceModel,
     ReferenceOperation, ReferenceOwnership, ReferencePage, ReferenceRelation, ReferenceRequest,
-    ReferenceSignature, ReferenceSpecs, ReferenceUnit, Registry, SignatureLanguage, SpecRecord,
-    TraceabilityReport, TraceabilityRequest, Unit, UnitResolution, parse_semver,
+    ReferenceSignature, ReferenceSpecs, ReferenceUnit, Registry, SelectAll, SelectKeyword,
+    SignatureLanguage, SpecRecord, TraceabilityReport, TraceabilityRequest, Unit, UnitResolution,
+    parse_semver,
 };
 
 use crate::content::{content_item, resolve_selectors_after_freshness};
@@ -173,7 +174,11 @@ fn exported<'a>(
     specs: &ReferenceSpecs,
 ) -> Result<Vec<&'a SpecRecord>, Error> {
     match specs {
-        ReferenceSpecs::Select(_) => Ok(registry.specs.iter().collect()),
+        // `all` is the one selector; naming it means a new keyword fails to
+        // compile here rather than exporting everything.
+        ReferenceSpecs::Select(SelectAll {
+            select: SelectKeyword::All,
+        }) => Ok(registry.specs.iter().collect()),
         ReferenceSpecs::Ids(ids) => {
             let wanted: BTreeSet<&str> = ids.ids.iter().map(String::as_str).collect();
             let missing: Vec<&str> = wanted
@@ -218,13 +223,25 @@ pub fn gather_reference_inputs(
     repo_root: &Path,
     request: &ReferenceRequest,
 ) -> Result<ReferenceInputs, Error> {
+    gather_if_fresh(cfg, repo_root, request)?.ok_or_else(|| Error::Stale {
+        expected: "a fresh committed registry and index".into(),
+        actual: "a stale ledger".into(),
+    })
+}
+
+/// [`gather_reference_inputs`], with a stale ledger as `None` rather than an
+/// error. The request is validated and the ledger's freshness read exactly
+/// once, so a caller that reports staleness as a finding cannot see a
+/// different answer from a second read.
+fn gather_if_fresh(
+    cfg: &Config,
+    repo_root: &Path,
+    request: &ReferenceRequest,
+) -> Result<Option<ReferenceInputs>, Error> {
     validate_reference_request(cfg, request)?;
     crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
     if !ledger_is_fresh(cfg, repo_root)? {
-        return Err(Error::Stale {
-            expected: "a fresh committed registry and index".into(),
-            actual: "a stale ledger".into(),
-        });
+        return Ok(None);
     }
     let registry = crate::compile::load_committed_registry(cfg, repo_root)?;
     let index = crate::index::load_committed_index(cfg, repo_root)?;
@@ -306,7 +323,7 @@ pub fn gather_reference_inputs(
         }
     }
 
-    Ok(ReferenceInputs {
+    Ok(Some(ReferenceInputs {
         registry,
         index,
         registry_shard_hashes,
@@ -318,7 +335,7 @@ pub fn gather_reference_inputs(
         catalog_path: request.catalog.clone(),
         existing_pages,
         ledger_fresh: true,
-    })
+    }))
 }
 
 /// Whether the committed registry and index match the corpus, as `check`
@@ -1393,8 +1410,7 @@ pub fn reference_check(
     repo_root: &Path,
     request: &ReferenceRequest,
 ) -> Result<ReferenceCheck, Error> {
-    validate_reference_request(cfg, request)?;
-    if !ledger_is_fresh(cfg, repo_root)? {
+    let Some(inputs) = gather_if_fresh(cfg, repo_root, request)? else {
         return Ok(ReferenceCheck {
             schema_version: REFERENCE_PAGE_SCHEMA_VERSION.to_string(),
             output_dir: request.output_dir.clone(),
@@ -1405,8 +1421,7 @@ pub fn reference_check(
                 detail: "the committed registry or index is not fresh".into(),
             }],
         });
-    }
-    let inputs = gather_reference_inputs(cfg, repo_root, request)?;
+    };
     reference_check_with(request, &inputs)
 }
 
