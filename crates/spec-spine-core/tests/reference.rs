@@ -10,8 +10,8 @@ use spec_spine_core::{
     reference_export, reference_generate, reference_model, reference_model_document,
 };
 use spec_spine_types::{
-    Config, Error, REFERENCE_LIMITATION, REFERENCE_PAGE_SCHEMA, REFERENCE_REGIONS,
-    ReferenceFindingKind, ReferenceRequest,
+    Config, Error, REFERENCE_LIMITATION, REFERENCE_MAX_PAGES, REFERENCE_PAGE_SCHEMA,
+    REFERENCE_REGIONS, ReferenceFindingKind, ReferenceRequest,
 };
 
 const FIXTURE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/reference");
@@ -593,6 +593,11 @@ fn ownership_alone_never_produces_a_relation_or_an_operation() {
     let alpha = page(&all, "001-alpha");
     let ops = region(alpha, "operations");
     assert!(ops.contains("### `registry.list`"), "{ops}");
+    // The catalog's `corpus` example renders as its console line.
+    assert!(
+        ops.contains("```console\nspec-spine registry list --json\n```"),
+        "{ops}"
+    );
     assert!(!ops.contains("config.show"), "{ops}");
     // config.show is governed by beta, which owns nothing it touches.
     assert!(region(page(&all, "002-beta"), "operations").contains("### `config.show`"));
@@ -644,10 +649,12 @@ fn a_limit_excess_refuses_the_whole_export() {
         matches!(reference_generate(&cfg, tmp.path(), &r), Err(Error::Refused(m)) if m.contains("maxPageBytes"))
     );
     let mut r = plain(request());
-    r.limits.max_pages = 2048;
+    // A limit can only lower its default: one page above the ceiling is a
+    // malformed request, not an export that happens to fit.
+    r.limits.max_pages = REFERENCE_MAX_PAGES + 1;
     assert!(matches!(
         reference_generate(&cfg, tmp.path(), &r),
-        Err(Error::Usage(_))
+        Err(Error::Usage(m)) if m.contains("may only lower their defaults")
     ));
 }
 
