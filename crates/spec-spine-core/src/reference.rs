@@ -19,19 +19,18 @@ use std::path::Path;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use spec_spine_types::{
-    CapabilityCatalog, CodebaseIndex, Config, ContentDirtyState, ContentProjection,
-    ContentSelector, ContentSnapshot, ContentSnapshotBinding, Error, OwningEdge,
-    REFERENCE_LIMITATION, REFERENCE_MAX_NOTES_BYTES, REFERENCE_MAX_PAGE_BYTES, REFERENCE_MAX_PAGES,
-    REFERENCE_MAX_SIGNATURES, REFERENCE_PAGE_SCHEMA_VERSION, REFERENCE_REGIONS, ReferenceChanges,
-    ReferenceCheck, ReferenceEvidence, ReferenceEvidenceInputs, ReferenceFinding,
-    ReferenceFindingKind, ReferenceHeader, ReferenceInput, ReferenceLifecycle, ReferenceModel,
-    ReferenceOperation, ReferenceOwnership, ReferencePage, ReferenceRelation, ReferenceRequest,
-    ReferenceSignature, ReferenceSpecs, ReferenceUnit, Registry, SelectAll, SelectKeyword,
-    SignatureLanguage, SpecRecord, TraceabilityReport, TraceabilityRequest, Unit, UnitResolution,
-    parse_semver,
+    CapabilityCatalog, CodebaseIndex, Config, ContentProjection, ContentSelector, Error,
+    OwningEdge, REFERENCE_LIMITATION, REFERENCE_MAX_NOTES_BYTES, REFERENCE_MAX_PAGE_BYTES,
+    REFERENCE_MAX_PAGES, REFERENCE_MAX_SIGNATURES, REFERENCE_PAGE_SCHEMA_VERSION,
+    REFERENCE_REGIONS, ReferenceChanges, ReferenceCheck, ReferenceEvidence,
+    ReferenceEvidenceInputs, ReferenceFinding, ReferenceFindingKind, ReferenceHeader,
+    ReferenceInput, ReferenceLifecycle, ReferenceModel, ReferenceOperation, ReferenceOwnership,
+    ReferencePage, ReferenceRelation, ReferenceRequest, ReferenceSignature, ReferenceSpecs,
+    ReferenceUnit, Registry, SelectAll, SelectKeyword, SignatureLanguage, SpecRecord,
+    TraceabilityReport, TraceabilityRequest, Unit, UnitResolution, parse_semver,
 };
 
-use crate::content::{Resolution, content_item, resolve_selectors_after_freshness};
+use crate::content::{Resolution, item_digest, resolve_selectors_after_freshness};
 use crate::{Versioning, canonical_json, hash, read_document};
 
 /// Everything one export reads, already read (spec 166 3.8).
@@ -384,15 +383,6 @@ fn resolve_signatures(
             required: true,
         })
         .collect();
-    // The item digest's framing never reads the snapshot; one is needed only
-    // to build the item.
-    let snapshot = ContentSnapshot {
-        repository: "reference".into(),
-        revision: "0".repeat(40),
-        tree: "0".repeat(40),
-        dirty_state: ContentDirtyState::CleanWorkingTree,
-        binding: ContentSnapshotBinding::CallerSupplied,
-    };
     let resolutions = resolve_selectors_after_freshness(
         cfg,
         repo_root,
@@ -404,8 +394,7 @@ fn resolve_signatures(
     for (id, r) in pair_resolutions(symbols, resolutions)? {
         let row = match r.outcome {
             Ok(selected) => {
-                let item =
-                    content_item(&r.identity, r.projection, &r.selector, &selected, &snapshot);
+                let digest = item_digest(&r.identity, r.projection, &selected);
                 let path = selected.path.as_str().to_string();
                 let language = if path.ends_with(".rs") {
                     Some(SignatureLanguage::Rust)
@@ -419,7 +408,7 @@ fn resolve_signatures(
                     path: Some(path),
                     start_line: Some(selected.span.start_line),
                     end_line: Some(selected.span.end_line),
-                    digest: Some(item.digest),
+                    digest: Some(digest),
                     text: Some(selected.content),
                     language,
                     omission: None,

@@ -1195,6 +1195,32 @@ pub(crate) fn content_item(
     selected: &Selected,
     snapshot: &ContentSnapshot,
 ) -> ContentItem {
+    ContentItem {
+        identity: identity.to_string(),
+        repository: snapshot.repository.clone(),
+        revision: snapshot.revision.clone(),
+        tree: snapshot.tree.clone(),
+        dirty_state: snapshot.dirty_state,
+        selector: selector.clone(),
+        requested_projection: projection,
+        path: selected.path.clone(),
+        span: selected.span,
+        digest: item_digest(identity, projection, selected),
+        content: selected.content.clone(),
+        resolution: ContentResolution::Resolved,
+        completeness: ContentCompleteness::Complete,
+        schema_version: READ_SCHEMA_VERSION.to_string(),
+    }
+}
+
+/// A content item's digest: its identity, projection, path, span and content,
+/// framed. The snapshot is not an input, so a reader that has no snapshot
+/// (a reference page, spec 166) gets the digest [`content_item`] would give.
+pub(crate) fn item_digest(
+    identity: &str,
+    projection: ContentProjection,
+    selected: &Selected,
+) -> String {
     let mut set = PieceSet::new();
     set.insert(
         "identity".into(),
@@ -1225,22 +1251,7 @@ pub(crate) fn content_item(
         PieceKind::Text,
         selected.content.as_bytes().to_vec(),
     );
-    ContentItem {
-        identity: identity.to_string(),
-        repository: snapshot.repository.clone(),
-        revision: snapshot.revision.clone(),
-        tree: snapshot.tree.clone(),
-        dirty_state: snapshot.dirty_state,
-        selector: selector.clone(),
-        requested_projection: projection,
-        path: selected.path.clone(),
-        span: selected.span,
-        digest: format!("sha256:{}", set.digest().expect("nonempty framed item")),
-        content: selected.content.clone(),
-        resolution: ContentResolution::Resolved,
-        completeness: ContentCompleteness::Complete,
-        schema_version: READ_SCHEMA_VERSION.to_string(),
-    }
+    format!("sha256:{}", set.digest().expect("nonempty framed item"))
 }
 
 fn request_digest(request: &ContentRequest) -> Result<String, Error> {
@@ -1297,6 +1308,44 @@ fn continuation_start(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_item_digest_does_not_depend_on_the_snapshot() {
+        let selected = Selected {
+            path: RepoPath::parse("src/lib.rs").unwrap(),
+            span: ContentSpan {
+                start_line: 1,
+                end_line: 1,
+            },
+            content: "pub fn f() {}".into(),
+        };
+        let selector = ContentSelector::Symbol {
+            id: "crate::f".into(),
+            projection: Some(ContentProjection::Signature),
+            required: true,
+        };
+        let snapshot = |revision: &str, dirty_state| ContentSnapshot {
+            repository: format!("repo-{revision}"),
+            revision: revision.repeat(40),
+            tree: revision.repeat(40),
+            dirty_state,
+            binding: spec_spine_types::ContentSnapshotBinding::CallerSupplied,
+        };
+        let digest = item_digest("crate::f", ContentProjection::Signature, &selected);
+        for s in [
+            snapshot("0", spec_spine_types::ContentDirtyState::CleanWorkingTree),
+            snapshot("a", spec_spine_types::ContentDirtyState::CleanExport),
+        ] {
+            let item = content_item(
+                "crate::f",
+                ContentProjection::Signature,
+                &selector,
+                &selected,
+                &s,
+            );
+            assert_eq!(item.digest, digest);
+        }
+    }
 
     #[test]
     fn last_obligation_stops_before_the_next_frontmatter_key() {
