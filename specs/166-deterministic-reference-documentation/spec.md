@@ -22,7 +22,7 @@ summary: >
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/reference.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/reference-page.schema.json" }
-  - { kind: file, path: "crates/spec-spine-core/src/reference.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/reference.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/reference.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-core/tests/reference_schema.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/reference/", planned: true }
@@ -40,6 +40,7 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
   - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
   - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-core/src/content.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap unit DG-01 and the documentation product boundary (13.5)" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/render.rs" }, role: "existing index projection, distinguished in D-2" }
@@ -539,6 +540,19 @@ lists, sorted by identity: `registry:<id>` (`sha256:` plus the registry
 projected signature), `traceability:<id>` (`sha256:` over the canonical JSON
 of this spec's relation rows, when supplied), and `catalog:<path>` (`sha256:`
 over the catalog file's LF-normalized bytes, when supplied).
+
+**D-20 (2026-10-15, build): what the check and generation decide that 3.6
+and 3.10 leave open.** A page-pattern file is `<full-spec-id>.md` directly
+under `outputDir`; nested files are never read. `page-changed` names every
+region whose lines differ, compared after parsing both pages. A stale ledger
+makes `ledger-stale` the check's only finding, since pages generated from it
+would judge nothing. Generation leaves a page whose bytes are already current
+untouched. A claim that does not resolve is not staleness (spec 079): the
+ledger is fresh when every committed shard is byte-exact, the unit's
+ownership row reads `unresolved`, and its signature row carries spec 155's
+omission. Signatures are therefore resolved without the committed-index
+guard, which refuses on any unresolved claim in the corpus, once generation
+has made the byte-exact comparison itself.
 
 ## Verification
 

@@ -267,6 +267,46 @@ pub(crate) fn resolve_selectors(
     default_projection: ContentProjection,
     max_bytes: usize,
 ) -> Result<Vec<Resolution>, Error> {
+    resolve_selectors_guarded(
+        cfg,
+        repo_root,
+        selectors,
+        default_projection,
+        max_bytes,
+        true,
+    )
+}
+
+/// [`resolve_selectors`] for a caller that has already compared the committed
+/// index with the corpus byte for byte (spec 166 3.9): the index is read
+/// without [`guard_committed_index`], so a claim elsewhere that does not
+/// resolve, which is not staleness, does not refuse this read. Each selector
+/// still resolves, or is omitted, on its own.
+pub(crate) fn resolve_selectors_after_freshness(
+    cfg: &Config,
+    repo_root: &Path,
+    selectors: &[ContentSelector],
+    default_projection: ContentProjection,
+    max_bytes: usize,
+) -> Result<Vec<Resolution>, Error> {
+    resolve_selectors_guarded(
+        cfg,
+        repo_root,
+        selectors,
+        default_projection,
+        max_bytes,
+        false,
+    )
+}
+
+fn resolve_selectors_guarded(
+    cfg: &Config,
+    repo_root: &Path,
+    selectors: &[ContentSelector],
+    default_projection: ContentProjection,
+    max_bytes: usize,
+    guard_index: bool,
+) -> Result<Vec<Resolution>, Error> {
     crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
     let root_real = fs::canonicalize(repo_root).map_err(|error| Error::Io(error.to_string()))?;
 
@@ -298,7 +338,9 @@ pub(crate) fn resolve_selectors(
         None
     };
     let index = if needs_index {
-        guard_committed_index(cfg, repo_root)?;
+        if guard_index {
+            guard_committed_index(cfg, repo_root)?;
+        }
         Some(load_committed_index(cfg, repo_root)?)
     } else {
         None
