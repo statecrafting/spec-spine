@@ -140,6 +140,13 @@ fn every_rendered_example_holds_against_the_built_binary() {
 
     for e in examples {
         let example: spec_spine_types::Example = serde_json::from_value(e).unwrap();
+        // `corpus` is the one fixture this test builds; another name would
+        // run the example in the wrong environment.
+        assert_eq!(
+            example.fixture.as_deref(),
+            Some("corpus"),
+            "unknown example fixture"
+        );
         let fixture = corpus();
         let out = bin(fixture.path(), &example.argv, example.stdin.as_deref());
         assert_eq!(

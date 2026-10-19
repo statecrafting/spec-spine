@@ -566,8 +566,8 @@ refusals that leave the tree as it was. A request naming an unsupported
 schema version, a short id, a non-normalized `outputDir`, or a limit above
 its default is a usage error (exit 3); an `outputDir` inside the derived or
 state directory, or crossing a symbolic link, is a containment refusal
-(exit 2). `reference generate --json` lists the written and removed paths on
-success; `reference check --json` writes the check document on success and
+(exit 2). `reference generate --json` lists the written, unchanged and
+removed paths on success; `reference check --json` writes the check document on success and
 the envelope with the check as its report on a finding.
 
 **D-22 (2026-10-15, build, owner to confirm): `--manifest` is deferred.**
