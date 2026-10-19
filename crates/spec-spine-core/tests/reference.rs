@@ -72,6 +72,12 @@ fn catalog_text() -> String {
     catalog
         .operations
         .retain(|o| o.name == "registry.list" || o.name == "config.show");
+    let names: Vec<&str> = catalog.operations.iter().map(|o| o.name.as_str()).collect();
+    assert_eq!(
+        names,
+        ["config.show", "registry.list"],
+        "the production catalog no longer names both fixture operations"
+    );
     for o in &mut catalog.operations {
         o.governed_by = if o.name == "registry.list" {
             vec!["001-alpha".into()]
@@ -284,7 +290,6 @@ fn without_a_resolver_a_symbol_renders_its_omission_and_no_other_projection() {
 #[test]
 fn authoring_order_and_line_endings_never_change_bytes() {
     let base = corpus();
-    let before = pages(base.path(), &request());
     let shuffled = corpus();
     let alpha_path = "specs/001-alpha/spec.md";
     let text = fs::read_to_string(shuffled.path().join(alpha_path)).unwrap();
@@ -302,6 +307,7 @@ fn authoring_order_and_line_endings_never_change_bytes() {
     commit_ledger(shuffled.path());
     let after = pages(shuffled.path(), &plain(request()));
     let before_plain = pages(base.path(), &plain(request()));
+    assert_eq!(before_plain.len(), 5, "one page per spec");
     for (path, text) in &before_plain {
         // The registry shard hash moves with the source bytes, so only the
         // inputs region may differ.
@@ -319,7 +325,6 @@ fn authoring_order_and_line_endings_never_change_bytes() {
             assert_eq!(text, &after[path], "{path}");
         }
     }
-    assert!(!before.is_empty());
 
     let mut renders = Vec::new();
     // A CR-only spec.md is not a spec (its frontmatter fence does not
