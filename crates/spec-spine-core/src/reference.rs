@@ -316,7 +316,11 @@ fn gather_if_fresh(
                 )));
             }
             if page_spec_id(&name).is_some() && kind.is_file() {
-                let bytes = fs::read(entry.path()).map_err(|e| Error::Io(e.to_string()))?;
+                let bytes = read_committed_page(
+                    &entry.path(),
+                    &format!("{}/{name}", request.output_dir),
+                    request.limits.max_page_bytes,
+                )?;
                 existing_pages.insert(name, bytes);
             }
         }
@@ -1382,6 +1386,28 @@ fn differing_regions(fresh: &[Region], committed: &[Region]) -> Vec<String> {
         .collect()
 }
 
+/// Read a committed page, never more than `max_page_bytes` plus one byte
+/// (spec 166 3.12: limits before unbounded allocation). A larger page is
+/// `limit-exceeded`, the refusal a generated page of that size gets.
+fn read_committed_page(
+    path: &Path,
+    display: &str,
+    max_page_bytes: usize,
+) -> Result<Vec<u8>, Error> {
+    use std::io::Read;
+    let file = fs::File::open(path).map_err(|e| Error::Io(format!("read {display}: {e}")))?;
+    let mut bytes = Vec::new();
+    file.take(max_page_bytes as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| Error::Io(format!("read {display}: {e}")))?;
+    if bytes.len() > max_page_bytes {
+        return Err(Error::Refused(format!(
+            "limit-exceeded: the committed page {display} is above maxPageBytes {max_page_bytes}"
+        )));
+    }
+    Ok(bytes)
+}
+
 /// Pair each symbol with its resolution, one to one and in order, checking
 /// each resolution's own selector names that symbol. A resolver that returned
 /// a different count or order is [`Error::Internal`], never a signature filed
@@ -1590,6 +1616,18 @@ mod tests {
                 pair_resolutions(&symbols, short_or_swapped),
                 Err(Error::Internal(_))
             ));
+        }
+    }
+
+    #[test]
+    fn a_committed_page_is_read_only_up_to_the_page_limit() {
+        let tmp = tempfile::tempdir().unwrap();
+        let page = tmp.path().join("001-a.md");
+        fs::write(&page, "x".repeat(8)).unwrap();
+        assert_eq!(read_committed_page(&page, "p", 8).unwrap().len(), 8);
+        match read_committed_page(&page, "p", 7) {
+            Err(Error::Refused(m)) => assert!(m.starts_with("limit-exceeded:"), "{m}"),
+            other => panic!("expected limit-exceeded, got {:?}", other.map(|b| b.len())),
         }
     }
 
