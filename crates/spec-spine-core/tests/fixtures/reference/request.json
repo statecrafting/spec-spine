@@ -1,0 +1,9 @@
+{
+  "catalog": "catalog.json",
+  "outputDir": "docs/reference",
+  "schemaVersion": "1.0.0",
+  "specs": {
+    "select": "all"
+  },
+  "traceability": true
+}
