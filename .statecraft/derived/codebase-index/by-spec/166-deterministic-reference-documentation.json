@@ -27,6 +27,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/fixtures/reference/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/reference.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/reference_schema.rs",
         "source": "spec-edge"
       },
@@ -65,7 +73,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/fixtures/reference/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -114,7 +126,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/reference.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -349,5 +365,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "1c0d3d21b3555d353754f54fff815a2004799ed75afe20c980b043bba3672e84"
+  "shardHash": "0a26c50fceb5a5c96709aa7305058bbbff6510ecc4fda21d6e8411077247dcd6"
 }

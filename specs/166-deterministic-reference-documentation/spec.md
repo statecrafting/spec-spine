@@ -23,9 +23,9 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/src/reference.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/reference-page.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/reference.rs" }
-  - { kind: file, path: "crates/spec-spine-core/tests/reference.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/reference.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/reference_schema.rs" }
-  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/reference/", planned: true }
+  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/reference/" }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_reference.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/reference.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/reference_examples.rs", planned: true }
@@ -553,6 +553,18 @@ ownership row reads `unresolved`, and its signature row carries spec 155's
 omission. Signatures are therefore resolved without the committed-index
 guard, which refuses on any unresolved claim in the corpus, once generation
 has made the byte-exact comparison itself.
+
+**D-23 (2026-10-15, build): what acceptance 2 and 7 can show, and how.**
+A CR-only `spec.md` does not parse as a spec (its frontmatter fence is not
+found), so acceptance 2's CR fixture is the authored notes region; spec
+sources are compared across LF and CRLF. The determinism workflow is not
+extended (D-9 keeps this repository's export unpublished); instead a
+committed fixture page (`expected/005-epsilon.md`) is compared byte for byte
+by the core tests, which CI runs on every release triple, including Windows.
+Acceptance 7's path-recording harness is approximated: generation is a pure
+function of a `ReferenceInputs` that `gather_reference_inputs` alone reads,
+and a test shows an undeclared file, a `.git` directory and a nested page
+change nothing.
 
 ## Verification
 

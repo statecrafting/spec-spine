@@ -21,8 +21,7 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/reference.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/reference.rs"
       },
       {
         "kind": "file",
@@ -30,8 +29,7 @@
       },
       {
         "kind": "directory",
-        "path": "crates/spec-spine-core/tests/fixtures/reference/",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/fixtures/reference/"
       },
       {
         "kind": "file",
@@ -225,7 +223,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "7a34dda8679b8e15d3cd6906f80727196243450318ba6614971f651beaa114d2",
-      "166-generate-one-deterministic-reference-page-per-spec": "bac04a54cac525e8e1d6c58157396104d72eaeb734fdfe4414f407de78ddea6e",
+      "166-generate-one-deterministic-reference-page-per-spec": "895fdd25469f6f91d37eeaccee6daa1d913a63c1621ecc07ee5478aa08653bd1",
       "2-territory": "2643be50fa8c3558d8bd59e0ceb16ab5b8057c1df270f9c875fc72975da3b1c8",
       "3-1-one-export-one-page-kind": "50c7deb50a24d7818f51e88f81fd6da80330513e9d9cd56e2bc76a72c12d4f29",
       "3-10-the-regeneration-check": "63dce924aa14fa05a4c919501ee2e6eb4a2d497fe0a8a7d1f3fe2d4cebec0ac0",
@@ -244,7 +242,7 @@
       "3-behavior": "2ad4d919ec3c552a57bbcc6f931ea14d9353e2bc0a2a20e45aa6d30bd56d3a0d",
       "4-acceptance-criteria": "7cf8cbe1c59e2f24eccb803d524d22edd4d3b7c42e17002fc10590076e51de7e",
       "5-out-of-scope": "f53261f7dc5897c0ece8da7f55a06b657ef100d10be5a460777d23fdfe1efcde",
-      "6-resolved-decisions": "96f2929db0022541326dd73a92eb8a22ac1a33a04aea68fe8e49aea8e47e31c3",
+      "6-resolved-decisions": "362a8179abbaa4efd3d3f5c95a4d6762d2d38ea2d9b73c3cbf6458a97d1a02fd",
       "verification": "777d3f3df29b18e259c9ca02ae8c684fe455309762c13c58018e16cac3ffc538"
     },
     "sectionHeadings": [
@@ -276,6 +274,6 @@
     "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
     "title": "Generate one deterministic reference page per spec"
   },
-  "shardHash": "a65d80f34745804abfad6992186ea24e4cc3590c99b2384d533404ed2642c3ce",
+  "shardHash": "4a12b259d8373523c8bea7e9f71acec50c7dc6f236edae504267ac4b4c9e3d4f",
   "specVersion": "1.10.0"
 }
