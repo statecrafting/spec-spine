@@ -4,7 +4,7 @@ title: "Generate one deterministic reference page per spec"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -20,8 +20,8 @@ summary: >
   examples, and a read-only regeneration check that exits 1 when committed
   pages differ. Narrative documentation stays outside the product.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/reference.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-types/schemas/reference-page.schema.json", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/reference.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/reference-page.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/reference.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-core/tests/reference.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/reference/", planned: true }
@@ -37,6 +37,8 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap unit DG-01 and the documentation product boundary (13.5)" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/render.rs" }, role: "existing index projection, distinguished in D-2" }
@@ -514,6 +516,28 @@ dropped: spec 169's traceability declarations remain a build prerequisite of
 this spec, and its build MUST NOT start before 169 is implemented. That
 ordering is now this decision's to state, because `registry plan` can no longer
 derive it from an edge. Specs 162 D-18 and 167 D-13 made the same correction.
+
+**D-18 (2026-10-15, build): the page model and template, exactly.** 3.3 and
+3.4 name each field and its source; the build fixes the model's shape and the
+fixed template. The model carries one typed member per region, with
+`requirements` holding the registry's obligation records verbatim, and
+`notes` as the authored bytes. Units render as their canonical one-line JSON.
+An owning unit's resolution is `resolved` (the committed index records at
+least one location), `unresolved` (it records none), or `unknown` (it records
+no resolution). Each region opens with a fixed level-2 heading, the header
+with the level-1 `` `id` Title`` line, and an absent table value reads
+`None declared.` like an empty field. Relations group `tested-by` first, then
+by relation name and identity. An example's command renders as
+`spec-spine` plus its `argv`, each argument single-quoted when it holds
+anything but `[A-Za-z0-9-_./=:@#,+]`.
+
+**D-19 (2026-10-15, build): the `inputs` identities and digests.** Each page
+lists, sorted by identity: `registry:<id>` (`sha256:` plus the registry
+`shardHash`), `index:<id>` (`sha256:` plus the spec's committed index shard
+`shardHash`), `signature:<symbol>` (the spec 155 item digest of each
+projected signature), `traceability:<id>` (`sha256:` over the canonical JSON
+of this spec's relation rows, when supplied), and `catalog:<path>` (`sha256:`
+over the catalog file's LF-normalized bytes, when supplied).
 
 ## Verification
 

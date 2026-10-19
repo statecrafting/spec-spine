@@ -24,6 +24,7 @@
 | context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.1.0` | library |
 | context-packet delta (`context delta --json`, `context_packet_delta_json`, spec 164) | `schemaVersion` | `1.0.0` | library |
 | edit plan (`edit-plan --json`, `edit_plan_json`, spec 165) | `schemaVersion` | `1.0.0` | library |
+| reference model and check (`reference model --json`, `reference check --json`, spec 166) | `schemaVersion` | `1.0.0` | library |
 | read-only tool projection (`capabilities --projection --json`, `tool_projection_json()`, spec 167) | `schemaVersion` | `1.0.0` | library |
 | documentation manifest and freshness result (`documentation manifest validate\|freshness --json`, spec 160) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -472,6 +473,21 @@ would stale, and `planDigest`.
 Additive optional members move MINOR. A new operation, effect or refusal
 reason, or any change to ordering, digest input or overlap rules, moves
 MAJOR.
+
+## The reference-page axis: spec 166
+
+The reference model (`reference model --json`) and check document
+(`reference check --json`) carry `schemaVersion` =
+`REFERENCE_PAGE_SCHEMA_VERSION`, starting at `1.0.0`. Their schema is embedded
+as `REFERENCE_PAGE_SCHEMA` (`schemas/reference-page.schema.json`), whose
+`$defs/page` is one page model and `$defs/request` the export request.
+
+**`1.0.0` (spec 166).** The first page model, with its twelve regions, and
+the first check result, with its five finding kinds.
+
+The Markdown template is part of this axis: a new optional model field moves
+MINOR; any change to region ids or order, heading text, escaping, delimiters
+or ordering rules moves MAJOR, because it changes committed page bytes.
 
 ## The documentation-manifest axis: spec 160
 

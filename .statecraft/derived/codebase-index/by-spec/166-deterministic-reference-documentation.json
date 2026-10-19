@@ -11,11 +11,27 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/capability.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/schemas/reference-page.schema.json",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/reference.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/schema.rs",
         "source": "spec-edge"
       },
       {
@@ -91,7 +107,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/reference-page.schema.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -100,7 +120,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/reference.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -133,6 +157,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/capability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/lib.rs"
           }
         ],
@@ -154,6 +191,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
         }
       },
       {
@@ -257,5 +307,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "8e12c32504bb955f05b785ac9889da73642bc23405b0738306b213a72e46d199"
+  "shardHash": "f77ce988669ace23699b7223d48471108607994208efcd6582a3add938dfefc2"
 }

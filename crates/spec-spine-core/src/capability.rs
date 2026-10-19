@@ -19,8 +19,9 @@ use spec_spine_types::{
     CliBinding, ConditionalEffects, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
     EDIT_PLAN_SCHEMA_VERSION, Effects, Error, Example, ExitOutcome, FacadeBinding, Flag,
     INDEX_SCHEMA_VERSION, InterfaceDiscovery, Operation, PinResult, Precondition,
-    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef, SNAPSHOT_SCHEMA_VERSION,
-    SPEC_ATTESTATION_SCHEMA_VERSION, TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    READ_SCHEMA_VERSION, REFERENCE_PAGE_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef,
+    ResponseRef, SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION,
+    TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
 };
 
 use crate::canonical_json;
@@ -51,6 +52,7 @@ pub fn compatibility() -> BTreeMap<String, String> {
         ("edit-plan", EDIT_PLAN_SCHEMA_VERSION),
         ("index", INDEX_SCHEMA_VERSION),
         ("read", READ_SCHEMA_VERSION),
+        ("reference-page", REFERENCE_PAGE_SCHEMA_VERSION),
         ("registry", REGISTRY_SCHEMA_VERSION),
         ("snapshot", SNAPSHOT_SCHEMA_VERSION),
         ("spec-attestation", SPEC_ATTESTATION_SCHEMA_VERSION),
