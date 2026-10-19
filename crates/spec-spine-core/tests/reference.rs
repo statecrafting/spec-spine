@@ -21,7 +21,13 @@ fn copy_dir(from: &Path, to: &Path) {
     for e in fs::read_dir(from).unwrap() {
         let e = e.unwrap();
         let target = to.join(e.file_name());
-        if e.file_type().unwrap().is_dir() {
+        let kind = e.file_type().unwrap();
+        assert!(
+            !kind.is_symlink(),
+            "fixture entry {} is a symbolic link",
+            e.path().display()
+        );
+        if kind.is_dir() {
             copy_dir(&e.path(), &target);
         } else {
             fs::copy(e.path(), target).unwrap();
@@ -725,6 +731,41 @@ fn the_model_conforms_and_is_what_the_pages_project() {
     );
     let inputs = gather_reference_inputs(&Config::default(), tmp.path(), &request()).unwrap();
     let check = reference_check_with(&request(), &inputs).unwrap();
-    let check_doc: serde_json::Value = serde_json::to_value(&check).unwrap();
-    assert!(validator.is_valid(&check_doc));
+    assert!(!check.findings.is_empty(), "no page was written yet");
+    // The page schema's root is `oneOf [model, check]`; a check is judged by
+    // the check definition alone, and a malformed one is refused.
+    let check_schema = serde_json::json!({
+        "$defs": schema["$defs"].clone(),
+        "$ref": "#/$defs/check",
+    });
+    let check_validator = jsonschema::validator_for(&check_schema).unwrap();
+    let mut check_doc: serde_json::Value = serde_json::to_value(&check).unwrap();
+    assert!(check_validator.is_valid(&check_doc));
+    assert!(
+        !check_validator.is_valid(&instance),
+        "a model is not a check"
+    );
+    check_doc["findings"][0]["kind"] = serde_json::json!("page-bogus");
+    assert!(!check_validator.is_valid(&check_doc));
+
+    // A spec's index shard hash covers `spec.md` and the files the spec owns,
+    // so it equals the registry hash exactly when the spec owns no unit.
+    let digest = |spec: &str, source: &str| {
+        let page = model.pages.iter().find(|p| p.spec_id == spec).unwrap();
+        let id = format!("{source}:{spec}");
+        page.inputs
+            .iter()
+            .find(|i| i.identity == id)
+            .unwrap_or_else(|| panic!("{id}"))
+            .digest
+            .clone()
+    };
+    assert_ne!(
+        digest("001-alpha", "registry"),
+        digest("001-alpha", "index")
+    );
+    assert_eq!(
+        digest("005-epsilon", "registry"),
+        digest("005-epsilon", "index")
+    );
 }
