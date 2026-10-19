@@ -34,6 +34,7 @@ mod cmd_edit_plan;
 mod cmd_index;
 mod cmd_interface;
 mod cmd_lint;
+mod cmd_reference;
 mod cmd_registry;
 mod cmd_scope;
 mod cmd_verify;
@@ -171,6 +172,11 @@ enum Command {
     Documentation {
         #[command(subcommand)]
         action: cmd_documentation::DocumentationAction,
+    },
+    /// Generate, check or model one deterministic reference page per spec.
+    Reference {
+        #[command(subcommand)]
+        action: cmd_reference::ReferenceAction,
     },
     /// Read-only queries over the compiled registry.
     Registry {
@@ -474,6 +480,7 @@ fn main() -> ExitCode {
             revision,
             json: _,
         } => cmd_edit_plan::run(&repo, request, repository, revision.as_deref()),
+        Command::Reference { action } => cmd_reference::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Interface { action } => cmd_interface::run(&repo, action),
@@ -681,6 +688,18 @@ impl Command {
                 action: cmd_context::ContextAction::Apply { json: true, .. },
             } => Some(verb::CONTEXT_APPLY),
             Command::EditPlan { json: true, .. } => Some(verb::EDIT_PLAN),
+            Command::Reference { action } => match action {
+                cmd_reference::ReferenceAction::Generate { json: true, .. } => {
+                    Some(verb::REFERENCE_GENERATE)
+                }
+                cmd_reference::ReferenceAction::Check { json: true, .. } => {
+                    Some(verb::REFERENCE_CHECK)
+                }
+                cmd_reference::ReferenceAction::Model { json: true, .. } => {
+                    Some(verb::REFERENCE_MODEL)
+                }
+                _ => None,
+            },
             Command::Documentation {
                 action: cmd_documentation::DocumentationAction::Manifest { action },
             } => match action {

@@ -234,6 +234,18 @@ fn every_json_read_answers_a_failure_with_an_envelope() {
                 "--json",
             ],
         ),
+        (
+            "reference.generate",
+            &["reference", "generate", "--request", request, "--json"],
+        ),
+        (
+            "reference.check",
+            &["reference", "check", "--request", request, "--json"],
+        ),
+        (
+            "reference.model",
+            &["reference", "model", "--request", request, "--json"],
+        ),
         ("registry.list", &["registry", "list", "--json"]),
         ("registry.show", &["registry", "show", "001", "--json"]),
         (

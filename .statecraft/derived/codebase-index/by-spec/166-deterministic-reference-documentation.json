@@ -7,7 +7,35 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/src/cmd_capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/src/cmd_reference.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/capability_catalog.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/reference.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/reference_examples.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs",
         "source": "spec-edge"
       },
       {
@@ -24,6 +52,10 @@
       },
       {
         "path": "crates/spec-spine-core/src/reference.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/capability_catalog.rs",
         "source": "spec-edge"
       },
       {
@@ -55,6 +87,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/src/verdict.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/version.rs",
         "source": "spec-edge"
       },
@@ -64,6 +100,10 @@
       },
       {
         "path": "docs/cli-reference.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/reference-documentation.md",
         "source": "spec-edge"
       },
       {
@@ -86,7 +126,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_reference.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -95,7 +139,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/reference.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -104,7 +152,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/reference_examples.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -178,12 +230,34 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "docs/reference-documentation.md",
+            "span": {
+              "endLine": 113,
+              "startLine": 1
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
+          "anchor": "reference-documentation",
+          "file": "docs/reference-documentation.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
           "kind": "file",
-          "path": "docs/reference-documentation.md"
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
         }
       },
       {
@@ -197,6 +271,45 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/capabilities.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/capability_catalog.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
         }
       },
       {
@@ -241,6 +354,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/capability_catalog.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/src/lib.rs"
           }
         ],
@@ -262,6 +388,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/verdict.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
         }
       },
       {
@@ -308,7 +447,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 594,
+              "endLine": 613,
               "startLine": 1
             }
           }
@@ -365,5 +504,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "0a26c50fceb5a5c96709aa7305058bbbff6510ecc4fda21d6e8411077247dcd6"
+  "shardHash": "012f93e8fb1d1ca64c33fba59ef34a16d31897240a8e86c265709c04801e0b2e"
 }

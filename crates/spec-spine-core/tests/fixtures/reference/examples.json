@@ -1,0 +1,26 @@
+[
+  {
+    "argv": ["registry", "list", "--json"],
+    "exitCode": 0,
+    "fixture": "corpus",
+    "id": "registry-list-names-alpha",
+    "stdin": null,
+    "stdoutIncludes": ["001-alpha"]
+  },
+  {
+    "argv": ["registry", "show", "099-none"],
+    "exitCode": 1,
+    "fixture": "corpus",
+    "id": "registry-show-unknown",
+    "stdin": null,
+    "stdoutIncludes": []
+  },
+  {
+    "argv": ["config", "show", "--json"],
+    "exitCode": 0,
+    "fixture": "corpus",
+    "id": "config-show",
+    "stdin": null,
+    "stdoutIncludes": ["\"layout\""]
+  }
+]

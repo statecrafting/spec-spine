@@ -33,23 +33,20 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_reference.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_reference.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/reference.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/reference.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/reference_examples.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/reference_examples.rs"
       },
       {
-        "kind": "file",
-        "path": "docs/reference-documentation.md",
-        "planned": true
+        "anchor": "reference-documentation",
+        "file": "docs/reference-documentation.md",
+        "kind": "section"
       }
     ],
     "extends": [
@@ -124,6 +121,54 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/capability.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "152-a-refusal-says-what-it-is-in-every-form",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
         }
       },
       {
@@ -223,7 +268,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "7a34dda8679b8e15d3cd6906f80727196243450318ba6614971f651beaa114d2",
-      "166-generate-one-deterministic-reference-page-per-spec": "895fdd25469f6f91d37eeaccee6daa1d913a63c1621ecc07ee5478aa08653bd1",
+      "166-generate-one-deterministic-reference-page-per-spec": "ae00742411a1af54268e48e8a710fab2a4c393cdffaa871e07779aabfb5d4544",
       "2-territory": "2643be50fa8c3558d8bd59e0ceb16ab5b8057c1df270f9c875fc72975da3b1c8",
       "3-1-one-export-one-page-kind": "50c7deb50a24d7818f51e88f81fd6da80330513e9d9cd56e2bc76a72c12d4f29",
       "3-10-the-regeneration-check": "63dce924aa14fa05a4c919501ee2e6eb4a2d497fe0a8a7d1f3fe2d4cebec0ac0",
@@ -242,7 +287,7 @@
       "3-behavior": "2ad4d919ec3c552a57bbcc6f931ea14d9353e2bc0a2a20e45aa6d30bd56d3a0d",
       "4-acceptance-criteria": "7cf8cbe1c59e2f24eccb803d524d22edd4d3b7c42e17002fc10590076e51de7e",
       "5-out-of-scope": "f53261f7dc5897c0ece8da7f55a06b657ef100d10be5a460777d23fdfe1efcde",
-      "6-resolved-decisions": "362a8179abbaa4efd3d3f5c95a4d6762d2d38ea2d9b73c3cbf6458a97d1a02fd",
+      "6-resolved-decisions": "84ad3cfb112158373a870897e8e1a2ba7ead72416cfc07041a5bf9b178a0c6da",
       "verification": "777d3f3df29b18e259c9ca02ae8c684fe455309762c13c58018e16cac3ffc538"
     },
     "sectionHeadings": [
@@ -274,6 +319,6 @@
     "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
     "title": "Generate one deterministic reference page per spec"
   },
-  "shardHash": "4a12b259d8373523c8bea7e9f71acec50c7dc6f236edae504267ac4b4c9e3d4f",
+  "shardHash": "03a15fc00663bd98ded0744f34d5e20c5b9683aa6851e2a58aa94b170710bc53",
   "specVersion": "1.10.0"
 }
