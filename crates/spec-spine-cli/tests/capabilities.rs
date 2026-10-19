@@ -144,6 +144,10 @@ fn every_json_verb_names_its_schema_axes() {
             spec_spine_types::CONTEXT_PACKET_DELTA_SCHEMA_VERSION,
         ),
         ("edit-plan", spec_spine_types::EDIT_PLAN_SCHEMA_VERSION),
+        (
+            "reference-page",
+            spec_spine_types::REFERENCE_PAGE_SCHEMA_VERSION,
+        ),
     ];
     let mut unnamed = Vec::new();
     for verb in doc["verbs"].as_array().unwrap() {

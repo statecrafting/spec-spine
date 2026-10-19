@@ -229,6 +229,10 @@ fn module_operations() -> BTreeMap<&'static str, Vec<&'static str>> {
         ),
         ("cmd_edit_plan.rs", vec!["edit-plan"]),
         (
+            "cmd_reference.rs",
+            vec!["reference.check", "reference.generate", "reference.model"],
+        ),
+        (
             "cmd_index.rs",
             vec![
                 "index.build",
@@ -483,6 +487,9 @@ fn the_capabilities_document_carries_the_catalog() {
         "library.scaffold-init",
         "library.scaffold-init-opts",
         "lint",
+        "reference.check",
+        "reference.generate",
+        "reference.model",
         "registry.closure",
         "registry.impacts",
         "registry.list",
