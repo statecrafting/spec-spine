@@ -753,8 +753,10 @@ fn the_model_conforms_and_is_what_the_pages_project() {
     check_doc["findings"][0]["kind"] = serde_json::json!("page-bogus");
     assert!(!check_validator.is_valid(&check_doc));
 
-    // A spec's index shard hash covers `spec.md` and the files the spec owns,
-    // so it equals the registry hash exactly when the spec owns no unit.
+    // A spec's index shard hash covers `spec.md` and the files backing its
+    // resolved symbol, section and module spans (a `file` unit contributes
+    // nothing), so it equals the registry hash when no owned unit resolves to
+    // a span. Alpha's `demo::alpha` resolves only with symbol resolution.
     let digest = |spec: &str, source: &str| {
         let page = model.pages.iter().find(|p| p.spec_id == spec).unwrap();
         let id = format!("{source}:{spec}");
@@ -765,10 +767,15 @@ fn the_model_conforms_and_is_what_the_pages_project() {
             .digest
             .clone()
     };
-    assert_ne!(
+    let (alpha_registry, alpha_index) = (
         digest("001-alpha", "registry"),
-        digest("001-alpha", "index")
+        digest("001-alpha", "index"),
     );
+    if cfg!(feature = "symbol-resolution") {
+        assert_ne!(alpha_registry, alpha_index);
+    } else {
+        assert_eq!(alpha_registry, alpha_index);
+    }
     assert_eq!(
         digest("005-epsilon", "registry"),
         digest("005-epsilon", "index")
