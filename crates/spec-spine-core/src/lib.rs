@@ -42,6 +42,7 @@ pub mod pathutil;
 pub mod projection;
 pub mod query;
 pub mod read;
+pub mod reference;
 pub mod relocation;
 pub mod render;
 pub mod scaffold;
@@ -154,6 +155,11 @@ pub use query::{
     relationships, shard_content_hash, show, status_report,
 };
 pub use read::{Versioning, read_document};
+pub use reference::{
+    ReferenceExport, ReferenceInputs, gather_reference_inputs, ledger_is_fresh, reference_check,
+    reference_check_document, reference_check_with, reference_export, reference_generate,
+    reference_model, reference_model_document, render_reference_page, validate_reference_request,
+};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, ScaffoldOptions, scaffold_init, scaffold_init_opts};
 pub use scope::{

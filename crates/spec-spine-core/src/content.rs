@@ -258,14 +258,56 @@ pub(crate) struct Resolution {
 
 /// Resolve each selector, in the order given, against the export at
 /// `repo_root`. Loads the committed registry and index only when a selector
-/// needs them, refusing a stale ledger. `max_bytes` bounds every whole-file
-/// read before it happens.
+/// needs them, refusing a stale ledger. `max_item_bytes` bounds each
+/// selector's own whole-file read before it happens; it is a per-selector
+/// ceiling, never a running total, so how many selectors resolve before one
+/// does not change whether it fits.
 pub(crate) fn resolve_selectors(
     cfg: &Config,
     repo_root: &Path,
     selectors: &[ContentSelector],
     default_projection: ContentProjection,
-    max_bytes: usize,
+    max_item_bytes: usize,
+) -> Result<Vec<Resolution>, Error> {
+    resolve_selectors_guarded(
+        cfg,
+        repo_root,
+        selectors,
+        default_projection,
+        max_item_bytes,
+        true,
+    )
+}
+
+/// [`resolve_selectors`] for a caller that has already compared the committed
+/// index with the corpus byte for byte (spec 166 3.9): the index is read
+/// without [`guard_committed_index`], so a claim elsewhere that does not
+/// resolve, which is not staleness, does not refuse this read. Each selector
+/// still resolves, or is omitted, on its own.
+pub(crate) fn resolve_selectors_after_freshness(
+    cfg: &Config,
+    repo_root: &Path,
+    selectors: &[ContentSelector],
+    default_projection: ContentProjection,
+    max_item_bytes: usize,
+) -> Result<Vec<Resolution>, Error> {
+    resolve_selectors_guarded(
+        cfg,
+        repo_root,
+        selectors,
+        default_projection,
+        max_item_bytes,
+        false,
+    )
+}
+
+fn resolve_selectors_guarded(
+    cfg: &Config,
+    repo_root: &Path,
+    selectors: &[ContentSelector],
+    default_projection: ContentProjection,
+    max_item_bytes: usize,
+    guard_index: bool,
 ) -> Result<Vec<Resolution>, Error> {
     crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
     let root_real = fs::canonicalize(repo_root).map_err(|error| Error::Io(error.to_string()))?;
@@ -298,7 +340,9 @@ pub(crate) fn resolve_selectors(
         None
     };
     let index = if needs_index {
-        guard_committed_index(cfg, repo_root)?;
+        if guard_index {
+            guard_committed_index(cfg, repo_root)?;
+        }
         Some(load_committed_index(cfg, repo_root)?)
     } else {
         None
@@ -330,7 +374,7 @@ pub(crate) fn resolve_selectors(
         root_real: &root_real,
         registry: registry.as_ref(),
         index: index.as_ref(),
-        max_bytes,
+        max_bytes: max_item_bytes,
         #[cfg(feature = "symbol-resolution")]
         resolver: resolver.as_ref(),
     };
@@ -1153,6 +1197,32 @@ pub(crate) fn content_item(
     selected: &Selected,
     snapshot: &ContentSnapshot,
 ) -> ContentItem {
+    ContentItem {
+        identity: identity.to_string(),
+        repository: snapshot.repository.clone(),
+        revision: snapshot.revision.clone(),
+        tree: snapshot.tree.clone(),
+        dirty_state: snapshot.dirty_state,
+        selector: selector.clone(),
+        requested_projection: projection,
+        path: selected.path.clone(),
+        span: selected.span,
+        digest: item_digest(identity, projection, selected),
+        content: selected.content.clone(),
+        resolution: ContentResolution::Resolved,
+        completeness: ContentCompleteness::Complete,
+        schema_version: READ_SCHEMA_VERSION.to_string(),
+    }
+}
+
+/// A content item's digest: its identity, projection, path, span and content,
+/// framed. The snapshot is not an input, so a reader that has no snapshot
+/// (a reference page, spec 166) gets the digest [`content_item`] would give.
+pub(crate) fn item_digest(
+    identity: &str,
+    projection: ContentProjection,
+    selected: &Selected,
+) -> String {
     let mut set = PieceSet::new();
     set.insert(
         "identity".into(),
@@ -1183,22 +1253,7 @@ pub(crate) fn content_item(
         PieceKind::Text,
         selected.content.as_bytes().to_vec(),
     );
-    ContentItem {
-        identity: identity.to_string(),
-        repository: snapshot.repository.clone(),
-        revision: snapshot.revision.clone(),
-        tree: snapshot.tree.clone(),
-        dirty_state: snapshot.dirty_state,
-        selector: selector.clone(),
-        requested_projection: projection,
-        path: selected.path.clone(),
-        span: selected.span,
-        digest: format!("sha256:{}", set.digest().expect("nonempty framed item")),
-        content: selected.content.clone(),
-        resolution: ContentResolution::Resolved,
-        completeness: ContentCompleteness::Complete,
-        schema_version: READ_SCHEMA_VERSION.to_string(),
-    }
+    format!("sha256:{}", set.digest().expect("nonempty framed item"))
 }
 
 fn request_digest(request: &ContentRequest) -> Result<String, Error> {
@@ -1255,6 +1310,44 @@ fn continuation_start(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_item_digest_does_not_depend_on_the_snapshot() {
+        let selected = Selected {
+            path: RepoPath::parse("src/lib.rs").unwrap(),
+            span: ContentSpan {
+                start_line: 1,
+                end_line: 1,
+            },
+            content: "pub fn f() {}".into(),
+        };
+        let selector = ContentSelector::Symbol {
+            id: "crate::f".into(),
+            projection: Some(ContentProjection::Signature),
+            required: true,
+        };
+        let snapshot = |revision: &str, dirty_state| ContentSnapshot {
+            repository: format!("repo-{revision}"),
+            revision: revision.repeat(40),
+            tree: revision.repeat(40),
+            dirty_state,
+            binding: spec_spine_types::ContentSnapshotBinding::CallerSupplied,
+        };
+        let digest = item_digest("crate::f", ContentProjection::Signature, &selected);
+        for s in [
+            snapshot("0", spec_spine_types::ContentDirtyState::CleanWorkingTree),
+            snapshot("a", spec_spine_types::ContentDirtyState::CleanExport),
+        ] {
+            let item = content_item(
+                "crate::f",
+                ContentProjection::Signature,
+                &selector,
+                &selected,
+                &s,
+            );
+            assert_eq!(item.digest, digest);
+        }
+    }
 
     #[test]
     fn last_obligation_stops_before_the_next_frontmatter_key() {
