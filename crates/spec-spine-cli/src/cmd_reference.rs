@@ -92,8 +92,13 @@ fn generate(repo: &Path, request_path: &Path, json: bool) -> Result<u8, Error> {
         }
     }
     for path in &export.remove {
-        std::fs::remove_file(repo.join(path))
-            .map_err(|e| Error::Io(format!("remove {path}: {e}")))?;
+        // An orphan already gone is the state removal asks for.
+        match std::fs::remove_file(repo.join(path)) {
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => {
+                return Err(Error::Io(format!("remove {path}: {e}")));
+            }
+            _ => {}
+        }
     }
     if json {
         let doc = serde_json::json!({
