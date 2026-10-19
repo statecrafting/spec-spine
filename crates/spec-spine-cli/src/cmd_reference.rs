@@ -3,7 +3,6 @@
 //! under the request's `outputDir`; check and model write nothing, and no
 //! verb runs an example.
 
-use std::collections::BTreeSet;
 use std::path::Path;
 
 use clap::Subcommand;
@@ -79,12 +78,12 @@ fn generate(repo: &Path, request_path: &Path, json: bool) -> Result<u8, Error> {
     std::fs::create_dir_all(&dir)
         .map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
     let mut written = Vec::new();
-    let mut unchanged = BTreeSet::new();
+    let mut unchanged = Vec::new();
     for (path, text) in &export.pages {
         let target = repo.join(path);
         let same = std::fs::read(&target).is_ok_and(|b| b == text.as_bytes());
         if same {
-            unchanged.insert(path.clone());
+            unchanged.push(path.clone());
         } else {
             std::fs::write(&target, text).map_err(|e| Error::Io(format!("write {path}: {e}")))?;
             written.push(path.clone());
