@@ -392,6 +392,7 @@ fn resolve_signatures(
         repo_root,
         &selectors,
         ContentProjection::Signature,
+        // Each signature's own ceiling, not a budget the set shares.
         REFERENCE_MAX_PAGE_BYTES,
     )?;
     let mut out = BTreeMap::new();

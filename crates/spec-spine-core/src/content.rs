@@ -258,21 +258,23 @@ pub(crate) struct Resolution {
 
 /// Resolve each selector, in the order given, against the export at
 /// `repo_root`. Loads the committed registry and index only when a selector
-/// needs them, refusing a stale ledger. `max_bytes` bounds every whole-file
-/// read before it happens.
+/// needs them, refusing a stale ledger. `max_item_bytes` bounds each
+/// selector's own whole-file read before it happens; it is a per-selector
+/// ceiling, never a running total, so how many selectors resolve before one
+/// does not change whether it fits.
 pub(crate) fn resolve_selectors(
     cfg: &Config,
     repo_root: &Path,
     selectors: &[ContentSelector],
     default_projection: ContentProjection,
-    max_bytes: usize,
+    max_item_bytes: usize,
 ) -> Result<Vec<Resolution>, Error> {
     resolve_selectors_guarded(
         cfg,
         repo_root,
         selectors,
         default_projection,
-        max_bytes,
+        max_item_bytes,
         true,
     )
 }
@@ -287,14 +289,14 @@ pub(crate) fn resolve_selectors_after_freshness(
     repo_root: &Path,
     selectors: &[ContentSelector],
     default_projection: ContentProjection,
-    max_bytes: usize,
+    max_item_bytes: usize,
 ) -> Result<Vec<Resolution>, Error> {
     resolve_selectors_guarded(
         cfg,
         repo_root,
         selectors,
         default_projection,
-        max_bytes,
+        max_item_bytes,
         false,
     )
 }
@@ -304,7 +306,7 @@ fn resolve_selectors_guarded(
     repo_root: &Path,
     selectors: &[ContentSelector],
     default_projection: ContentProjection,
-    max_bytes: usize,
+    max_item_bytes: usize,
     guard_index: bool,
 ) -> Result<Vec<Resolution>, Error> {
     crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
@@ -372,7 +374,7 @@ fn resolve_selectors_guarded(
         root_real: &root_real,
         registry: registry.as_ref(),
         index: index.as_ref(),
-        max_bytes,
+        max_bytes: max_item_bytes,
         #[cfg(feature = "symbol-resolution")]
         resolver: resolver.as_ref(),
     };
