@@ -117,6 +117,11 @@ fn a_finding_exits_one_with_the_check_as_the_envelope_report_and_writes_nothing(
     assert_eq!(code(&out), 1);
     let envelope: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     assert_eq!(envelope["verb"], "reference.check");
+    assert_eq!(
+        envelope["report"]["schemaVersion"],
+        spec_spine_types::REFERENCE_PAGE_SCHEMA_VERSION,
+        "the report is the versioned check document"
+    );
     assert_eq!(envelope["report"]["findings"][0]["kind"], "page-changed");
     assert_eq!(envelope["report"]["findings"][0]["regions"][0], "header");
     assert_eq!(
