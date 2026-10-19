@@ -8,7 +8,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{Example, Obligation};
+use crate::{Example, Implementation, Obligation, Status, TraceState};
 
 /// Default and ceiling of [`ReferenceLimits::max_pages`] (spec 166 3.2).
 pub const REFERENCE_MAX_PAGES: usize = 1024;
@@ -136,27 +136,88 @@ pub struct ReferenceHeader {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ReferenceLifecycle {
-    pub status: String,
-    pub implementation: Option<String>,
+    pub status: Status,
+    pub implementation: Option<Implementation>,
     pub superseded_by: Option<String>,
     pub retirement_rationale: Option<String>,
     pub created: String,
+}
+
+/// The owning edges a page lists a unit under (3.4); `references` is not
+/// one, and neither is an edge that only relates specs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OwningEdge {
+    Establishes,
+    Extends,
+    Refines,
+    CoAuthority,
+    Constrains,
+}
+
+impl OwningEdge {
+    /// The serialized name, as the page renders it.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Establishes => "establishes",
+            Self::Extends => "extends",
+            Self::Refines => "refines",
+            Self::CoAuthority => "co_authority",
+            Self::Constrains => "constrains",
+        }
+    }
+}
+
+/// What the committed index records for an owned unit (D-18): at least one
+/// location, none, or no resolution at all.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum UnitResolution {
+    Resolved,
+    Unresolved,
+    Unknown,
+}
+
+impl UnitResolution {
+    /// The serialized name, as the page renders it.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Resolved => "resolved",
+            Self::Unresolved => "unresolved",
+            Self::Unknown => "unknown",
+        }
+    }
+}
+
+/// The language a projected signature is fenced as.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SignatureLanguage {
+    Rust,
+    Typescript,
+}
+
+impl SignatureLanguage {
+    /// The serialized name, which is also the fence's info string.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Rust => "rust",
+            Self::Typescript => "typescript",
+        }
+    }
 }
 
 /// One owning unit and how the committed index resolved it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ReferenceUnit {
-    /// `establishes`, `extends`, `refines`, `co_authority` or `constrains`.
-    pub edge: String,
+    pub edge: OwningEdge,
     /// The spec an `extends` edge names.
     pub target_spec: Option<String>,
     /// The unit's canonical JSON.
     pub unit: String,
     pub planned: bool,
-    /// `resolved`, `unresolved`, or `unknown` when the index records no
-    /// resolution for it.
-    pub resolution: String,
+    pub resolution: UnitResolution,
 }
 
 /// The `ownership` region: owning units, then non-owning references.
@@ -180,7 +241,7 @@ pub struct ReferenceSignature {
     pub digest: Option<String>,
     pub text: Option<String>,
     /// `rust` or `typescript`, from the source kind.
-    pub language: Option<String>,
+    pub language: Option<SignatureLanguage>,
     /// The spec 155 omission reason when no signature was projected.
     pub omission: Option<String>,
 }
@@ -193,7 +254,7 @@ pub struct ReferenceRelation {
     pub obligation: String,
     pub relation: String,
     pub target_identity: String,
-    pub state: String,
+    pub state: TraceState,
 }
 
 /// One catalog operation whose `governedBy` names this spec.

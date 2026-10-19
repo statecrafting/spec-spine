@@ -146,12 +146,13 @@ pub use projection::{
     ToolProjection,
 };
 pub use reference::{
-    REFERENCE_LIMITATION, REFERENCE_MAX_NOTES_BYTES, REFERENCE_MAX_PAGE_BYTES, REFERENCE_MAX_PAGES,
-    REFERENCE_MAX_SIGNATURES, REFERENCE_REGIONS, ReferenceChanges, ReferenceCheck,
-    ReferenceEvidence, ReferenceEvidenceInputs, ReferenceFinding, ReferenceFindingKind,
-    ReferenceHeader, ReferenceInput, ReferenceLifecycle, ReferenceLimits, ReferenceModel,
-    ReferenceOperation, ReferenceOwnership, ReferencePage, ReferenceRelation, ReferenceRequest,
-    ReferenceSignature, ReferenceSpecs, ReferenceUnit, SelectAll, SelectKeyword, SpecIds,
+    OwningEdge, REFERENCE_LIMITATION, REFERENCE_MAX_NOTES_BYTES, REFERENCE_MAX_PAGE_BYTES,
+    REFERENCE_MAX_PAGES, REFERENCE_MAX_SIGNATURES, REFERENCE_REGIONS, ReferenceChanges,
+    ReferenceCheck, ReferenceEvidence, ReferenceEvidenceInputs, ReferenceFinding,
+    ReferenceFindingKind, ReferenceHeader, ReferenceInput, ReferenceLifecycle, ReferenceLimits,
+    ReferenceModel, ReferenceOperation, ReferenceOwnership, ReferencePage, ReferenceRelation,
+    ReferenceRequest, ReferenceSignature, ReferenceSpecs, ReferenceUnit, SelectAll, SelectKeyword,
+    SignatureLanguage, SpecIds, UnitResolution,
 };
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,

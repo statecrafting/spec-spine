@@ -277,9 +277,13 @@
               "type": "string"
             },
             "implementation": {
-              "type": [
-                "string",
-                "null"
+              "enum": [
+                "pending",
+                "in-progress",
+                "complete",
+                "n-a",
+                "deferred",
+                null
               ]
             },
             "retirementRationale": {

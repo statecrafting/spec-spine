@@ -70,3 +70,87 @@ fn a_requirement_is_an_obligation_record() {
         assert!(!valid(&schema, &bad), "{bad}");
     }
 }
+
+/// Each closed set the schema enumerates: every value it lists parses into
+/// the Rust type and validates, and a value it does not list is refused by
+/// both, so neither side is wider than the other.
+#[test]
+fn every_closed_set_is_closed_on_both_sides() {
+    use spec_spine_types::{ReferenceLifecycle, ReferenceRelation, ReferenceUnit};
+
+    fn check<T: serde::de::DeserializeOwned>(
+        schema: &Value,
+        make: impl Fn(Value) -> Value,
+        listed: &[Value],
+    ) {
+        for v in listed.iter().cloned().chain([json!("bogus")]) {
+            let doc = make(v.clone());
+            let listed = listed.contains(&v);
+            assert_eq!(valid(schema, &doc), listed, "schema: {doc}");
+            assert_eq!(
+                serde_json::from_value::<T>(doc.clone()).is_ok(),
+                listed,
+                "serde: {doc}"
+            );
+        }
+    }
+    let enum_of = |schema: &Value, member: &str| -> Vec<Value> {
+        schema["properties"][member]["enum"]
+            .as_array()
+            .unwrap_or_else(|| panic!("{member} enumerates its values"))
+            .clone()
+    };
+
+    let lifecycle = page_member("lifecycle");
+    let life = |status: Value, implementation: Value| {
+        json!({"created": "2026-01-01", "implementation": implementation,
+               "retirementRationale": null, "status": status, "supersededBy": null})
+    };
+    check::<ReferenceLifecycle>(
+        &lifecycle,
+        |v| life(v, Value::Null),
+        &enum_of(&lifecycle, "status"),
+    );
+    check::<ReferenceLifecycle>(
+        &lifecycle,
+        |v| life(json!("draft"), v),
+        &enum_of(&lifecycle, "implementation"),
+    );
+
+    let units = page_member("ownership")["properties"]["units"].clone();
+    let unit = units["items"].clone();
+    let row = |edge: Value, resolution: Value| {
+        json!({"edge": edge, "planned": false, "resolution": resolution,
+               "targetSpec": null, "unit": "{\"kind\":\"file\",\"path\":\"a\"}"})
+    };
+    check::<ReferenceUnit>(
+        &unit,
+        |v| row(v, json!("resolved")),
+        &enum_of(&unit, "edge"),
+    );
+    check::<ReferenceUnit>(
+        &unit,
+        |v| row(json!("establishes"), v),
+        &enum_of(&unit, "resolution"),
+    );
+
+    let relation = page_member("relations")["oneOf"][1]["items"].clone();
+    check::<ReferenceRelation>(
+        &relation,
+        |v| {
+            json!({"id": "r", "obligation": "001-a#R-1", "relation": "tested-by",
+                   "state": v, "targetIdentity": "t"})
+        },
+        &enum_of(&relation, "state"),
+    );
+
+    let signature = page_member("signatures")["items"].clone();
+    check::<ReferenceSignature>(
+        &signature,
+        |v| {
+            json!({"digest": null, "endLine": null, "language": v, "omission": "x",
+                   "path": null, "startLine": null, "symbol": "s", "text": null})
+        },
+        &enum_of(&signature, "language"),
+    );
+}
