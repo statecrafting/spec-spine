@@ -139,7 +139,7 @@
       "contentHash": "979d800094b5c4c92b4956aec83c08c621386f6d21882b1a92940975622ed8cc"
     },
     "crates/spec-spine-types/schemas/reference-page.schema.json": {
-      "contentHash": "d7a6a85a391e6e0bb373401da0be9648edad6ecac96efaa8a61b03f0ef7adfc6"
+      "contentHash": "de5d2fadf14fc549411b870e5bfcfb43c9d5bf7a60b3dcb616ae24c1bf8a8de0"
     },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
       "contentHash": "d6c8f74046544df93527f2a9ebc971a28ed74c221d7881760f33f5ee0cd4b592"

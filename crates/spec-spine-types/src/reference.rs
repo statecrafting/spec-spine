@@ -83,8 +83,15 @@ pub enum ReferenceSpecs {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SelectAll {
-    /// Always `all`.
-    pub select: String,
+    pub select: SelectKeyword,
+}
+
+/// The one selector keyword: any other value does not parse, as the schema's
+/// `const` says.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SelectKeyword {
+    #[serde(rename = "all")]
+    All,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -330,5 +337,18 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn a_selector_other_than_all_does_not_parse() {
+        for select in [r#""none""#, r#""ALL""#, r#""""#, "1"] {
+            let text = format!(
+                r#"{{"schemaVersion":"1.0.0","outputDir":"d","specs":{{"select":{select}}}}}"#
+            );
+            assert!(
+                serde_json::from_str::<ReferenceRequest>(&text).is_err(),
+                "{text}"
+            );
+        }
     }
 }

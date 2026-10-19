@@ -486,6 +486,44 @@
         },
         "requirements": {
           "items": {
+            "additionalProperties": false,
+            "properties": {
+              "anchor": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "id": {
+                "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$",
+                "type": "string"
+              },
+              "inputs": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "enum": [
+                  "requirement",
+                  "invariant",
+                  "verification"
+                ]
+              },
+              "text": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "withdrawn": {
+                "const": true
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "text",
+              "anchor"
+            ],
             "type": "object"
           },
           "type": "array"
@@ -504,6 +542,7 @@
                 ]
               },
               "endLine": {
+                "minimum": 0,
                 "type": [
                   "integer",
                   "null"
@@ -529,6 +568,7 @@
                 ]
               },
               "startLine": {
+                "minimum": 0,
                 "type": [
                   "integer",
                   "null"

@@ -19,6 +19,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/reference_schema.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/schemas/reference-page.schema.json",
         "source": "spec-edge"
       },
@@ -104,6 +108,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/tests/reference.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/reference_schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/reference_schema.rs"
         }
       },
       {
@@ -307,5 +324,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "f77ce988669ace23699b7223d48471108607994208efcd6582a3add938dfefc2"
+  "shardHash": "bba6bd41cb6bd694339317a168967cb07b424232de8c0bf75b54ee6da47c4787"
 }

@@ -26,6 +26,10 @@
         "planned": true
       },
       {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/reference_schema.rs"
+      },
+      {
         "kind": "directory",
         "path": "crates/spec-spine-core/tests/fixtures/reference/",
         "planned": true
@@ -265,6 +269,6 @@
     "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
     "title": "Generate one deterministic reference page per spec"
   },
-  "shardHash": "cd522e70052b204775033296a034a4109a6c76e5c287aaf4919d113438dd331d",
+  "shardHash": "6aa4e00689d4236df961130e9c97431a2e5bedaed915b1a8ae6d44f34d701a74",
   "specVersion": "1.10.0"
 }

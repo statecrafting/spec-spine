@@ -151,7 +151,7 @@ pub use reference::{
     ReferenceEvidence, ReferenceEvidenceInputs, ReferenceFinding, ReferenceFindingKind,
     ReferenceHeader, ReferenceInput, ReferenceLifecycle, ReferenceLimits, ReferenceModel,
     ReferenceOperation, ReferenceOwnership, ReferencePage, ReferenceRelation, ReferenceRequest,
-    ReferenceSignature, ReferenceSpecs, ReferenceUnit, SelectAll, SpecIds,
+    ReferenceSignature, ReferenceSpecs, ReferenceUnit, SelectAll, SelectKeyword, SpecIds,
 };
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,

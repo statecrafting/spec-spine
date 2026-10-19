@@ -24,6 +24,7 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/schemas/reference-page.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/reference.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-core/tests/reference.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/reference_schema.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/reference/", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_reference.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/reference.rs", planned: true }
