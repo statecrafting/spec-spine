@@ -249,6 +249,13 @@ pub const CONTEXT_PACKET_DELTA_SCHEMA_VERSION: &str = "1.0.0";
 /// is MAJOR.
 pub const EDIT_PLAN_SCHEMA_VERSION: &str = "1.0.0";
 
+/// `schemaVersion` of a reference page model, the model document and the
+/// check document (`reference model --json`, `reference check --json`; spec
+/// 166 3.13): its own axis from `1.0.0`. The Markdown template is part of the
+/// axis: a new optional model field is MINOR; any change to region ids or
+/// order, heading text, escaping, delimiters or ordering rules is MAJOR.
+pub const REFERENCE_PAGE_SCHEMA_VERSION: &str = "1.0.0";
+
 /// `schemaVersion` of a documentation manifest and of a freshness result
 /// (`documentation manifest validate|freshness`, spec 160 3.13): one axis for
 /// both documents, from `1.0.0`.

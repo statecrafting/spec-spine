@@ -43,6 +43,7 @@ pub mod interface;
 pub mod moves;
 pub mod obligation;
 pub mod projection;
+pub mod reference;
 pub mod registry;
 pub mod relocation;
 pub mod repo_path;
@@ -144,6 +145,15 @@ pub use projection::{
     TOOL_DESCRIPTION_SUFFIX, TOOL_PROJECTION_SCHEMA, TOOL_TRUST, Tool, ToolAnswer, ToolHints,
     ToolProjection,
 };
+pub use reference::{
+    OwningEdge, REFERENCE_LIMITATION, REFERENCE_MAX_NOTES_BYTES, REFERENCE_MAX_PAGE_BYTES,
+    REFERENCE_MAX_PAGES, REFERENCE_MAX_SIGNATURES, REFERENCE_REGIONS, ReferenceChanges,
+    ReferenceCheck, ReferenceEvidence, ReferenceEvidenceInputs, ReferenceFinding,
+    ReferenceFindingKind, ReferenceHeader, ReferenceInput, ReferenceLifecycle, ReferenceLimits,
+    ReferenceModel, ReferenceOperation, ReferenceOwnership, ReferencePage, ReferenceRelation,
+    ReferenceRequest, ReferenceSignature, ReferenceSpecs, ReferenceUnit, SelectAll, SelectKeyword,
+    SignatureLanguage, SpecIds, UnitResolution,
+};
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,
     Violation,
@@ -153,8 +163,8 @@ pub use repo_path::{RepoPath, is_device_name, repo_path_problem};
 pub use schema::{
     AFFECTED_SCHEMA, BUILD_META_SCHEMA, CAPABILITY_CATALOG_SCHEMA, CONTEXT_PACKET_DELTA_SCHEMA,
     CONTEXT_PACKET_SCHEMA, EDIT_PLAN_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA,
-    INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
-    TRACEABILITY_SCHEMA,
+    INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA, REFERENCE_PAGE_SCHEMA, REGISTRY_SCHEMA,
+    REGISTRY_SPEC_SHARD_SCHEMA, TRACEABILITY_SCHEMA,
 };
 pub use snapshot::{
     AuthoritySnapshot, CommittedTree, FRAME_DIGEST, NON_UTF8_DIRECT_CLAIM, SnapshotCommitted,
@@ -173,7 +183,7 @@ pub use version::{
     BUILD_META_SCHEMA_VERSION, CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
     CONTEXT_PACKET_DELTA_SCHEMA_VERSION, CONTEXT_PACKET_SCHEMA_VERSION, DELTA_SCHEMA_VERSION,
     DOCUMENTATION_MANIFEST_SCHEMA_VERSION, EDIT_PLAN_SCHEMA_VERSION, INDEX_SCHEMA_VERSION,
-    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
-    SPEC_ATTESTATION_SCHEMA_VERSION, TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
-    parse_semver,
+    READ_SCHEMA_VERSION, REFERENCE_PAGE_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION,
+    SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION, TOOL_PROJECTION_SCHEMA_VERSION,
+    VERDICT_SCHEMA_VERSION, parse_semver,
 };

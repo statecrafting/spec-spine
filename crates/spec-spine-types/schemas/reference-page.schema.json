@@ -1,0 +1,722 @@
+{
+  "$defs": {
+    "check": {
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "detail": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "page-missing",
+                  "page-changed",
+                  "page-orphaned",
+                  "page-malformed",
+                  "ledger-stale"
+                ]
+              },
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "regions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "detail",
+              "kind",
+              "path",
+              "regions"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "outputDir": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "findings",
+        "outputDir",
+        "schemaVersion"
+      ],
+      "type": "object"
+    },
+    "example": {
+      "additionalProperties": false,
+      "properties": {
+        "argv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "exitCode": {
+          "maximum": 255,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "fixture": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "stdin": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stdoutIncludes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "argv",
+        "exitCode",
+        "fixture",
+        "id",
+        "stdin",
+        "stdoutIncludes"
+      ],
+      "type": "object"
+    },
+    "model": {
+      "additionalProperties": false,
+      "properties": {
+        "pages": {
+          "items": {
+            "$ref": "#/$defs/page"
+          },
+          "type": "array"
+        },
+        "schemaVersion": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "pages",
+        "schemaVersion"
+      ],
+      "type": "object"
+    },
+    "page": {
+      "additionalProperties": false,
+      "properties": {
+        "changes": {
+          "additionalProperties": false,
+          "properties": {
+            "amendedBy": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "amendmentRecord": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "amends": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "amendsSections": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "amendsVerification": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "extendedBy": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "supersededBy": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "supersedes": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "amendedBy",
+            "amendmentRecord",
+            "amends",
+            "amendsSections",
+            "amendsVerification",
+            "extendedBy",
+            "supersededBy",
+            "supersedes"
+          ],
+          "type": "object"
+        },
+        "evidence": {
+          "additionalProperties": false,
+          "properties": {
+            "commands": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "inputs": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "inputs": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "obligation": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "inputs",
+                  "obligation"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "commands",
+            "inputs"
+          ],
+          "type": "object"
+        },
+        "header": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "specPath": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "specPath",
+            "summary",
+            "title"
+          ],
+          "type": "object"
+        },
+        "inputs": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "identity": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "digest",
+              "identity"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "lifecycle": {
+          "additionalProperties": false,
+          "properties": {
+            "created": {
+              "type": "string"
+            },
+            "implementation": {
+              "enum": [
+                "pending",
+                "in-progress",
+                "complete",
+                "n-a",
+                "deferred",
+                null
+              ]
+            },
+            "retirementRationale": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "enum": [
+                "draft",
+                "approved",
+                "superseded",
+                "retired"
+              ]
+            },
+            "supersededBy": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "created",
+            "implementation",
+            "retirementRationale",
+            "status",
+            "supersededBy"
+          ],
+          "type": "object"
+        },
+        "nonGoals": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "operations": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "examples": {
+                    "items": {
+                      "$ref": "#/$defs/example"
+                    },
+                    "type": "array"
+                  },
+                  "executes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "network": {
+                    "type": "string"
+                  },
+                  "reads": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "writes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "examples",
+                  "executes",
+                  "name",
+                  "network",
+                  "reads",
+                  "writes"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "ownership": {
+          "additionalProperties": false,
+          "properties": {
+            "references": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "units": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "edge": {
+                    "enum": [
+                      "establishes",
+                      "extends",
+                      "refines",
+                      "co_authority",
+                      "constrains"
+                    ]
+                  },
+                  "planned": {
+                    "type": "boolean"
+                  },
+                  "resolution": {
+                    "enum": [
+                      "resolved",
+                      "unresolved",
+                      "unknown"
+                    ]
+                  },
+                  "targetSpec": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "unit": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "edge",
+                  "planned",
+                  "resolution",
+                  "targetSpec",
+                  "unit"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "references",
+            "units"
+          ],
+          "type": "object"
+        },
+        "path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "relations": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "obligation": {
+                    "type": "string"
+                  },
+                  "relation": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "resolved",
+                      "unresolved",
+                      "ambiguous",
+                      "unsupported",
+                      "unknown",
+                      "withdrawn"
+                    ]
+                  },
+                  "targetIdentity": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "obligation",
+                  "relation",
+                  "state",
+                  "targetIdentity"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "requirements": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "anchor": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "id": {
+                "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$",
+                "type": "string"
+              },
+              "inputs": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "enum": [
+                  "requirement",
+                  "invariant",
+                  "verification"
+                ]
+              },
+              "text": {
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "withdrawn": {
+                "const": true
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "text",
+              "anchor"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "signatures": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "endLine": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "language": {
+                "enum": [
+                  "rust",
+                  "typescript",
+                  null
+                ]
+              },
+              "omission": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "startLine": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "symbol": {
+                "type": "string"
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "digest",
+              "endLine",
+              "language",
+              "omission",
+              "path",
+              "startLine",
+              "symbol",
+              "text"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "specId": {
+          "pattern": "^[0-9]{3}-[a-z0-9]+(-[a-z0-9]+)*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "changes",
+        "evidence",
+        "header",
+        "inputs",
+        "lifecycle",
+        "nonGoals",
+        "notes",
+        "operations",
+        "ownership",
+        "path",
+        "relations",
+        "requirements",
+        "schemaVersion",
+        "signatures",
+        "specId"
+      ],
+      "type": "object"
+    },
+    "request": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limits": {
+          "additionalProperties": false,
+          "properties": {
+            "maxPageBytes": {
+              "maximum": 524288,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxPages": {
+              "maximum": 1024,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxSignatures": {
+              "maximum": 256,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "outputDir": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "specs": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "select": {
+                  "const": "all"
+                }
+              },
+              "required": [
+                "select"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "ids"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "traceability": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "outputDir",
+        "specs"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://spec-spine.dev/schemas/reference-page.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The reference model (`reference model --json`) and check result (`reference check --json`) of spec 166. The root validates either; $defs/page is one page model and $defs/request the export request. A page restates declared records and claims nothing else.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/model"
+    },
+    {
+      "$ref": "#/$defs/check"
+    }
+  ],
+  "title": "spec-spine reference page"
+}
