@@ -31,7 +31,7 @@ use spec_spine_types::{
     parse_semver,
 };
 
-use crate::content::{content_item, resolve_selectors_after_freshness};
+use crate::content::{Resolution, content_item, resolve_selectors_after_freshness};
 use crate::{Versioning, canonical_json, hash, read_document};
 
 /// Everything one export reads, already read (spec 166 3.8).
@@ -393,14 +393,15 @@ fn resolve_signatures(
         dirty_state: ContentDirtyState::CleanWorkingTree,
         binding: ContentSnapshotBinding::CallerSupplied,
     };
-    let mut out = BTreeMap::new();
-    for (id, r) in symbols.iter().zip(resolve_selectors_after_freshness(
+    let resolutions = resolve_selectors_after_freshness(
         cfg,
         repo_root,
         &selectors,
         ContentProjection::Signature,
         REFERENCE_MAX_PAGE_BYTES,
-    )?) {
+    )?;
+    let mut out = BTreeMap::new();
+    for (id, r) in pair_resolutions(symbols, resolutions)? {
         let row = match r.outcome {
             Ok(selected) => {
                 let item =
@@ -1392,6 +1393,33 @@ fn differing_regions(fresh: &[Region], committed: &[Region]) -> Vec<String> {
         .collect()
 }
 
+/// Pair each symbol with its resolution, one to one and in order, checking
+/// each resolution's own selector names that symbol. A resolver that returned
+/// a different count or order is [`Error::Internal`], never a signature filed
+/// under the wrong symbol.
+fn pair_resolutions(
+    symbols: &BTreeSet<String>,
+    resolutions: Vec<Resolution>,
+) -> Result<Vec<(&String, Resolution)>, Error> {
+    if resolutions.len() != symbols.len() {
+        return Err(Error::Internal(format!(
+            "{} signature selector(s) resolved to {} result(s)",
+            symbols.len(),
+            resolutions.len()
+        )));
+    }
+    symbols
+        .iter()
+        .zip(resolutions)
+        .map(|(id, r)| match &r.selector {
+            ContentSelector::Symbol { id: resolved, .. } if resolved == id => Ok((id, r)),
+            other => Err(Error::Internal(format!(
+                "the signature of {id} resolved selector {other:?}"
+            ))),
+        })
+        .collect()
+}
+
 // ===== verbs and facades =====
 
 /// `reference generate`: gather, then build the export as data.
@@ -1541,6 +1569,39 @@ mod tests {
         let regions = parse_page(page.as_bytes()).unwrap();
         assert_eq!(regions.len(), 2);
         assert_eq!(regions[0].body.len(), 3);
+    }
+
+    #[test]
+    fn a_resolution_is_never_filed_under_another_symbol() {
+        let symbols: BTreeSet<String> = ["crate::a", "crate::b"].map(String::from).into();
+        let resolution = |id: &str| Resolution {
+            identity: id.into(),
+            projection: ContentProjection::Signature,
+            selector: ContentSelector::Symbol {
+                id: id.into(),
+                projection: Some(ContentProjection::Signature),
+                required: true,
+            },
+            outcome: Err((
+                spec_spine_types::ContentOmissionReason::MissingContent,
+                String::new(),
+            )),
+        };
+        let paired = pair_resolutions(
+            &symbols,
+            vec![resolution("crate::a"), resolution("crate::b")],
+        )
+        .unwrap();
+        assert_eq!(paired[1].0, "crate::b");
+        for short_or_swapped in [
+            vec![resolution("crate::a")],
+            vec![resolution("crate::b"), resolution("crate::a")],
+        ] {
+            assert!(matches!(
+                pair_resolutions(&symbols, short_or_swapped),
+                Err(Error::Internal(_))
+            ));
+        }
     }
 
     #[test]
