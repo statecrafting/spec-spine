@@ -101,8 +101,10 @@ approval.
 
 ## 4. Acceptance criteria
 
-1. The committed fixture page test and the undeclared-input test pass on
-   `main`.
+1. The committed fixture page test (the fixture corpus's `005-epsilon`, a
+   `status: retired` spec, hence the test's name
+   `the_retired_fixture_page_matches_its_committed_bytes`) and the
+   undeclared-input test pass on `main`.
 2. 166's own Verification block is unchanged and passes on `main`.
 
 ## 5. Out of scope
