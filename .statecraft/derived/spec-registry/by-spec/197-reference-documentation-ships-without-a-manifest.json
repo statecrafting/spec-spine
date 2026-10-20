@@ -57,10 +57,10 @@
       "Verification"
     ],
     "specPath": "specs/197-reference-documentation-ships-without-a-manifest/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Records the owner's 2026-10-19 rulings on spec 166 D-22 and D-23. Section 3.11 (`reference generate --manifest`) leaves 166 for a later spec, because no spec 159 packet request can yet name every page's sources. Acceptance 2's cross-platform clause and acceptance 7's harness clause are restated as the evidence the build actually provides. With both recorded, 166 D-24's condition is met.\n",
     "title": "Reference documentation ships without a manifest, on the evidence it has"
   },
-  "shardHash": "5f094c6d205e3a511b6db974dc91c28f9ea047bd21cbc213b33c092df3c1d37f",
+  "shardHash": "81a463a5f16891d28e6003fcb184dd79e7bf6baef699d0e6c0fab6ec477dee7a",
   "specVersion": "1.10.0"
 }

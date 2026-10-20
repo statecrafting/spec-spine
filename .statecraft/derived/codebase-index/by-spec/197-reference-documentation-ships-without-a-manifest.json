@@ -36,8 +36,8 @@
       }
     ],
     "specId": "197-reference-documentation-ships-without-a-manifest",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "5f094c6d205e3a511b6db974dc91c28f9ea047bd21cbc213b33c092df3c1d37f"
+  "shardHash": "81a463a5f16891d28e6003fcb184dd79e7bf6baef699d0e6c0fab6ec477dee7a"
 }

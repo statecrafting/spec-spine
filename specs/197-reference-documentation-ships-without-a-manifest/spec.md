@@ -1,7 +1,7 @@
 ---
 id: "197-reference-documentation-ships-without-a-manifest"
 title: "Reference documentation ships without a manifest, on the evidence it has"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-10-19"
 implementation: complete
