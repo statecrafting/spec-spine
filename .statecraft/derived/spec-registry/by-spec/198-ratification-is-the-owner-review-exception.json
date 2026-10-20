@@ -1,0 +1,78 @@
+{
+  "record": {
+    "created": "2026-10-19",
+    "dependsOn": [
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "id": "198-ratification-is-the-owner-review-exception",
+    "implementation": "complete",
+    "kind": "process",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the superseded design: Path A dispatch and Path B ratify-at-merge",
+        "unit": {
+          "kind": "file",
+          "path": "specs/168-ratification-has-two-paths/spec.md"
+        }
+      },
+      {
+        "role": "the review-exception job and its statecraft-review-exception environment",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ci.yml"
+        }
+      },
+      {
+        "role": "detects a ratification and blocks it without the owner exception",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/statecraft/ci-gate.sh"
+        }
+      },
+      {
+        "role": "Working the backlog, step 6: ship, then ratify",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "098f45e61155ddc0e1d57de073e0782cec2a41b7aff7eb8dc4b5c3bd8d22a4fa",
+      "198-ratification-is-a-ratify-pull-request-the-owner-approves-through-the-review-exception": "e77c0617ec607862e4b83f209ec1934b03926c7a4cef66d4fd06fd819b8dd69e",
+      "2-territory": "4b3561040757bb466c0f1b2833e8285abb4f896dd9c453f0b9b3b27d893be917",
+      "3-1-the-procedure": "58f365cd4de30369d17c0630c638ec4965ae285226d742f82d994dc331e8acc1",
+      "3-2-the-approval": "698ae6983ada91f2f7af6cd38ed6682252f31ffa96bfbac44b168493e5414290",
+      "3-3-what-168-asked-for-and-this-does-not-build": "b7b8a9465071d70ac25e254925d79b6fdf62663a54c3e99e8f2e2d7e58610477",
+      "3-behavior": "a81464c8848d12afe20df6eb6f3ea37af2af08b9be0910cb0798dba0c9efab71",
+      "4-acceptance-criteria": "303f177deb2f055745143a85a976010433165f809759b802d5cf0b6f8089d073",
+      "5-out-of-scope": "17be111110ba9557f815d797bf464fd3a7353331049de6d301d84aef84efd935",
+      "6-resolved-decisions": "ed0d9048526a5412575d087e9f36c793b75f3df18bbb250916904e3ec62ab183",
+      "verification": "a5bcab6d71c5d84f50f34b4f23c3eaf5bb77ad3a825e446019abea8505a89281"
+    },
+    "sectionHeadings": [
+      "198: Ratification is a ratify pull request the owner approves through the review exception",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The procedure",
+      "3.2 The approval",
+      "3.3 What 168 asked for and this does not build",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/198-ratification-is-the-owner-review-exception/spec.md",
+    "status": "draft",
+    "summary": "Supersedes spec 168. Ratification stays a separate pull request that flips `status: draft` to `approved`, and the owner's approval of that pull request is the review-exception environment approval that Statecraft's managed CI already requires for every ratification (profile revision 12). No `ratification` environment and no dispatch workflow are built.\n",
+    "supersedes": [
+      "168-ratification-has-two-paths"
+    ],
+    "title": "Ratification is a ratify pull request the owner approves through the review exception"
+  },
+  "shardHash": "2fc3bc674a0c35ed1dd6adb40a3c3fd4271e7e01a9d0da97682a7a51524c338a",
+  "specVersion": "1.10.0"
+}
