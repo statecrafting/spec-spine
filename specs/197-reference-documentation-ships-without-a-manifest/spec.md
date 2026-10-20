@@ -105,6 +105,9 @@ approval.
    `status: retired` spec, hence the test's name
    `the_retired_fixture_page_matches_its_committed_bytes`) and the
    undeclared-input test pass on `main`.
+2. The ordering and line-ending test
+   (`authoring_order_and_line_endings_never_change_bytes`, restated
+   acceptance 2's first two clauses) passes on `main`.
 
 Spec 166's own Verification block is not changed by this amendment and is
 not repeated here; it remains 166's evidence, run by `spec-spine verify 166`.
