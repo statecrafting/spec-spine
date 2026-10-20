@@ -1,0 +1,43 @@
+{
+  "mapping": {
+    "amends": [
+      "166-deterministic-reference-documentation"
+    ],
+    "dependsOn": [
+      "166-deterministic-reference-documentation"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/reference.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/reference.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/166-deterministic-reference-documentation/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/166-deterministic-reference-documentation/spec.md"
+        }
+      }
+    ],
+    "specId": "197-reference-documentation-ships-without-a-manifest",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "6da08c0b8ef9a92f138af09d0ca67b39769fb92efd003d0e6d1c20187ed13210"
+}
