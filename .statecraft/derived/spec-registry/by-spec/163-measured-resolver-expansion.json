@@ -304,10 +304,10 @@
       "Verification"
     ],
     "specPath": "specs/163-measured-resolver-expansion/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Publishes a measured construct matrix for the Rust and TypeScript structural resolver and adds only the constructs whose identity and span are a pure function of the pinned grammars: items inside inline modules, Rust impl and trait members, macro_rules definitions, integration-test roots, TypeScript class methods and top-level variables, and a Rust test identity bound to its #[test] attribute, which lifts spec 155's test-selector reservation. Every other construct reports a closed unsupported or unknown reason instead of an absence. No identity that resolves today changes meaning; the index schema advances one MINOR, staged with the engine pin that first carries it, and dependency edges stay out of scope.\n",
     "title": "Expand structural resolution only where measurement proves it deterministic"
   },
-  "shardHash": "deb199fab5754502b6f9924ae9faf70416bf758ad6d13d50f159596bcf0de5ab",
+  "shardHash": "527c3a118a9bb02c60a15e1c0fb09cb15b2e19b35a4947f1a5e969a604f657dc",
   "specVersion": "1.10.0"
 }
