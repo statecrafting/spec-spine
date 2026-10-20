@@ -4,7 +4,7 @@ title: "Generate one deterministic reference page per spec"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -600,6 +600,13 @@ paths). A decision entry can record a choice the spec is silent on; it cannot
 narrow a stated criterion. Until the owner rules on D-22 and D-23, or a
 follow-up spec builds `--manifest` and the two acceptance instruments, this
 spec does not claim `implementation: complete`.
+
+**D-25 (2026-10-20, owner ruling via spec 197): D-24's condition is met.**
+The owner ruled on D-22 and D-23 on 2026-10-19, and spec 197 records the
+ruling as an amendment: 3.11 no longer binds this spec, and acceptance 2 and
+7 are restated in full there. With the CLI pull request (#486) on `main`,
+this spec claims `implementation: complete`. Ratification is a separate owner
+approval.
 
 ## Verification
 
