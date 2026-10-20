@@ -409,8 +409,8 @@
       }
     ],
     "specId": "167-read-only-tool-projection",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "bdcfd991b41141f3a092a36026c77a4e096e289631c526e6f65d602140e5ed4c"
+  "shardHash": "3418428dee00c1409833a02e66babd5dd4f6e0b9aead3b583867379df4cd75d9"
 }

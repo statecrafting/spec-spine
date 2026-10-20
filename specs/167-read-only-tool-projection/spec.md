@@ -1,7 +1,7 @@
 ---
 id: "167-read-only-tool-projection"
 title: "Project cataloged reads as read-only tools"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-10-10"
 implementation: complete
