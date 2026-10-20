@@ -315,10 +315,10 @@
       "Verification"
     ],
     "specPath": "specs/166-deterministic-reference-documentation/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
     "title": "Generate one deterministic reference page per spec"
   },
-  "shardHash": "ad1b4e714513dc7ae45705790eb8bd4b666de8690dd5154d9bcb2355cb3838c9",
+  "shardHash": "416ee11a114a0d9fcbea458db94188d2a1d849428417b34ecbe42dc9bed9e1cf",
   "specVersion": "1.10.0"
 }

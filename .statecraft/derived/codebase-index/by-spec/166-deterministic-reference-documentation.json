@@ -501,8 +501,8 @@
       }
     ],
     "specId": "166-deterministic-reference-documentation",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "21267621e8ad619bec0e859e539baf8fa99f2c2b692763bdd6f14e13d55666d5"
+  "shardHash": "80821c86f9b637a57c37c7716c529c4745b01311975a15326bb438c3769e6e30"
 }
