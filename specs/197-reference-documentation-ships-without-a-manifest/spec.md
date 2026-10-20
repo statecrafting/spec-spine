@@ -67,7 +67,7 @@ limits are as 166 states them.
 
 ### 3.2 Acceptance 2, restated
 
-166 acceptance 2 reads:
+This replaces 166 acceptance 2 in full. Acceptance 2 now reads:
 
 > Reordering frontmatter, obligations, edges, and catalog entries leaves page
 > bytes unchanged; LF and CRLF spec sources, and LF, CRLF and CR authored
@@ -81,7 +81,7 @@ workflow is not extended to the reference page tree.
 
 ### 3.3 Acceptance 7, restated
 
-166 acceptance 7 reads:
+This replaces 166 acceptance 7 in full. Acceptance 7 now reads:
 
 > Generation is a pure function of the reference inputs that
 > `gather_reference_inputs` alone reads from 3.8's paths; a test shows that an
@@ -105,7 +105,9 @@ approval.
    `status: retired` spec, hence the test's name
    `the_retired_fixture_page_matches_its_committed_bytes`) and the
    undeclared-input test pass on `main`.
-2. 166's own Verification block is unchanged and passes on `main`.
+
+Spec 166's own Verification block is not changed by this amendment and is
+not repeated here; it remains 166's evidence, run by `spec-spine verify 166`.
 
 ## 5. Out of scope
 
