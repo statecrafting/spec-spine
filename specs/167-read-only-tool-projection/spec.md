@@ -403,11 +403,12 @@ data, but their verbs rewrite the derived ledger (162 §3.15), and a projected
 tool is the verb. A host that needs freshness calls `check` or `compile.check`,
 which are projected.
 
-**D-4 (2026-10-10, draft, owner to confirm): a finding is an answer.** Exit 1
+**D-4 (2026-10-10, draft, owner confirmed 2026-10-19): a finding is an answer.** Exit 1
 means the verb judged and found something, such as a stale tree or a missing
 spec. Presenting it as a tool error would hide a correct answer behind an error
 flag, and models tend to retry errors. The alternative is to mark exit 1 as an
 error and carry the envelope.
+Owner ruling 2026-10-19: confirmed; exit 1 is an answer, not a tool error.
 
 **D-5 (2026-10-10): served as a flag of `capabilities`.** "Which tools can a
 host offer" is a projection of "which operations does this binary support",

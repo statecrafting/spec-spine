@@ -542,16 +542,18 @@ but not effects, outcomes or schemas.
 **D-2 (2026-09-27): effects describe the CLI; one invariant covers the
 facade.** Listing reads per facade function would restate it thirty times.
 
-**D-3 (2026-09-27, draft, owner to confirm): `schema: null` is recorded, not
+**D-3 (2026-09-27, draft, owner confirmed 2026-10-19): `schema: null` is recorded, not
 filled.** Writing JSON Schemas for every read document is a separate and
 larger unit. The catalog makes the gap visible per operation. Owner to
 confirm whether a follow-up spec should close it before a read-only
 projection ships.
+Owner ruling 2026-10-19: confirmed. No follow-up was required before the projection; JSON Schemas for the read documents stay backlog.
 
-**D-4 (2026-09-27, draft, owner to confirm): `since` is null for operations
+**D-4 (2026-09-27, draft, owner confirmed 2026-10-19): `since` is null for operations
 that predate the catalog.** Reconstructing first-release versions from
 history is costly and unverifiable by test. Owner to confirm, or supply the
 versions from the release notes.
+Owner ruling 2026-10-19: confirmed; `since` stays null for operations that predate the catalog.
 
 **D-5 (2026-10-10, refile; replaces the 2026-09-27 draft's "the version pin
 applies to `capabilities`"): the capabilities operations are answered before
@@ -636,10 +638,11 @@ axis. Rather than leave such an answer out, the response names `unversioned`
 with an empty version, and an operation may list more than one `when: null`
 entry, sorted by axis.
 
-**D-15 (2026-10-10, build, owner to confirm): `capabilities.verify` is
+**D-15 (2026-10-10, build, owner confirmed 2026-10-19): `capabilities.verify` is
 `since: 0.30.0`.** It is the one operation this spec adds, and 0.30.0 is the
 release after the 0.29.0 that `main` pins. If the next release is cut at
 another version, the release that ships it corrects the record.
+Owner ruling 2026-10-19: confirmed; v0.30.0 carries `capabilities.verify`.
 
 **D-16 (2026-10-10, build): the inventory as built.** `coverage_inventory_json`
 is "the facade half of `index coverage --paths-from`", so it binds to

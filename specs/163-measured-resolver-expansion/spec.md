@@ -459,23 +459,27 @@ tests) keeps passing, so no `amends_verification` is needed.
 a location to an existing id would change a committed shard for a unit that
 resolves today. That violates I-1 and would make the bump MAJOR.
 
-**D-3 (2026-09-27, draft, owner to confirm): trait-impl ids keep trait
+**D-3 (2026-09-27, draft, owner confirmed 2026-10-19): trait-impl ids keep trait
 generic arguments and drop self-type arguments.** `From<u8>`/`From<u16>`
 impls routinely differ only by trait argument, and inherent impls rarely differ
 by self-type argument. The alternative, both kept verbatim, forces authors to
 write `Generic<T>::m`.
+Owner ruling 2026-10-19: confirmed.
 
-**D-4 (2026-09-27, draft, owner to confirm): bare `#[test]` only.**
+**D-4 (2026-09-27, draft, owner confirmed 2026-10-19): bare `#[test]` only.**
 `#[tokio::test]` is common, but recognizing it by the last path segment would
 guess at a macro's meaning. A later spec may add a closed, named list.
+Owner ruling 2026-10-19: confirmed.
 
-**D-5 (2026-09-27, draft, owner to confirm): `.tsx` keeps the TypeScript
+**D-5 (2026-09-27, draft, owner confirmed 2026-10-19): `.tsx` keeps the TypeScript
 grammar.** Switching to the TSX grammar could move legacy spans (I-1). New
 constructs in `.tsx` stay `unsupported` until a MAJOR decides it.
+Owner ruling 2026-10-19: confirmed.
 
-**D-6 (2026-09-27, draft, owner to confirm): blank lines still end a doc
+**D-6 (2026-09-27, draft, owner confirmed 2026-10-19): blank lines still end a doc
 run.** rustdoc attaches across them. Changing it now would alter results that
 155 returns today, so it is left to a 155 amendment if wanted.
+Owner ruling 2026-10-19: confirmed.
 
 **D-7 (2026-09-27): determinism by golden, not by corpus.** Declaring symbol
 units in this repository's own specs to exercise the workflow would couple
