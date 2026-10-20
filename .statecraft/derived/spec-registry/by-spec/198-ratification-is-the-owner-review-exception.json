@@ -66,13 +66,13 @@
       "Verification"
     ],
     "specPath": "specs/198-ratification-is-the-owner-review-exception/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Supersedes spec 168. Ratification stays a separate pull request that flips `status: draft` to `approved`, and the owner's approval of that pull request is the review-exception environment approval that Statecraft's managed CI already requires for every ratification (profile revision 12). No `ratification` environment and no dispatch workflow are built.\n",
     "supersedes": [
       "168-ratification-has-two-paths"
     ],
     "title": "The owner ratifies a spec by approving the review exception on its pull request"
   },
-  "shardHash": "3e61cf79b8e250ebab4ad8d01b9c2320c19a3c950cdcca9eee4edb377c5e2f65",
+  "shardHash": "4094bf81f446eedec4c767fe16c8d08f749f573dbe6d4556caa2524de35e6556",
   "specVersion": "1.10.0"
 }

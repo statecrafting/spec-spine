@@ -1,7 +1,7 @@
 ---
 id: "198-ratification-is-the-owner-review-exception"
 title: "The owner ratifies a spec by approving the review exception on its pull request"
-status: draft
+status: approved
 kind: "process"
 created: "2026-10-19"
 implementation: complete
