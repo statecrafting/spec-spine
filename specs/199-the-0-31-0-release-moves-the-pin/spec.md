@@ -108,9 +108,9 @@ block asserts the index constant and is not repeated here.
 
 ## Decisions
 
-**D-1 (2026-10-20).** The owner asked for the 0.31.0 release on 2026-10-20
-as the step after spec 197 and the spec 166 completion, carrying spec 163's
-index restamp.
+**D-1 (2026-10-20).** The owner approved the 0.31.0 release on 2026-10-20,
+tagged at this change's head once its pull request is open, carrying spec
+163's index restamp.
 
 ## Verification
 
