@@ -181,7 +181,7 @@
       }
     ],
     "id": "166-deterministic-reference-documentation",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "intent": {
       "goal": "publish a fixed, byte-reproducible reference of what each spec declares, owns, and relates to",
       "nonGoals": [
@@ -268,7 +268,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "7a34dda8679b8e15d3cd6906f80727196243450318ba6614971f651beaa114d2",
-      "166-generate-one-deterministic-reference-page-per-spec": "4793f8280ecc3607c259916ea541afda66afb92a71bf284ec3403abde03dfe4c",
+      "166-generate-one-deterministic-reference-page-per-spec": "b3458b6a6aaed577028e88395026d2d8d63af37c037fe5a4ea35126d3721c76e",
       "2-territory": "2643be50fa8c3558d8bd59e0ceb16ab5b8057c1df270f9c875fc72975da3b1c8",
       "3-1-one-export-one-page-kind": "50c7deb50a24d7818f51e88f81fd6da80330513e9d9cd56e2bc76a72c12d4f29",
       "3-10-the-regeneration-check": "63dce924aa14fa05a4c919501ee2e6eb4a2d497fe0a8a7d1f3fe2d4cebec0ac0",
@@ -287,7 +287,7 @@
       "3-behavior": "2ad4d919ec3c552a57bbcc6f931ea14d9353e2bc0a2a20e45aa6d30bd56d3a0d",
       "4-acceptance-criteria": "7cf8cbe1c59e2f24eccb803d524d22edd4d3b7c42e17002fc10590076e51de7e",
       "5-out-of-scope": "f53261f7dc5897c0ece8da7f55a06b657ef100d10be5a460777d23fdfe1efcde",
-      "6-resolved-decisions": "eabf048f6435fb54fab8f6c5b64195891ca597e8df3f23beadf29a695fb66110",
+      "6-resolved-decisions": "cc950ed9da706788ef88d676781e65e81edc8cd1a31f872030a940711ef085f9",
       "verification": "777d3f3df29b18e259c9ca02ae8c684fe455309762c13c58018e16cac3ffc538"
     },
     "sectionHeadings": [
@@ -319,6 +319,6 @@
     "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
     "title": "Generate one deterministic reference page per spec"
   },
-  "shardHash": "a0d608110f2e4f5e4e2289a222d27c705bcafd5546e2903563f51a672663d88b",
+  "shardHash": "ad1b4e714513dc7ae45705790eb8bd4b666de8690dd5154d9bcb2355cb3838c9",
   "specVersion": "1.10.0"
 }
