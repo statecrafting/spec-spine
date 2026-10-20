@@ -1,0 +1,66 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/statecraft-ci.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ci.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/statecraft/ci-gate.sh"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/statecraft/ci-gate.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/168-ratification-has-two-paths/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/168-ratification-has-two-paths/spec.md"
+        }
+      }
+    ],
+    "specId": "198-ratification-is-the-owner-review-exception",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "3e61cf79b8e250ebab4ad8d01b9c2320c19a3c950cdcca9eee4edb377c5e2f65"
+}
