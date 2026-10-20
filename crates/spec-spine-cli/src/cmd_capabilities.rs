@@ -25,8 +25,9 @@ use spec_spine_types::{
     CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
     CONTEXT_PACKET_DELTA_SCHEMA_VERSION, CONTEXT_PACKET_SCHEMA_VERSION, Capabilities,
     CapabilityVerifyRequest, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
-    EDIT_PLAN_SCHEMA_VERSION, Error, Operation, READ_SCHEMA_VERSION, SchemaAxis,
-    TRACEABILITY_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, VerbCapability, Verdict, verdict::verb,
+    EDIT_PLAN_SCHEMA_VERSION, Error, Operation, READ_SCHEMA_VERSION, REFERENCE_PAGE_SCHEMA_VERSION,
+    SchemaAxis, TRACEABILITY_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, VerbCapability, Verdict,
+    verdict::verb,
 };
 
 #[derive(Subcommand)]
@@ -325,6 +326,11 @@ pub fn json_axes(path: &str) -> Vec<SchemaAxis> {
         )],
         "context apply" => vec![axis("context-packet", CONTEXT_PACKET_SCHEMA_VERSION)],
         "edit-plan" => vec![axis("edit-plan", EDIT_PLAN_SCHEMA_VERSION)],
+        // Spec 166: the model and check documents, and the pages generate
+        // writes, are on the reference-page axis.
+        "reference generate" | "reference check" | "reference model" => {
+            vec![axis("reference-page", REFERENCE_PAGE_SCHEMA_VERSION)]
+        }
         "documentation manifest validate" | "documentation manifest freshness" => vec![axis(
             "documentation-manifest",
             DOCUMENTATION_MANIFEST_SCHEMA_VERSION,

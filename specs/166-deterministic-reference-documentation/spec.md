@@ -26,10 +26,10 @@ establishes:
   - { kind: file, path: "crates/spec-spine-core/tests/reference.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/reference_schema.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/reference/" }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_reference.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/reference.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/reference_examples.rs", planned: true }
-  - { kind: file, path: "docs/reference-documentation.md", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_reference.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/reference.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/reference_examples.rs" }
+  - { kind: section, file: "docs/reference-documentation.md", anchor: "reference-documentation" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -40,6 +40,12 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
   - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
   - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "034-machine-readable-verdicts", unit: { kind: file, path: "crates/spec-spine-types/src/verdict.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }, nature: additive }
+  - { spec: "152-a-refusal-says-what-it-is-in-every-form", unit: { kind: file, path: "crates/spec-spine-cli/tests/refusal_envelopes.rs" }, nature: additive }
   - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-core/src/content.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap unit DG-01 and the documentation product boundary (13.5)" }
@@ -554,7 +560,25 @@ omission. Signatures are therefore resolved without the committed-index
 guard, which refuses on any unresolved claim in the corpus, once generation
 has made the byte-exact comparison itself.
 
-**D-23 (2026-10-15, build): what acceptance 2 and 7 can show, and how.**
+**D-21 (2026-10-15, build): exit codes 3.12 does not list.** A limit excess
+is a refusal (exit 2) naming the limit and the spec, like the other
+refusals that leave the tree as it was. A request naming an unsupported
+schema version, a short id, a non-normalized `outputDir`, or a limit above
+its default is a usage error (exit 3); an `outputDir` inside the derived or
+state directory, or crossing a symbolic link, is a containment refusal
+(exit 2). `reference generate --json` lists the written, unchanged and
+removed paths on success; `reference check --json` writes the check document on success and
+the envelope with the check as its report on a finding.
+
+**D-22 (2026-10-15, build, owner to confirm): `--manifest` is deferred.**
+3.11 binds a spec 160 manifest to a generation. A manifest's inputs must be
+members of one spec 159 packet, and no packet request yet expresses "every
+page's sources" (a closure names one root). Acceptance names no manifest
+criterion. This build ships generate, check and model without `--manifest`,
+which a follow-up spec adds once the packet request can carry the page
+sources.
+
+**D-23 (2026-10-15, build): what acceptance 2, 7 and 8 can show, and how.**
 A CR-only `spec.md` does not parse as a spec (its frontmatter fence is not
 found), so acceptance 2's CR fixture is the authored notes region; spec
 sources are compared across LF and CRLF. The determinism workflow is not
@@ -564,7 +588,18 @@ by the core tests, which CI runs on every release triple, including Windows.
 Acceptance 7's path-recording harness is approximated: generation is a pure
 function of a `ReferenceInputs` that `gather_reference_inputs` alone reads,
 and a test shows an undeclared file, a `.git` directory and a nested page
-change nothing.
+change nothing. Acceptance 8 is the `reference_examples` test: it renders the
+fixture catalog's examples through `reference model` and runs each against the
+built binary in a fresh fixture corpus; no reference verb spawns a process.
+
+**D-24 (2026-10-16, review): the spec stays `in-progress`.** D-22 defers a
+normative clause (3.11, `--manifest`), and D-23 records approximations of
+acceptance 2 (the determinism workflow is not extended to the fixture tree)
+and acceptance 7 (no harness denies environment reads or records opened
+paths). A decision entry can record a choice the spec is silent on; it cannot
+narrow a stated criterion. Until the owner rules on D-22 and D-23, or a
+follow-up spec builds `--manifest` and the two acceptance instruments, this
+spec does not claim `implementation: complete`.
 
 ## Verification
 

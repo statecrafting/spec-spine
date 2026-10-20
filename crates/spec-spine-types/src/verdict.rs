@@ -79,6 +79,15 @@ pub mod verb {
     /// `spec-spine edit-plan` (spec 165). A ready plan is the bare document;
     /// a refused plan is a finding whose envelope reports it.
     pub const EDIT_PLAN: &str = "edit-plan";
+    /// `spec-spine reference generate` (spec 166). Under `--json` its success
+    /// lists the written and removed paths; a refusal is an envelope.
+    pub const REFERENCE_GENERATE: &str = "reference.generate";
+    /// `spec-spine reference check` (spec 166). Any finding exits 1, and the
+    /// envelope reports the check.
+    pub const REFERENCE_CHECK: &str = "reference.check";
+    /// `spec-spine reference model` (spec 166). Its success is the bare model
+    /// document.
+    pub const REFERENCE_MODEL: &str = "reference.model";
     /// `spec-spine documentation manifest validate` (spec 160). Its success is
     /// the bare canonical manifest; a mismatch is a refusal.
     pub const DOCUMENTATION_MANIFEST_VALIDATE: &str = "documentation.manifest.validate";

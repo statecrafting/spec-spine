@@ -906,6 +906,67 @@ fn operations() -> Vec<Operation> {
         ])
         .done(),
         op(
+            "reference.generate",
+            "Write one reference page per exported spec under the request's outputDir",
+            &["166-deterministic-reference-documentation"],
+        )
+        .experimental()
+        .cli("reference generate", "read-document", &["--request=FILE!", "--json"])
+        .reads(&["caller-file", "config", "corpus", "derived-ledger", "source-tree"])
+        .writes(&["caller-path"])
+        .finding(&["not-found", "stale"])
+        .request_document()
+        .response(None, "unversioned", "written-paths", None)
+        .verdict()
+        .facade("reference_pages_json", None, true)
+        .pinned_example(&["reference", "generate", "--request", "reference-request.json"])
+        .done(),
+        op(
+            "reference.check",
+            "Regenerate in memory and compare with the committed pages; never writes",
+            &["166-deterministic-reference-documentation"],
+        )
+        .experimental()
+        .cli("reference check", "read-document", &["--request=FILE!", "--json"])
+        .reads(&["caller-file", "config", "corpus", "derived-ledger", "source-tree"])
+        .finding(&["not-found", "stale", "validation"])
+        .request_document()
+        .response(
+            None,
+            "reference-page",
+            "reference-check",
+            schema_id("reference-page.schema.json"),
+        )
+        .verdict()
+        .facade("reference_check_json", None, true)
+        .pinned_example(&["reference", "check", "--request", "reference-request.json"])
+        .done(),
+        op(
+            "reference.model",
+            "Emit every page model the export would project, as one document",
+            &["166-deterministic-reference-documentation"],
+        )
+        .experimental()
+        .cli("reference model", "read-document", &["--request=FILE!", "--json!"])
+        .reads(&["caller-file", "config", "corpus", "derived-ledger", "source-tree"])
+        .finding(&["not-found", "stale"])
+        .request_document()
+        .response(
+            None,
+            "reference-page",
+            "reference-model",
+            schema_id("reference-page.schema.json"),
+        )
+        .verdict()
+        .pinned_example(&[
+            "reference",
+            "model",
+            "--request",
+            "reference-request.json",
+            "--json",
+        ])
+        .done(),
+        op(
             "documentation.manifest.validate",
             "Validate a documentation manifest against the snapshot it records: its packet pages, inputs, outputs and regions",
             &["160-documentation-manifest-and-freshness"],

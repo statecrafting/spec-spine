@@ -250,6 +250,28 @@ result. `--export` supplies a corpus an interface input cites, and
 digests or regions and limit excesses exit `3`; a dirty or moving snapshot,
 a mismatched packet, input or output, and a path escape exit `2`. Nothing either verb names is run or fetched.
 
+## reference
+
+```text
+spec-spine reference generate --request <FILE> [--json]
+spec-spine reference check --request <FILE> [--json]
+spec-spine reference model --request <FILE> --json
+```
+
+Generate, check or model one deterministic reference page per exported spec
+(spec 166; see `docs/reference-documentation.md`). The ledger must be fresh.
+`generate` writes `<outputDir>/<spec-id>.md` pages, keeps each page's
+authored `notes` region, and removes orphaned pages whose notes are empty. A
+stale ledger or an unknown spec exits `1`; a containment failure, an orphan
+with notes, a malformed committed page or a limit excess exits `2`, with
+nothing written. `generate --json` lists the `written`, `unchanged` and
+`removed` paths; a page already current is left untouched.
+
+`check` never writes and exits `1` on any `page-missing`,
+`page-changed`, `page-orphaned`, `page-malformed` or `ledger-stale` finding.
+`model --json` writes every page model as one document. A malformed request
+exits `3`. No verb runs an example.
+
 ## registry
 
 Read-only queries over the compiled registry. Every subcommand takes `--json`.

@@ -279,6 +279,24 @@ malformed request is `Usage`, and a scope whose subject does not resolve is
 `edit_plan_json(config_json, repo_root, request_json, snapshot_json)` is the
 JSON facade. The library has no apply function. See `docs/edit-plans.md`.
 
+### Reference pages
+
+`reference_generate(&Config, repo_root, &ReferenceRequest)` (spec 166)
+returns a `ReferenceExport`: the page models, each page's path and bytes, and
+the empty orphans to remove. It writes nothing. `reference_check` regenerates
+in memory and returns a `ReferenceCheck` of findings, and `reference_model`
+returns every `ReferencePage` model. `gather_reference_inputs` performs every
+read an export makes; `reference_export` and `reference_check_with` are pure
+over the gathered `ReferenceInputs`, and `render_reference_page` projects one
+model to its Markdown bytes. A stale ledger is `Stale` for generate and model
+and a `ledger-stale` finding for check. An unknown spec is `NotFound`. A
+malformed request is `Usage`. A containment failure, an orphan with notes, a
+malformed committed page and a limit excess are `Refused`. The facades
+`reference_pages_json(config_json, repo_root, request_json)` and
+`reference_check_json(config_json, repo_root, request_json)` return the pages
+as data and the canonical check document. See
+`docs/reference-documentation.md`.
+
 ### Documentation manifests
 
 `parse_documentation_manifest(text)` reads a manifest (spec 160), checking the
