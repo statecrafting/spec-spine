@@ -1,0 +1,66 @@
+{
+  "record": {
+    "amends": [
+      "166-deterministic-reference-documentation"
+    ],
+    "created": "2026-10-19",
+    "dependsOn": [
+      "166-deterministic-reference-documentation"
+    ],
+    "id": "197-reference-documentation-ships-without-a-manifest",
+    "implementation": "complete",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the amended spec; D-22, D-23 and D-24 are the decisions ruled on",
+        "unit": {
+          "kind": "file",
+          "path": "specs/166-deterministic-reference-documentation/spec.md"
+        }
+      },
+      {
+        "role": "the tests that carry the restated acceptance 2 and 7",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/reference.rs"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "7b987abe321ece9069edc24c9e886124a770d14e8ec2f373d5baa248e1dc5705",
+      "197-reference-documentation-ships-without-a-manifest-on-the-evidence-it-has": "15fed4dac140b8b4bed55ec7f59948ed56aca49721caef6d7f131d4a87078654",
+      "2-territory": "78baafc4041fa978856516e874277fefcc11a729a007907f3a5a04055d17bef6",
+      "3-1-section-3-11-leaves-spec-166": "d5db9eb8e76a8488badd03f8e69d5222bb4676593b03c277647782ea54042d83",
+      "3-2-acceptance-2-restated": "05449768e7dfa32741fc3b9207afaaae0286680d06afbd860a68b569e26d02a9",
+      "3-3-acceptance-7-restated": "c510ff3851f6abeff4ae8a4a95757398585660d655225324c92422aba9fe56a2",
+      "3-4-spec-166-s-status": "283ae09cf32c293809f6328c3c273e125341069176a465dd089ad92f2334b2e2",
+      "3-behavior": "770960e93efde5604664d12080c762ef9f8b0ed02904099ca46e69806ee079c7",
+      "4-acceptance-criteria": "b1b58018aa6333a0a706b91661a58836767ba82d02095204b387e00cb7756905",
+      "5-out-of-scope": "21aafff450dffe0b1314dfa3f2a36ae864e5f48edef6d5c49bd9fb1ba28be667",
+      "6-resolved-decisions": "48239ef47c5565563b8a6344b0946d37c672253de8974a6bac5782c26576cd46",
+      "verification": "f5d6e1af31d7ac87f9c9b0e0c347cecaf06036ed5984dd93444f7e3c84ff1f01"
+    },
+    "sectionHeadings": [
+      "197: Reference documentation ships without a manifest, on the evidence it has",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Section 3.11 leaves spec 166",
+      "3.2 Acceptance 2, restated",
+      "3.3 Acceptance 7, restated",
+      "3.4 Spec 166's status",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/197-reference-documentation-ships-without-a-manifest/spec.md",
+    "status": "draft",
+    "summary": "Records the owner's 2026-10-19 rulings on spec 166 D-22 and D-23. Section 3.11 (`reference generate --manifest`) leaves 166 for a later spec, because no spec 159 packet request can yet name every page's sources. Acceptance 2's cross-platform clause and acceptance 7's harness clause are restated as the evidence the build actually provides. With both recorded, 166 D-24's condition is met.\n",
+    "title": "Reference documentation ships without a manifest, on the evidence it has"
+  },
+  "shardHash": "5f094c6d205e3a511b6db974dc91c28f9ea047bd21cbc213b33c092df3c1d37f",
+  "specVersion": "1.10.0"
+}
