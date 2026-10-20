@@ -1,6 +1,6 @@
 ---
 id: "198-ratification-is-the-owner-review-exception"
-title: "Ratification is a ratify pull request the owner approves through the review exception"
+title: "The owner ratifies a spec by approving the review exception on its pull request"
 status: draft
 kind: "process"
 created: "2026-10-19"
@@ -24,7 +24,7 @@ references:
   - { unit: { kind: file, path: "AGENTS.md" }, role: "Working the backlog, step 6: ship, then ratify" }
 ---
 
-# 198: Ratification is a ratify pull request the owner approves through the review exception
+# 198: The owner ratifies a spec by approving the review exception on its pull request
 
 ## 1. Purpose
 

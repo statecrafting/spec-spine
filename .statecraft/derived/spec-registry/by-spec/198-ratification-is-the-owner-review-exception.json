@@ -41,7 +41,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "098f45e61155ddc0e1d57de073e0782cec2a41b7aff7eb8dc4b5c3bd8d22a4fa",
-      "198-ratification-is-a-ratify-pull-request-the-owner-approves-through-the-review-exception": "e77c0617ec607862e4b83f209ec1934b03926c7a4cef66d4fd06fd819b8dd69e",
+      "198-the-owner-ratifies-a-spec-by-approving-the-review-exception-on-its-pull-request": "0068678960c185156b4a422bb7f3bcf769ee5ebe05d5265719eef684a7873c98",
       "2-territory": "4b3561040757bb466c0f1b2833e8285abb4f896dd9c453f0b9b3b27d893be917",
       "3-1-the-procedure": "58f365cd4de30369d17c0630c638ec4965ae285226d742f82d994dc331e8acc1",
       "3-2-the-approval": "698ae6983ada91f2f7af6cd38ed6682252f31ffa96bfbac44b168493e5414290",
@@ -53,7 +53,7 @@
       "verification": "a5bcab6d71c5d84f50f34b4f23c3eaf5bb77ad3a825e446019abea8505a89281"
     },
     "sectionHeadings": [
-      "198: Ratification is a ratify pull request the owner approves through the review exception",
+      "198: The owner ratifies a spec by approving the review exception on its pull request",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -71,8 +71,8 @@
     "supersedes": [
       "168-ratification-has-two-paths"
     ],
-    "title": "Ratification is a ratify pull request the owner approves through the review exception"
+    "title": "The owner ratifies a spec by approving the review exception on its pull request"
   },
-  "shardHash": "2fc3bc674a0c35ed1dd6adb40a3c3fd4271e7e01a9d0da97682a7a51524c338a",
+  "shardHash": "3e61cf79b8e250ebab4ad8d01b9c2320c19a3c950cdcca9eee4edb377c5e2f65",
   "specVersion": "1.10.0"
 }
