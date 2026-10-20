@@ -394,6 +394,6 @@
     "specId": "106-obligations-are-declared-constraints",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "8d3473fef30d4f59570d5090f2758cc5dae552396030edb2c39d3c5fe91bbc0a"
 }

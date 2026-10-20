@@ -615,6 +615,6 @@
     "specId": "164-incremental-context-packets",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "d1db61fc7a92cf030a381986e9d6744f86468bf1d251e566b3181e0dba7f17e8"
 }

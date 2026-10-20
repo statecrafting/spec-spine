@@ -84,6 +84,6 @@
     "specId": "168-ratification-has-two-paths",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "260b63d54a3306d6b094fd470270b9a719060cbe39d60bb298150f5dbd3baf86"
 }

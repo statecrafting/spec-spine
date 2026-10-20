@@ -114,6 +114,6 @@
     "specId": "093-the-harness-this-repository-runs",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "86745640de6984b36a7be968ff14f77b117a9cc14fca1fae4fb29b9b9181cef3"
 }

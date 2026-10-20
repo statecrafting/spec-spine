@@ -113,6 +113,9 @@ gated off does (153 D-6).
 > Since 2026-10-10, `195-the-0-30-0-release-moves-the-pin` holds 193's block in turn, so this plan runs
 > from that spec's block (spec 195 3.3).
 
+> Since 2026-10-20, `199-the-0-31-0-release-moves-the-pin` holds 195's block in turn, so this plan runs
+> from that spec's block (spec 199 3.4).
+
 ```verify:cli
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.

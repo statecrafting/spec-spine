@@ -65,6 +65,6 @@
     "specId": "002-registry-query",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "8b3fa13aea9759890d821795f6004dd23f8eac1b569a35981167160bb08358d1"
 }

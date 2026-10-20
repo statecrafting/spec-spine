@@ -171,6 +171,6 @@
     "specId": "068-a-verifier-checks-the-bytes-it-was-given",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "540bdb44cd67a65bf941040a86237110bfa09615a81d7c583d9fa7de1a631be5"
 }

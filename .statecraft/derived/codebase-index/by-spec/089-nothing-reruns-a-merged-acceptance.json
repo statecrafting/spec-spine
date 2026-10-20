@@ -89,6 +89,6 @@
     "specId": "089-nothing-reruns-a-merged-acceptance",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "d3ba90c93c02f4f3f3d51b2b77a1bd0616719c04884e5271ccf2c1826518656b"
 }

@@ -11,7 +11,7 @@
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
 | registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.10.0` | library |
-| index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`, `inputs.json`) | `schemaVersion` | `1.2.0` | library |
+| index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`, `inputs.json`) | `schemaVersion` | `1.3.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
@@ -129,6 +129,13 @@ MINOR history:
   and `relocations`, one entry per declared relocation the change touches with
   `proven` and a `reason` when not. A consumer that treats the class set as
   closed must add `relocation`.
+- index `1.3.0` (spec 163): semantics-only, like `1.1.0`. The document shape
+  is unchanged; the version records the resolver matrix that produced the
+  bytes. Every index file restamps `schemaVersion` once; a unit that newly
+  resolves gains locations, loses its warning and adds its backing file to
+  its shard's `shardHash` inputs; a unit newly classified `unsupported` or
+  `unknown` changes only its message. It moved with the 0.31.0 pin (spec 163
+  D-9, spec 199), so a 0.30.0 reader reports a 1.3.0 tree stale.
 
 MAJOR history:
 

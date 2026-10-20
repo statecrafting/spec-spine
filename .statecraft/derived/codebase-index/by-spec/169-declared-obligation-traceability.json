@@ -638,6 +638,6 @@
     "specId": "169-declared-obligation-traceability",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "e4ed2ce6207e01a34f26d561b73097df67fa21d9cb9974b96c933b36750be4a9"
 }

@@ -312,6 +312,9 @@ the floor is `>=0.17.0`, and the script does not exist.
 > Since 2026-10-10, `195-the-0-30-0-release-moves-the-pin` holds 193's block in turn, so this plan runs
 > from that spec's block (spec 195 3.3).
 
+> Since 2026-10-20, `199-the-0-31-0-release-moves-the-pin` holds 195's block in turn, so this plan runs
+> from that spec's block (spec 199 3.4).
+
 ```verify:cli
 cargo build --release --locked
 # 3.1: one version in all three manifests, and the build answers it.

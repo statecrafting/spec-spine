@@ -348,6 +348,6 @@
     "specId": "155-selected-content-accessor",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "6970687264536c3fb8963fda9122011d7653b98b0f7df0053d36be93411730ad"
 }

@@ -110,6 +110,11 @@ the four spec 193 3.3 named and the `pins.spec_spine` literal spec 193 added.
 
 ## Verification
 
+> **Superseded acceptance (2026-10-20).** This block no longer runs.
+> `199-the-0-31-0-release-moves-the-pin` declares this spec in `amends_verification` and carries the
+> complete block with the package version and the exact pin at 0.31.0
+> (spec 199 3.4). The commands below remain unchanged.
+
 ```verify:cli
 # ---- carried for 193-the-0-29-0-release-moves-the-pin (amends_verification), and through it 191, 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.30.0 together (195 3.1) ----
 # ---- carried for 191-profile-13-keeps-the-engine-local (amends_verification), and through it 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.29.0 together (193 3.1) ----

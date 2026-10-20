@@ -1,0 +1,92 @@
+{
+  "record": {
+    "amends": [
+      "195-the-0-30-0-release-moves-the-pin"
+    ],
+    "amendsVerification": [
+      "195-the-0-30-0-release-moves-the-pin"
+    ],
+    "created": "2026-10-20",
+    "dependsOn": [
+      "124-the-expansion-line-carries-its-own-version",
+      "156-statecraft-profile-10-governs-this-repository",
+      "163-measured-resolver-expansion",
+      "195-the-0-30-0-release-moves-the-pin"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": "npm/package.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "007-python-distribution",
+        "unit": {
+          "kind": "directory",
+          "path": "py/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "061-shipped-is-not-the-same-as-working",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/environment.json"
+        }
+      }
+    ],
+    "id": "199-the-0-31-0-release-moves-the-pin",
+    "implementation": "in-progress",
+    "kind": "tooling",
+    "sectionDigests": {
+      "1-purpose": "2caa8e261006e929df376bbba999e4e34910af1110a8b4eb5416c5b1fab6e37f",
+      "199-the-0-31-0-release-moves-the-package-version-the-pin-and-the-index-schema-together": "b65404f81c54d21d4e9cf11b1a59ffe993755dc9f4b9017f49ff16a412513ba4",
+      "2-territory": "abce161e4dd86be650d27f8ecf001f23f5a49fb491357892aa460a13877c1075",
+      "3-1-one-version-one-pin": "559a80302ff561d9fe21009c8ed725663f14fb0f5e04b50bca955fd137b87c79",
+      "3-2-the-release-precedes-the-merge": "b7592f011f6ac8af594ddb2eddd6599b4cd75b461770f87546d4e90852144f0e",
+      "3-3-the-index-schema-restamp": "807327e6612cfaf3d69d6ad41289db51d45999f99581d89ea01144864e4e05f5",
+      "3-4-acceptance": "d736def3c24bb445c200b09e4bc983103290963d700c04b16b28ecb8944b3d5b",
+      "3-behavior": "3a27c612cf006101014a451c62df85c5914406a66644a3672139231e7c568032",
+      "decisions": "4f232245ef20b93cb210f75ca1d483da983e17135286019f3a3875dbdf69c25e",
+      "verification": "b46a1023e71ebe8cdfce3d3a13d19ec9975469f8816d2095c83286f3efa84b78"
+    },
+    "sectionHeadings": [
+      "199: The 0.31.0 release moves the package version, the pin and the index schema together",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One version, one pin",
+      "3.2 The release precedes the merge",
+      "3.3 The index schema restamp",
+      "3.4 Acceptance",
+      "Decisions",
+      "Verification"
+    ],
+    "specPath": "specs/199-the-0-31-0-release-moves-the-pin/spec.md",
+    "status": "draft",
+    "summary": "`main` moves from 0.30.0 to 0.31.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. Spec 163's index schema restamp to 1.3.0 rides the same change (163 D-9). As for 0.30.0 (spec 195 3.2), the release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
+    "title": "The 0.31.0 release moves the package version, the pin and the index schema together"
+  },
+  "shardHash": "d81a7acff38ff0754b32bdca7cc3f0fae8d035b2ab859122d9102dd6c6ea46fd",
+  "specVersion": "1.10.0"
+}

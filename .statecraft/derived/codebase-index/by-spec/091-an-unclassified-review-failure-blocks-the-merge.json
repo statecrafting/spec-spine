@@ -53,6 +53,6 @@
     "specId": "091-an-unclassified-review-failure-blocks-the-merge",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
-  "shardHash": "6859fa75cd14480933331779ebc3f6f29e79bc19271da082b8047658a36334a1"
+  "schemaVersion": "1.3.0",
+  "shardHash": "f872fd78a49a7b88fdd457b2a1b4fed751437a99ddd45e1d3a115567cee3424f"
 }

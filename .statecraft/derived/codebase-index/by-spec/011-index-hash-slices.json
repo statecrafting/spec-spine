@@ -163,6 +163,6 @@
     "specId": "011-index-hash-slices",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "cead36b8966c84115ca343c93d6711504f2437866ab91c751f9528e88a2e3fa1"
 }

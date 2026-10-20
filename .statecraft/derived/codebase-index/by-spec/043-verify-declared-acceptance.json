@@ -224,6 +224,6 @@
     "specId": "043-verify-declared-acceptance",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "d0b7f941aae19138d093ba4d258c3b7adb834d57dac3775df93d1a3339ae44e3"
 }

@@ -23,6 +23,6 @@
     "specId": "153-a-test-count-is-exact",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "37b2165b5e29283657ecbc75d643b72feef552886f2497717d3052ec32248dcf"
 }

@@ -322,6 +322,6 @@
     "specId": "063-planned-territory-is-declared-not-inferred",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "12149b11eb89f226a2835a3e44cde88d4346502f990e40728cf954d6bf5e6446"
 }

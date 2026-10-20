@@ -88,6 +88,6 @@
     "specId": "081-coupling-sees-the-change-being-committed",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "abd03fb520a8c15d8129994818e29e498367b803eeb44ef214f1aef8cfdb5bc6"
 }

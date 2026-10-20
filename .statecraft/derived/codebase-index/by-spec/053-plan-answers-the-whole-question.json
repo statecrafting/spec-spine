@@ -123,6 +123,6 @@
     "specId": "053-plan-answers-the-whole-question",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "4db0b1220887007002c094d8ad4fe470e61891ee6d5eaa9ed9de206a27c05bb4"
 }

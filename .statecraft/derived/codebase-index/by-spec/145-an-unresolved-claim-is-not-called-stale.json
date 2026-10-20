@@ -150,6 +150,6 @@
     "specId": "145-an-unresolved-claim-is-not-called-stale",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "43494f6662366373ba132aa981fed32964d7603b1a06dcd17d52f8b3209e38fb"
 }

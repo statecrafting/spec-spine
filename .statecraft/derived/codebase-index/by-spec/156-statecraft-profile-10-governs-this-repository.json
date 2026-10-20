@@ -430,6 +430,6 @@
     "specId": "156-statecraft-profile-10-governs-this-repository",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
-  "shardHash": "f43bbcfa95692aa4f8dc11312f33aae6695a55bd80cea142ba31a4359dc8a409"
+  "schemaVersion": "1.3.0",
+  "shardHash": "e86631495642f71de8186f20a9d92ed54606a759189109f0923785d410fa0a1f"
 }

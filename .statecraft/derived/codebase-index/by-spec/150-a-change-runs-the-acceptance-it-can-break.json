@@ -93,6 +93,6 @@
     "specId": "150-a-change-runs-the-acceptance-it-can-break",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "a9c311695efbe3d4f4df6a416f86381127dddd6ffbf39fea1afb1cc27be335cc"
 }

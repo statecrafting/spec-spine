@@ -50,6 +50,6 @@
     "specId": "149-the-installer-is-tested",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "5f71bf61c6c75b091c6ba554643469556d2ecedb7d9755a0d72c82bb1a08e35a"
 }
