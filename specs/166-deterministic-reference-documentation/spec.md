@@ -1,7 +1,7 @@
 ---
 id: "166-deterministic-reference-documentation"
 title: "Generate one deterministic reference page per spec"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-27"
 implementation: complete
