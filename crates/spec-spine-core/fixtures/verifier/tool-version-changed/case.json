@@ -13,7 +13,7 @@
   "payloadType": "spec-spine/corpus-attestation",
   "schemaVersion": "1.0.0",
   "subject": {
-    "attestationHash": "sha256:425487796b983e96c9ec4a8c164ce6772ca780ab6573217888d072bc1f1f926a",
+    "attestationHash": "sha256:cc77c03fbb1e976d2bfd43e6255a417e1934d93699cb21e73d148a23b2d9497a",
     "kind": "corpus"
   },
   "toolVersion": "0.0.1-fixture"

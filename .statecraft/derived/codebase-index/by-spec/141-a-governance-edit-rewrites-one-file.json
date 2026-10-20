@@ -493,6 +493,6 @@
     "specId": "141-a-governance-edit-rewrites-one-file",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "8729802016e725a418186a4cbbd71af12769270aae413257b498c43210b3d9ff"
 }

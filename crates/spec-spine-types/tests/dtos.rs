@@ -80,8 +80,10 @@ fn schema_versions_are_pinned() {
     // 1.x keeps working, which is the MINOR rule.
     assert_eq!(REGISTRY_SCHEMA_VERSION, "1.10.0");
     // 1.1.0: additive MINOR (spec 023): unresolved-unit severity tiers (W-001 /
-    // W-002 warnings) on top of the spec-024 sharded MAJOR.
-    assert_eq!(INDEX_SCHEMA_VERSION, "1.2.0");
+    // W-002 warnings) on top of the spec-024 sharded MAJOR; 1.2.0: additive
+    // MINOR (spec 141), the global inputs sidecar; 1.3.0: semantics-only MINOR
+    // (spec 163), the measured resolver matrix, moved with the 0.31.0 pin.
+    assert_eq!(INDEX_SCHEMA_VERSION, "1.3.0");
     assert_eq!(BUILD_META_SCHEMA_VERSION, "0.1.0");
     assert_eq!(CONFIG_VERSION, "0.1.0");
     // Spec 034: the verdict envelope, versioned from its first release rather

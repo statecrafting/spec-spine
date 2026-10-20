@@ -80,6 +80,6 @@
     "specId": "080-an-unresolved-claim-is-not-stale",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "d7a7b632e562d5509771c8678c75ac4a2fb3161d9e7321ebd8215fa49b904ac0"
 }

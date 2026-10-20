@@ -156,6 +156,6 @@
     "specId": "055-a-version-pin-the-cli-can-check",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "8efbb7ecb6330ca2472bff45c42151d1e472622113644de4535a13f70a1cf892"
 }

@@ -88,7 +88,7 @@
       "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
     },
     ".statecraft/environment.json": {
-      "contentHash": "3d5505ef30116e920991b3bc784b0816cda5855f87d2ede68d9a6fc849abdfb0"
+      "contentHash": "8758f7e2f11b5e3d11361a17a9c500993491240bec15af904936b79231ed463d"
     },
     ".statecraft/setup/github-actions-rust.json": {
       "contentHash": "3156689240db231f0b17f6d930606d07f047711cbbafb98f08b65c8fb3d1679e"
@@ -175,7 +175,7 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "dedaeccabfee9f0538cf444559cf802b336cf4ba03a5df12985847c6b8c430d6"
+      "contentHash": "16ed7cd4d564a536f6b03171a947107d98407d4098aa640b3e916a442dd96f66"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"
@@ -232,7 +232,7 @@
       "contentHash": "6646f8e04a534675c0e450deb5892aef4049852e6b53832fc47750e03e43d179"
     },
     "spec-spine.toml": {
-      "contentHash": "6b09c696624e2cb33ec3b200f4adbbe826a94dd64fe6cc16a417f6262c2b2b07"
+      "contentHash": "5d9e782b416f57972727d01ce4be53e965c365ddedf4b58ad91f5b03143f42b7"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"
@@ -247,5 +247,5 @@
       "contentHash": "e88d6087f13258dd7c7349fbc54fc3e6e6fec18730ab33ae270f44441a3aea1a"
     }
   },
-  "schemaVersion": "1.2.0"
+  "schemaVersion": "1.3.0"
 }

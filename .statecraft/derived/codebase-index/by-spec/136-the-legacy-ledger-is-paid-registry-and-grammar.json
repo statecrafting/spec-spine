@@ -54,6 +54,6 @@
     "specId": "136-the-legacy-ledger-is-paid-registry-and-grammar",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "2bf099111271cc122c9685e6c303147e6b1b68da255a092c35784a925601917d"
 }

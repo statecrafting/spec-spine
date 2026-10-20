@@ -94,7 +94,10 @@ pub const REGISTRY_SCHEMA_VERSION: &str = "1.10.0";
 /// `[index] extra_hashed_inputs` match) move out of every shard's `shardHash`
 /// into one sidecar, `codebase-index/inputs.json`, one entry per file. Shard
 /// documents keep their shape; each `shardHash` value changes once.
-pub const INDEX_SCHEMA_VERSION: &str = "1.2.0";
+/// `1.3.0`: semantics-only MINOR (spec 163). The shape is unchanged; the
+/// version records the measured resolver matrix that produced the bytes. It
+/// moved with the 0.31.0 engine pin (spec 163 D-9, spec 199).
+pub const INDEX_SCHEMA_VERSION: &str = "1.3.0";
 
 /// `schemaVersion` emitted in `build-meta.json` (the non-deterministic artifact).
 pub const BUILD_META_SCHEMA_VERSION: &str = "0.1.0";

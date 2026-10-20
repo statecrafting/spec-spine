@@ -185,6 +185,6 @@
     "specId": "191-profile-13-keeps-the-engine-local",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
-  "shardHash": "464f63832dbeecccbfd3f27b6f2fe1965b9123997c641e19d33e606eb54211dc"
+  "schemaVersion": "1.3.0",
+  "shardHash": "4a67b1af894c557c1d02427053b624b4c7f4eaea2eeef2536cd220428ba6e70e"
 }

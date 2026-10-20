@@ -127,6 +127,6 @@
     "specId": "188-a-repository-pin-selects-the-engine",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "d5f6712ba9a12eaccfdd2d52ad3a73cf7735c31f6a26d265793b9fe79855f74e"
 }
