@@ -1,7 +1,7 @@
 ---
 id: "163-measured-resolver-expansion"
 title: "Expand structural resolution only where measurement proves it deterministic"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-27"
 implementation: complete
