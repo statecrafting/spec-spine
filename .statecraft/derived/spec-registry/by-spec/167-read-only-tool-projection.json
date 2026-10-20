@@ -267,10 +267,10 @@
       "Verification"
     ],
     "specPath": "specs/167-read-only-tool-projection/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adds a transport-neutral, read-only tool projection derived from the spec-162 capability catalog: one tool descriptor per eligible judging-tier read, with a closed input schema, the exact argv it maps to, budget and pagination members, trust marking, and a closed error vocabulary. A tool call is one invocation of the pinned binary's existing verb, so its answer is that verb's bytes. spec-spine ships the descriptors and their tests; it runs no server, holds no session, and adds no write tool.\n",
     "title": "Project cataloged reads as read-only tools"
   },
-  "shardHash": "8e887499de091a6693d4aa05896e898eeb8a008058c431597f37409b3eb6af9d",
+  "shardHash": "e0093604b3947840d86a7197407a5495c72ffc497249edd2340578a6b82f7e0b",
   "specVersion": "1.10.0"
 }
