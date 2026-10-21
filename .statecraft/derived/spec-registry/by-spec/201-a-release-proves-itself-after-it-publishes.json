@@ -45,7 +45,7 @@
     "sectionDigests": {
       "1-purpose": "8b39c093a3ad65d5fd139f8d49f6e30ad00be8955d7c62b9cd0bf889f43415ce",
       "2-territory": "e6dda4b548145a5eb5daf21ce423e21ed705ae2a9aca976a910924747d39a5a6",
-      "201-a-release-ships-its-attestation-bundles-requires-signing-and-verifies-what-it-published": "58fe16f8787ed33d1a77043c6118370e7f7b2e8bd18431a82d9655af851edf0e",
+      "201-a-release-ships-its-attestation-bundles-requires-signing-and-verifies-what-it-published": "9b1a79fed163b17871425fdbaf13807ac7c36b1c351d598c0663a08b5bfc541f",
       "3-1-the-bundle-is-a-release-asset": "377ceddfa2d72149896cb74e9a49e4351f15a1fe281ef1e2996788b90751c2df",
       "3-2-signing-is-required": "c455337052c98a87470e3a764b8568a623166c4f4a74e9e6c2321d6b224a481d",
       "3-3-the-release-verifies-what-it-published": "6d9bd1c6e7314984a7779f7c7a2255b93e2df2b6fc844564c625c9cc78dbb7b6",
@@ -53,7 +53,7 @@
       "3-behavior": "5fa87a0fa979bb4cffe0c8ac1035b2d2910602a7476257bf2fb1a300bea6a386",
       "4-out-of-scope": "7d135799e8356a562d7b9541f3c8dd5ba500ba61d33798f17553cdcc9e19464a",
       "5-resolved-decisions": "8d2063ebdcb546b67c177878db65438c0911b33c3da58366045c19de808a15a9",
-      "verification": "752e6946b09812e25a61d051d3244ff58d9c0e468c6b60b110fb16bbfa9aabde"
+      "verification": "90a9c5e752fb6fd2b4abc3686f3883c8d77fb9e0210be3cc3650e0f0f984a727"
     },
     "sectionHeadings": [
       "201: A release ships its attestation bundles, requires signing, and verifies what it published",
@@ -73,6 +73,6 @@
     "summary": "Spec 019 records each archive's build-provenance attestation only in GitHub's attestation store and leaves the bundle as \"a later additive refinement\". This spec is that refinement and two more. Each archive's Sigstore bundle (`<archive>.intoto.jsonl`) is attached to the GitHub Release next to the archive, so an archive verifies offline. Signing is required on every `v*` tag: a build that cannot obtain the OIDC token or whose attestation step yields no bundle fails before any publish job runs. A final job in `release.yml` downloads what the release actually published and verifies it: every checksum, every attestation against both its attached bundle and the store, and the presence of every archive's SBOM and bundle. A failed check fails the release workflow.\n",
     "title": "A release ships its attestation bundles, requires signing, and verifies what it published"
   },
-  "shardHash": "f0a5f4377e476057aa0c3ee0b35905630ff5f0b22890a6f523e0ae5d2fcdc657",
+  "shardHash": "afbaefc9af9e100031190b1beffa5edeffce88e5f25ce00772ac43cddda710a4",
   "specVersion": "1.10.0"
 }

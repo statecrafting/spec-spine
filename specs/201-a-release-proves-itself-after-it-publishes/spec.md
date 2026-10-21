@@ -161,11 +161,13 @@ grep -qF 'spec-spine-*.intoto.jsonl' .github/workflows/release.yml
 # 3.2: the signing precondition refuses a build with no OIDC token and no bundle.
 grep -qF 'ACTIONS_ID_TOKEN_REQUEST_URL' .github/workflows/release.yml
 grep -qF 'refusing to publish an unsigned release' .github/workflows/release.yml
-# 3.3: the post-publish job reads the published release and verifies both ways.
+# 3.3: the post-publish job reads the published release and verifies both ways:
+# against the bundle (item 3) and against the store with no --bundle (item 4).
 grep -qE '^  verify-release:$' .github/workflows/release.yml
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "needs: publish"'
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "gh release download"'
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "gh attestation verify .*--bundle"'
+sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep "gh attestation verify" | grep -vqF -- "--bundle"'
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "sha256"'
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "attestations: read"'
 # 3.4: every action in the workflow is SHA-pinned with a version comment.
