@@ -52,12 +52,12 @@
     "sectionDigests": {
       "1-purpose": "b8f1231e14d7b88a37039dfce3f9ac0db4ddaf9aee4ee6422b8f19a85d6f872f",
       "2-territory": "0ccd6c65aaea7afe09cf0186bb0c0b4950a0b86dc951f22f4a9ba64c29fdf124",
-      "200-the-dependency-policy-has-an-owner-and-its-audit-and-vet-records-are-committed": "1479ce57e680948d1bac80a7b8077004c053e72312c404bbdd85e32c3b00156c",
+      "200-the-dependency-policy-has-an-owner-and-its-audit-and-vet-records-are-committed": "068f0e6e0c836941178a20f2be3e3128e6b40c915bb2badf67c859528eb4b2f4",
       "3-1-deny-toml-stays-the-gate": "d02dec05646b3785589bc9e06183250dc5a6fd3a48b027869b5da84be0ef00e4",
       "3-2-cargo-audit-reads-the-same-policy": "602a8366fe9190a7a6f2fc076b3057a675beec6e013fb524f6b01cf688d36a7b",
-      "3-3-cargo-vet-records": "ca3780f7cf041942f468935d853b6b90e88a20da0377ae3303a9b3f0065db008",
+      "3-3-cargo-vet-records": "64b62c19c42f100280f5925849998f73545fa19bee176440b4d860c73a9de8fb",
       "3-4-each-file-is-hashed-and-governed": "86e021fa7520b6585e0482b91886e5825ff727401272847ab5402704bf8b2bc1",
-      "3-behavior": "4543bc2d80342d87c9e36efab9df101dad97bde730ca65f760daa5b174d04c02",
+      "3-behavior": "5fb55b8c29538ea24483357328c131b07bd59990cf7453b423584610ff98369d",
       "4-out-of-scope": "c78f741e6ef939a303dcfc7dad59d3dee3487f7d11bc336ddcc5ecd4615653f9",
       "5-resolved-decisions": "ba2af764565458bdb89ce2a126c6eb552f7c36c3e92084fd3800711005ece2a8",
       "verification": "0b50a541b028738eabfd955100f865edb58ecde0288fdc472a880b3ec6d163e2"
@@ -80,6 +80,6 @@
     "summary": "`deny.toml` is the dependency gate CI runs (spec 135), and no spec owns it: 135 names it only as a reference. This spec claims it, adds `.cargo/audit.toml` so `cargo audit` reads the same policy, and commits the `cargo vet` records under `supply-chain/` with six published audit sets imported. Each file enters the content hash and the governed scope, so an edit to the dependency policy stales the ledger and needs an owner.\n",
     "title": "The dependency policy has an owner, and its audit and vet records are committed"
   },
-  "shardHash": "a2ea0934461dbdd80175c6cc5f58a98bcbf55800cdc99de5f836da23f0068d31",
+  "shardHash": "1749ffe03037fe6741ccf31fd2cfedbb4843985ea03343a6bc0f8f0f9d137873",
   "specVersion": "1.10.0"
 }

@@ -78,10 +78,13 @@ those sets do not cover carries an exemption written by `cargo vet init` and
 reduced by `cargo vet prune`. Measured on 2026-10-21 against the locked tree:
 50 crates fully audited, 125 exempted.
 
-The three workspace crates are first-party (`audit-as-crates-io = false`),
-with no exemption pinned to a version. An exemption pinned to `0.31.0` would
-fail `cargo vet` on the next version bump, and `scripts/bump_version.py`
-would have to learn about `supply-chain/` to avoid that.
+The three published workspace crates (`spec-spine-cli`, `spec-spine-core`,
+`spec-spine-types`) are first-party (`audit-as-crates-io = false`), with no
+exemption pinned to a version. An exemption pinned to `0.31.0` would fail
+`cargo vet` on the next version bump, and `scripts/bump_version.py` would have
+to learn about `supply-chain/` to avoid that. The fourth member,
+`spec-spine-launcher`, sets `publish = false` and is not on crates.io, so
+`cargo vet` already treats it as first-party and it needs no policy entry.
 
 ### 3.4 Each file is hashed and governed
 
