@@ -1,9 +1,11 @@
 version: 2
 
 # Keep dependencies and, critically, the SHA-pinned GitHub Actions current.
-# release.yml pins third-party actions to full commit SHAs (a `# vX.Y.Z` comment
-# records the human-readable version); Dependabot proposes SHA bumps for review
-# so the pins do not silently rot.
+# release.yml, determinism.yml, acceptance.yml and affected-acceptance.yml pin
+# every action, first-party included, to a full commit SHA (a `# vX.Y.Z` comment
+# records the release it resolves to); Dependabot proposes SHA bumps for review
+# so the pins do not silently rot. The Statecraft-managed workflows
+# (statecraft-ci.yml, statecraft-ai-review.yml) are pinned by their profile.
 updates:
   - package-ecosystem: github-actions
     directory: "/"

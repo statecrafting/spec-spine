@@ -44,7 +44,7 @@ jobs:
           - { os: windows-latest,   triple: x86_64-pc-windows-msvc }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Show toolchain
         run: rustc --version && cargo --version
       - name: Build CLI (locked)
@@ -97,7 +97,7 @@ jobs:
             echo "${{ matrix.triple }} registry $(digest_tree .statecraft/derived/spec-registry)"
             echo "${{ matrix.triple }} index    $(digest_tree .statecraft/derived/codebase-index)"
           } | tee "digests/${{ matrix.triple }}.txt"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: digest-${{ matrix.triple }}
           path: digests/${{ matrix.triple }}.txt
@@ -108,7 +108,7 @@ jobs:
     needs: emit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: digests
           pattern: digest-*
