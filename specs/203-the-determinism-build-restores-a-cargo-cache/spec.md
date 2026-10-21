@@ -109,6 +109,14 @@ cold save and a warm restore. The commit that records the numbers restricts
 saving to `main` (3.2). The restore path, which is what a pull request runs,
 is the same in both.
 
+**D-2 (2026-10-21): the warm run is the next push, and saving is restricted
+first.** The cold run's workflow run stays open while `review-exception`
+waits on the owner, and GitHub refuses to rerun a job in a run that is still
+open. The warm measurement is therefore the run of the next push to this
+pull request, which restores the cache the cold run saved under the same
+pull-request ref. That push restricts saving to `main`, since restoring does
+not read `save-if`; the after numbers are recorded in the commit after it.
+
 ## Verification
 
 ```verify:cli
