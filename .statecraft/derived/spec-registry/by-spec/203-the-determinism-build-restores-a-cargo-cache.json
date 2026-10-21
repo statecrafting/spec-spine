@@ -1,0 +1,72 @@
+{
+  "record": {
+    "created": "2026-10-21",
+    "dependsOn": [
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "anchor": "jobs.emit",
+          "file": ".github/workflows/determinism.yml",
+          "kind": "section"
+        }
+      }
+    ],
+    "id": "203-the-determinism-build-restores-a-cargo-cache",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "unowned; 3.1 adds one step",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/determinism.yml"
+        }
+      },
+      {
+        "role": "3.10: a cost claim carries measured numbers",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "f58192fda8fc285b89a1461f0e1217a0a3f554e31288e31f9b34dfe46684738a",
+      "2-territory": "310ef0144e08abbc798ea2ceec46980b690b7176021b5a738eee9dbaaaa305f9",
+      "203-the-determinism-build-restores-a-cargo-cache-measured": "ead8626a469ecc500f449095fbb5e0dbe5f9ddd2fbc2f5d71f21d795ffef0887",
+      "3-1-the-cache-step": "72eb7dfe5b3458bcfc72ce666f029f881978a0d939617d525e64b3f3d813a4f9",
+      "3-2-saves-come-from-main": "06ee654317a14bbfaadb785be45fcc44a9ec5f23460bc46515532b6f9977b649",
+      "3-3-the-determinism-claim-is-unchanged": "875c82b2d38516f82a3607d92716d1e4b465374f713085c7c208b4f5a2f9f121",
+      "3-4-measurement": "f5229cef8839dbad08f0bbce9222946958d3b8aa2c915d13b7362001cab02327",
+      "3-behavior": "aa6622fad30ebc45b31160476462d42d36c67067320a4bf337caa38b9988f95e",
+      "4-out-of-scope": "6335eb1520a5ffb8e079e4aa26fda445aedc98b3f9795f2d3beedfcd1d469c51",
+      "5-resolved-decisions": "142c4aeaed31ef49aaf241c67bf25f2b733f5411379b87560e24d2510e2e5e0f",
+      "verification": "34c2e40627726c84f09b736261d7689d494416b1c2557c436df553d60dd586e5"
+    },
+    "sectionHeadings": [
+      "203: The determinism build restores a cargo cache, measured",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The cache step",
+      "3.2 Saves come from `main`",
+      "3.3 The determinism claim is unchanged",
+      "3.4 Measurement",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/203-the-determinism-build-restores-a-cargo-cache/spec.md",
+    "status": "draft",
+    "summary": "The four `determinism / emit` jobs run on every pull request, queue entry and push to `main`, and each builds the CLI and a test target from nothing. `Swatinem/rust-cache`, pinned to a commit SHA, restores the cargo registry and target for each triple, keyed so a cached tree never outlives the toolchain and `Cargo.lock` that built it, and saved from `main` only so pull requests do not churn a repository cache that is already over its limit. The wall clock before and after is measured, as note 06 3.10 requires.\n",
+    "title": "The determinism build restores a cargo cache, measured"
+  },
+  "shardHash": "aeb23c255cd0b8ca4fc12907c432c43a0b8d01cf52df08aa564e533c445df1cb",
+  "specVersion": "1.10.0"
+}

@@ -47,6 +47,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Show toolchain
         run: rustc --version && cargo --version
+      # Spec 203: restore the cargo registry and target from the last save for
+      # this triple. The key folds in the toolchain and Cargo.lock, so a cached
+      # tree never outlives the inputs that built it.
+      - name: Restore the cargo cache
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          key: determinism-${{ matrix.triple }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Build CLI (locked)
         run: cargo build --bin spec-spine --locked
       # Spec 163 3.9: this repository declares no symbol or module unit, so the
