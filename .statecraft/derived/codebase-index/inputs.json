@@ -1,5 +1,8 @@
 {
   "inputs": {
+    ".cargo/audit.toml": {
+      "contentHash": "807c57d597f711ed5efc85732b88b89f34a6996115ae4833d082f5e6efa66992"
+    },
     ".claude/agents/architect.md": {
       "contentHash": "f630f4896c37aef757993df86302dfba547fe66c093f09dc2124baa69337d033"
     },
@@ -153,6 +156,9 @@
     "crates/spec-spine-types/schemas/traceability.schema.json": {
       "contentHash": "122eaed6a19eb2837691c3d6929e8266efb34bbebe0760d8d1f87c2f0dc0a7c8"
     },
+    "deny.toml": {
+      "contentHash": "d6062bf3cf97e9b8d5b01b6c47fddc4805c794b5c549bea63ccbcac3699675ef"
+    },
     "docs/adoption-guide.md": {
       "contentHash": "9529eaebd687bed492660e37bb2958efb43c90194248fd78a8dcaf414cad8284"
     },
@@ -232,7 +238,7 @@
       "contentHash": "6646f8e04a534675c0e450deb5892aef4049852e6b53832fc47750e03e43d179"
     },
     "spec-spine.toml": {
-      "contentHash": "5d9e782b416f57972727d01ce4be53e965c365ddedf4b58ad91f5b03143f42b7"
+      "contentHash": "ae85cfba25bf7278202ccf4a749ae32bd850f3099dee934d63dd0f4cbe5d459b"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"
@@ -245,6 +251,15 @@
     },
     "standards/spec/templates/spec-template.md": {
       "contentHash": "e88d6087f13258dd7c7349fbc54fc3e6e6fec18730ab33ae270f44441a3aea1a"
+    },
+    "supply-chain/audits.toml": {
+      "contentHash": "b0d8636ff4890e8c104341badaad6883c4d8254cf4ee3060186bd7d5b2cdd81e"
+    },
+    "supply-chain/config.toml": {
+      "contentHash": "f30ee30a1086ebaa3014583af620f1dc8fdbc86d66007a531888aef45adb8313"
+    },
+    "supply-chain/imports.lock": {
+      "contentHash": "444918e4b396f583aedcdb5023b5399f88541c3488aa932ab4b3b9c4425d4709"
     }
   },
   "schemaVersion": "1.3.0"

@@ -1,0 +1,17 @@
+# cargo-audit configuration (spec 200). `cargo audit` reads this file from the
+# repository's .cargo/ directory. It agrees with deny.toml, which stays the
+# gate CI runs (spec 135): no advisory is ignored, and a yanked crate is
+# reported. An ignore added here is an ignore added to deny.toml in the same
+# change, with the advisory id and the reason beside it in both.
+
+[advisories]
+ignore = []
+informational_warnings = ["unmaintained"]
+
+[output]
+deny = ["unsound", "yanked"]
+quiet = false
+
+[yanked]
+enabled = true
+update_index = true
