@@ -46,7 +46,7 @@
     "sectionDigests": {
       "1-purpose": "e68cbacc3b7d68aebfd3f8325ab41f184747abebc9b38d741820e6d8341f3b39",
       "2-territory": "19807cb2daddb0fbb568af47fd7ec32b6029c486b232fb71709b236c6abe4f34",
-      "204-an-agent-stays-on-its-pull-request-until-it-is-clean-at-an-owner-checkpoint-quiet-or-out-of-time": "92e5efbe85931a1c81b99b662a06697d433838adaf5d788f42a65c79b59711e7",
+      "204-an-agent-stays-on-its-pull-request-until-it-is-clean-at-an-owner-checkpoint-quiet-or-out-of-time": "53bf8f8a5328660ade70ba864f3b996903916c5eb1b7fd89265ea296785dc1c0",
       "3-1-the-review-route": "2dbb293cec9e7e0569f859ba5698325fa6c2d4e64463db0ae4ffcf4bf903ff07",
       "3-2-when-the-contract-starts": "0ce3637a39b8bacb1ee889349554091f6ee0cd7c66f5de37f5e2fc4ff8716068",
       "3-3-the-poll": "ae15086c10e3b6031c75581736cf0f6d5db9a02ad06704821b56dfe637075ea0",
@@ -55,10 +55,10 @@
       "3-6-the-report": "53304e6a2d2ea396a4d134bc86155945482d05ded2c5073308201ddbb7d62d0f",
       "3-behavior": "d4dd73aaa6f01249ec0f4625ff2a68bd780f4bc775b5c4ed122f437556ac3f60",
       "4-relation-to-shepherd": "60d3a20c9bbf3ad664540288b015322be58860e7ec0120fb8abbd88a218c745f",
-      "5-acceptance-criteria": "f3095ad4af1f56e12842e0a1a11fc86832140fedac71038ceae7751b398b091b",
+      "5-acceptance-criteria": "7dfe28f7a948ef5b6d4ed75b546345abb67e29f813f7548a4933d643d8985828",
       "6-out-of-scope": "c224c3ad7d24818fcf41f517695856694e97a7230a5c33f98990565d5ce0503f",
       "7-resolved-decisions": "275eeefe480264d9a7bdfabce2152759e2389afab8d4f6076a7106376702ca2d",
-      "verification": "c20bf97b664ba27b0e91107d022810c73cb42a01cbd5a615020044519b6ab60b"
+      "verification": "eba8a20dc096c190c34f9383c589d65a748768a8566c136663cd39f3ff9f313a"
     },
     "sectionHeadings": [
       "204: An agent stays on its pull request until it is clean, at an owner checkpoint, quiet, or out of time",
@@ -82,6 +82,6 @@
     "summary": "Opening or updating a pull request is not the end of an agent's task. The agent keeps polling the change's review route every two minutes, answers every review item on the current head (reply first, then resolve), treats every push as a reset, and leaves only on one of four exits: clean, an owner checkpoint, thirty quiet minutes, or a ninety minute ceiling. It reports the exit and the head SHA, and a change left with open items is reported unfinished. The contract is stated over the review route and its required checks; GitHub is the current route, not the authority. The build adds the contract to `AGENTS.md`.\n",
     "title": "An agent stays on its pull request until it is clean, at an owner checkpoint, quiet, or out of time"
   },
-  "shardHash": "6fd4f4add95b711c7be6bb451b01db51e33c0d62cbabd3fb9c84272ca48a8235",
+  "shardHash": "8ace411c2d94cdda802bf172f3c1022d680856e5e748b004bc439265efc4bf5c",
   "specVersion": "1.10.0"
 }

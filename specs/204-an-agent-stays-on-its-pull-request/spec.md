@@ -161,6 +161,8 @@ A change `/shepherd` merges has met (a). A CRITICAL stop is exit (b).
 5. It requires the report to name the exit and the head SHA.
 6. It states the contract over the review route and names GitHub as the
    current route.
+7. It requires each pass to read the code-scanning findings reported on the
+   head (3.3 item 5), so 3.4 reaches them.
 
 ## 6. Out of scope
 
@@ -200,4 +202,5 @@ grep -qF 'owner checkpoint' AGENTS.md
 grep -qF 'review route' AGENTS.md
 grep -qF 'exit and the head SHA' AGENTS.md
 grep -qF 'without a reply' AGENTS.md
+grep -qF 'code-scanning findings' AGENTS.md
 ```
