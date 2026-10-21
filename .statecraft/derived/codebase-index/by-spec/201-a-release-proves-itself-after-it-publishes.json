@@ -1,0 +1,53 @@
+{
+  "mapping": {
+    "amends": [
+      "019-release-supply-chain-artifacts"
+    ],
+    "dependsOn": [
+      "006-distribution",
+      "019-release-supply-chain-artifacts"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".github/workflows/release.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/releasing.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/release.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/release.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/releasing.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/releasing.md"
+        }
+      }
+    ],
+    "specId": "201-a-release-proves-itself-after-it-publishes",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "060172a90e6a49b1d3a931eb9a1ca98a26e76ad8c68db815296e82232900136e"
+}

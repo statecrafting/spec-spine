@@ -1,0 +1,78 @@
+{
+  "record": {
+    "amends": [
+      "019-release-supply-chain-artifacts"
+    ],
+    "amendsSections": [
+      "3",
+      "4"
+    ],
+    "created": "2026-10-21",
+    "dependsOn": [
+      "006-distribution",
+      "019-release-supply-chain-artifacts"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/release.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": "docs/releasing.md"
+        }
+      }
+    ],
+    "id": "201-a-release-proves-itself-after-it-publishes",
+    "implementation": "pending",
+    "intent": {
+      "goal": "A published release carries everything needed to verify it offline, and the release workflow itself proves the published assets verify.",
+      "nonGoals": [
+        "Signing or verifying the crates.io, npm or PyPI channels, which keep their own provenance",
+        "An opt-out that publishes an unsigned release"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "8b39c093a3ad65d5fd139f8d49f6e30ad00be8955d7c62b9cd0bf889f43415ce",
+      "2-territory": "e6dda4b548145a5eb5daf21ce423e21ed705ae2a9aca976a910924747d39a5a6",
+      "201-a-release-ships-its-attestation-bundles-requires-signing-and-verifies-what-it-published": "28e5b2c847d5a26ec465991b935153d9352addcf6f489aaf8c7de70e548973b9",
+      "3-1-the-bundle-is-a-release-asset": "be2117236ab04199bfd30db8c5849b25498207424dab35359021cbf52aefaf01",
+      "3-2-signing-is-required": "c455337052c98a87470e3a764b8568a623166c4f4a74e9e6c2321d6b224a481d",
+      "3-3-the-release-verifies-what-it-published": "bd51635637f8d34a0bc9ff4ad484a7944731da68da5780af6f5b3c6c19f185e9",
+      "3-4-pinned-like-the-rest": "652e6e9dbad62ce4f012943420e3d90566dc6319341e678f8d9c3ee0812be3ac",
+      "3-behavior": "4f6c2a28fb11122b75f9711d6354e26a5d2a41ae74cb842a74f33d36d46006ec",
+      "4-out-of-scope": "7d135799e8356a562d7b9541f3c8dd5ba500ba61d33798f17553cdcc9e19464a",
+      "5-resolved-decisions": "8d2063ebdcb546b67c177878db65438c0911b33c3da58366045c19de808a15a9",
+      "verification": "1418e61b6c7ea4dd4dcb6be92a837e6d04b0b7a23c51a9456dd90ac9b34e4773"
+    },
+    "sectionHeadings": [
+      "201: A release ships its attestation bundles, requires signing, and verifies what it published",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The bundle is a release asset",
+      "3.2 Signing is required",
+      "3.3 The release verifies what it published",
+      "3.4 Pinned like the rest",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/201-a-release-proves-itself-after-it-publishes/spec.md",
+    "status": "draft",
+    "summary": "Spec 019 records each archive's build-provenance attestation only in GitHub's attestation store and leaves the bundle as \"a later additive refinement\". This spec is that refinement and two more. Each archive's Sigstore bundle (`<archive>.intoto.jsonl`) is attached to the GitHub Release next to the archive, so an archive verifies offline. Signing is required on every `v*` tag: a build that cannot obtain the OIDC token or whose attestation step yields no bundle fails before any publish job runs. A final job in `release.yml` downloads what the release actually published and verifies it: every checksum, every attestation against both its attached bundle and the store, and the presence of every archive's SBOM and bundle. A failed check fails the release workflow.\n",
+    "title": "A release ships its attestation bundles, requires signing, and verifies what it published"
+  },
+  "shardHash": "060172a90e6a49b1d3a931eb9a1ca98a26e76ad8c68db815296e82232900136e",
+  "specVersion": "1.10.0"
+}
