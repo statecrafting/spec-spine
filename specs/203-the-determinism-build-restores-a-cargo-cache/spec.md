@@ -4,7 +4,7 @@ title: "The determinism build restores a cargo cache, measured"
 status: draft
 kind: "tooling"
 created: "2026-10-21"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -51,8 +51,11 @@ cold cargo home and an empty `target/`.
 `Swatinem/rust-cache`, pinned to a commit SHA with its release in a comment,
 restores `~/.cargo` and `target/` for the job's triple. Its key is
 `determinism-<triple>` joined to what the action folds in itself: the rustc
-version and a hash of `Cargo.lock` and the manifests. A toolchain or lockfile
-change therefore misses and rebuilds cold; nothing else invalidates it.
+version and a hash of `Cargo.lock`, the manifests and `rust-toolchain.toml`.
+A toolchain or lockfile change therefore misses and rebuilds cold. The rustc
+versions folded in are every toolchain installed on the runner, not only the
+pinned one, so a runner image that updates its preinstalled stable also
+misses, once, until the next save from `main` (3.4 records one such miss).
 
 ### 3.2 Saves come from `main`
 
@@ -85,9 +88,25 @@ minus `started_at`), and the build step on its own.
 | x86_64-pc-windows-msvc | 206.5 s (135 to 220) | 86 s |
 | x86_64-unknown-linux-gnu | 97.5 s (66 to 114) | 42 s |
 
-**After**: measured on this change's own runs before it merges, a cold run
-that saves and a warm run that restores, and recorded here. Until those
-numbers are in this section, this spec claims no saving.
+**After**: measured on this change's own runs on 2026-10-21, one run each
+(D-2). The cold run (`c7f9c2dc`) found no cache and saved one; the warm run
+(`cf158ae6`) restored it under the same pull-request ref.
+
+| Triple | Cold job / build | Warm job / build | Warm restore |
+|---|---|---|---|
+| aarch64-apple-darwin | 96 s / 37 s | 92 s / 31 s | hit, 8 s |
+| aarch64-unknown-linux-gnu | 98 s / 37 s | 59 s / 23 s | hit, 2 s |
+| x86_64-pc-windows-msvc | 221 s / 81 s | 207 s / 82 s | miss |
+| x86_64-unknown-linux-gnu | 95 s / 36 s | 61 s / 20 s | hit, 4 s |
+
+The cold save cost 5 to 14 s per job and wrote 863,347,108 bytes across the
+four entries. On the two Linux triples a hit saved about 35 s per job; on
+macOS the 8 s restore took back most of a 6 s build saving, so the job is
+roughly unchanged. Windows missed: the two runs landed on runner images
+20261007 and 20261018, whose preinstalled stable rustc differed (1.99.0 and
+1.99.1), so the key differed (3.1). No Windows hit was measured, and this
+spec claims no Windows saving. One run per side is a single sample; the
+before medians above vary by up to 110 s on one triple.
 
 ## 4. Out of scope
 
@@ -129,5 +148,5 @@ sh -c 'c=$(grep -n "Swatinem/rust-cache@" .github/workflows/determinism.yml | cu
 grep -qF "save-if: \${{ github.ref == 'refs/heads/main' }}" .github/workflows/determinism.yml
 # 3.4: the after numbers are recorded.
 grep -qF '**After**: measured on' specs/203-the-determinism-build-restores-a-cargo-cache/spec.md
-sh -c '! grep -qF "Until those numbers are in this section" specs/203-the-determinism-build-restores-a-cargo-cache/spec.md'
+sh -c '! sed "/^## Verification/q" specs/203-the-determinism-build-restores-a-cargo-cache/spec.md | grep -qF "numbers are in this section, this spec claims no saving"'
 ```
