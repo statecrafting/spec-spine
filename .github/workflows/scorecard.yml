@@ -1,0 +1,56 @@
+# OpenSSF Scorecard supply-chain analysis (spec 202).
+# https://github.com/ossf/scorecard-action
+#
+# The job shape follows the Scorecard action's documented example and the
+# scorecard.yml of the Preloop project (https://github.com/preloop/preloop,
+# Apache-2.0); this file is re-implemented from that behaviour, with every
+# action pinned to a commit SHA resolved for this repository. Not a required
+# check: it reports to code scanning and never gates a pull request.
+name: scorecard
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: '30 2 * * 1'
+  push:
+    branches: [main]
+
+concurrency:
+  # Only the newest main commit needs a fresh score; superseded push runs are
+  # cancelled. Scheduled and branch_protection_rule runs are not.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: scorecard analysis
+    runs-on: ubuntu-latest
+    # A job-level block sets every unnamed scope to none, so the reads the
+    # analysis makes through the API are named here too.
+    permissions:
+      contents: read           # repository contents and branch protection
+      actions: read            # workflow runs, for the CI-Tests check
+      security-events: write   # upload the SARIF to code scanning
+      id-token: write          # publish_results: the OpenSSF API verifies the run's identity
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run analysis
+        uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+      - name: Keep the SARIF as an artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: scorecard-sarif
+          path: results.sarif
+          retention-days: 5
+      - name: Upload to code scanning
+        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        with:
+          sarif_file: results.sarif
