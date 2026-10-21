@@ -75,6 +75,9 @@
     ".github/workflows/release.yml": {
       "contentHash": "da2f0e4f1f8248ade7a92fcea2275abdb28be7e6a8fc853f69732be45934fff1"
     },
+    ".github/workflows/scorecard.yml": {
+      "contentHash": "d673007c73e51c26483ae4accb64da428bd74e50d4bcf2f341fda95675be479d"
+    },
     ".github/workflows/spec-spine-required.yml": {
       "contentHash": "b343e3153230b1fa2deb980b634cc5b6597889c7af347846784701ac7e309a10"
     },

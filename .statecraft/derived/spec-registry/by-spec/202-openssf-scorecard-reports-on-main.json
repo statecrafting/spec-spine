@@ -1,0 +1,69 @@
+{
+  "record": {
+    "created": "2026-10-21",
+    "dependsOn": [
+      "019-release-supply-chain-artifacts"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": ".github/workflows/scorecard.yml"
+      }
+    ],
+    "id": "202-openssf-scorecard-reports-on-main",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "ci-gate's needs list, which this workflow stays out of",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ci.yml"
+        }
+      },
+      {
+        "role": "proposes SHA bumps for the pinned actions",
+        "unit": {
+          "kind": "file",
+          "path": ".github/dependabot.yml"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "8c5f0aac15d81d165f62701f0455406ad82eef547f6f1dc1d4306b02dca7a8de",
+      "2-territory": "b3809dcbcf1bd023892db607b835d1d8d2f3e3e8d30c12d42a2bb73ba9e39159",
+      "202-openssf-scorecard-reports-on-main": "e41c508d9b1a4a305ef7cdabb05b094fee8ed4227b2bd3c7cced63e103a09b44",
+      "3-1-triggers": "9c96e136b773c3ae326e64607d16449e9f6005799f45627e0d14b0a608e32920",
+      "3-2-least-privilege": "520a8196bb2eb48516b8bcc7b9f720628fe16951576ed6980bbede87f1263ea5",
+      "3-3-output": "22b562e53bc65729bccbf5c9fef1a8c33f44863ac8215614c801c4746e9065db",
+      "3-4-every-action-pinned": "0648811d8f7b252a334ff11f0180f1427e22f50245a3c2a46991bf8616fa6fc6",
+      "3-5-not-a-gate": "c029f9bc2e749548c0db8e3b6780e90664cb1c233144deb5b1c9467d5f2e0759",
+      "3-behavior": "be4684e97650c3af2acea1066011b8984aa261a92a2e50227903b89c7f1429f9",
+      "4-out-of-scope": "5c6da19f03022bd5921914c7a74d5b2012debb0c5e8c8af0c4695d57eb24a17b",
+      "5-resolved-decisions": "b9baf9378a9b72eb21123026813000c20feabc686a377a07fdbe474910a05b93",
+      "verification": "06b771426927634ca1895e7f91148c2e19d3d7eb08288f3ea28b99e61bbe3e7c"
+    },
+    "sectionHeadings": [
+      "202: OpenSSF Scorecard reports on main",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Triggers",
+      "3.2 Least privilege",
+      "3.3 Output",
+      "3.4 Every action pinned",
+      "3.5 Not a gate",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/202-openssf-scorecard-reports-on-main/spec.md",
+    "status": "draft",
+    "summary": "An unmanaged `scorecard.yml` runs the OpenSSF Scorecard action on every push to `main`, weekly, and on any branch-protection change, uploads its SARIF to code scanning and publishes the result to the OpenSSF API. Every action is pinned to a commit SHA. It is a report, not a gate: no pull request waits on it and `ci-gate` does not need it.\n",
+    "title": "OpenSSF Scorecard reports on main"
+  },
+  "shardHash": "fab2c4a6c985d66dcb360af5ff6b0994ee73955621c2a9d5892bd071d9c4d83f",
+  "specVersion": "1.10.0"
+}
