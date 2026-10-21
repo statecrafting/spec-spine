@@ -1,8 +1,8 @@
 ---
 id: "199-the-0-31-0-release-moves-the-pin"
 title: "The 0.31.0 release moves the package version, the pin and the index schema together"
-status: draft
-implementation: in-progress
+status: approved
+implementation: complete
 kind: tooling
 created: "2026-10-20"
 summary: >
@@ -111,6 +111,11 @@ block asserts the index constant and is not repeated here.
 **D-1 (2026-10-20).** The owner approved the 0.31.0 release on 2026-10-20,
 tagged at this change's head once its pull request is open, carrying spec
 163's index restamp.
+
+**D-2 (2026-10-20, owner).** 0.31.0 is published: tag `v0.31.0` names
+`bcd91b8f`, the head of #492, which merged. The owner's rulings of 2026-10-20
+move this spec to `implementation: complete` on that evidence and the
+`verify 199` run recorded in the pull request, and ratify it.
 
 ## Verification
 

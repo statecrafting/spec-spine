@@ -1,7 +1,7 @@
 ---
 id: "196-yaml-parsing-moves-off-unsafe-libyaml"
 title: "YAML parsing moves off unsafe-libyaml"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-12"
 summary: >
@@ -248,6 +248,9 @@ two NaN numbers as equal (YAML has one NaN), and `YamlValue`'s equality
 keeps that, so a value holding NaN still equals its own copy. The parser
 refuses an untagged non-finite float (D-4); this covers a value that reaches
 the comparison any other way. A unit test in `yaml.rs` pins it.
+
+**D-8 (2026-10-20, owner): ratified.** The owner's rulings of 2026-10-20
+ratify this spec. Its build merged in #468 and `verify 196` passed.
 
 ## Verification
 

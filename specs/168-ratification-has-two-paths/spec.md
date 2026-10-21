@@ -1,7 +1,8 @@
 ---
 id: "168-ratification-has-two-paths"
 title: "Ratification has two paths, both an owner approval"
-status: draft
+status: superseded
+superseded_by: "198-ratification-is-the-owner-review-exception"
 kind: "process"
 created: "2026-09-27"
 summary: >
@@ -218,6 +219,11 @@ in that section, so the skills and this spec's acceptance can cite them.
 - **D-4 (2026-09-27, owner to confirm) `start` is optional and comes last.**
   Path A is complete without it. It exists because the owner asked for a flow
   that can move a ratified spec to `in-progress`.
+- **D-5 (2026-10-20, owner) Superseded by 198.** The owner's rulings of
+  2026-10-20 flip this spec to `superseded`, citing spec 198 D-1: the review
+  exception Statecraft's managed CI already requires makes ratification an
+  owner-only approval, so neither path here is built. Its `implementation`
+  stays `pending`; nothing in its territory was written.
 
 ## Verification
 
