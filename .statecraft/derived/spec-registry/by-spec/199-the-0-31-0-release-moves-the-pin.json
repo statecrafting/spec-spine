@@ -56,18 +56,18 @@
       }
     ],
     "id": "199-the-0-31-0-release-moves-the-pin",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "sectionDigests": {
       "1-purpose": "2caa8e261006e929df376bbba999e4e34910af1110a8b4eb5416c5b1fab6e37f",
-      "199-the-0-31-0-release-moves-the-package-version-the-pin-and-the-index-schema-together": "229b05ee6f29385ed7bc8e9e2bc2d874dbd9da12fef7a9ba1e8e67df0190a82c",
+      "199-the-0-31-0-release-moves-the-package-version-the-pin-and-the-index-schema-together": "e4b3987d40cc908ea0acdf0e9a2811a4aa4542d86c0d3350b61854eb5f8f29eb",
       "2-territory": "abce161e4dd86be650d27f8ecf001f23f5a49fb491357892aa460a13877c1075",
       "3-1-one-version-one-pin": "559a80302ff561d9fe21009c8ed725663f14fb0f5e04b50bca955fd137b87c79",
       "3-2-the-release-precedes-the-merge": "b7592f011f6ac8af594ddb2eddd6599b4cd75b461770f87546d4e90852144f0e",
       "3-3-the-index-schema-restamp": "807327e6612cfaf3d69d6ad41289db51d45999f99581d89ea01144864e4e05f5",
       "3-4-acceptance": "d736def3c24bb445c200b09e4bc983103290963d700c04b16b28ecb8944b3d5b",
       "3-behavior": "3a27c612cf006101014a451c62df85c5914406a66644a3672139231e7c568032",
-      "decisions": "872d55777457db6598339c357760d945a40d80b28a49d8d4213154fab6c0fd2b",
+      "decisions": "da44201f888b822f050a1deaec75e0564291f1abb06a9a0aac219b6342f38e73",
       "verification": "b46a1023e71ebe8cdfce3d3a13d19ec9975469f8816d2095c83286f3efa84b78"
     },
     "sectionHeadings": [
@@ -83,10 +83,10 @@
       "Verification"
     ],
     "specPath": "specs/199-the-0-31-0-release-moves-the-pin/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`main` moves from 0.30.0 to 0.31.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. Spec 163's index schema restamp to 1.3.0 rides the same change (163 D-9). As for 0.30.0 (spec 195 3.2), the release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
     "title": "The 0.31.0 release moves the package version, the pin and the index schema together"
   },
-  "shardHash": "6355563a657a7925467a22efaa451c815a8e0e9b17ef058c93b4c309141e34fc",
+  "shardHash": "4f1f0b018a5627d08cdcae6dcace5890c765ead43136b52726c674c693ad5b03",
   "specVersion": "1.10.0"
 }
