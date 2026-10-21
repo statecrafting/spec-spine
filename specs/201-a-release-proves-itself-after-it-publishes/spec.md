@@ -83,10 +83,13 @@ artifact. The `publish` job attaches it with the archives, unchanged, since it
 already globs `dist/*`. A consumer verifies offline with:
 
 ```sh
-gh attestation verify spec-spine-<tag>-<triple>.tar.gz \
-  --bundle spec-spine-<tag>-<triple>.tar.gz.intoto.jsonl \
+gh attestation verify spec-spine-<tag>-<triple>.<ext> \
+  --bundle spec-spine-<tag>-<triple>.<ext>.intoto.jsonl \
   --repo statecrafting/spec-spine
 ```
+
+`<ext>` is `tar.gz` for the four Unix triples and `zip` for
+`x86_64-pc-windows-msvc`.
 
 ### 3.2 Signing is required
 
@@ -100,7 +103,9 @@ fails here publishes nothing on any channel.
 ### 3.3 The release verifies what it published
 
 A `verify-release` job MUST run after `publish` (`needs: publish`) with
-read-only contents permission. It downloads the assets of the GitHub Release
+`contents: read` and `attestations: read`, the second because
+`gh attestation verify` without `--bundle` reads the attestation store
+through the API. It downloads the assets of the GitHub Release
 for the tag (not the build artifacts) and fails unless, for each of the five
 triples:
 
@@ -162,8 +167,9 @@ sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.y
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "gh release download"'
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "gh attestation verify .*--bundle"'
 sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "sha256"'
+sh -c 'sed -n "/^  verify-release:/,/^  [a-z-]*:$/p" .github/workflows/release.yml | grep -q "attestations: read"'
 # 3.4: every action in the workflow is SHA-pinned with a version comment.
 sh -c '! grep -E "^[[:space:]]*-?[[:space:]]*uses:" .github/workflows/release.yml | grep -vqE "@[0-9a-f]{40} # v[0-9]+\.[0-9]+\.[0-9]+$"'
 # The runbook carries the offline command.
-grep -qF -- '--bundle spec-spine-<tag>-<triple>.tar.gz.intoto.jsonl' docs/releasing.md
+grep -qF -- '--bundle spec-spine-<tag>-<triple>.<ext>.intoto.jsonl' docs/releasing.md
 ```
