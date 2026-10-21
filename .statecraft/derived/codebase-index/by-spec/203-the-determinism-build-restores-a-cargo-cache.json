@@ -1,0 +1,63 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".github/workflows/determinism.yml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/determinism.yml",
+            "span": {
+              "endLine": 112,
+              "startLine": 35
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "jobs.emit",
+          "file": ".github/workflows/determinism.yml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/determinism.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/determinism.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/06-harness-and-distribution-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+        }
+      }
+    ],
+    "specId": "203-the-determinism-build-restores-a-cargo-cache",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "178dbad822fbfcc5c1e90c461e2ce41b809d168f296ffc4614aaf69481e25987"
+}
