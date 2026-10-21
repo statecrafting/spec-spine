@@ -34,7 +34,7 @@
     "sectionDigests": {
       "1-purpose": "8c5f0aac15d81d165f62701f0455406ad82eef547f6f1dc1d4306b02dca7a8de",
       "2-territory": "b3809dcbcf1bd023892db607b835d1d8d2f3e3e8d30c12d42a2bb73ba9e39159",
-      "202-openssf-scorecard-reports-on-main": "f102a5461e0e5b324ae36135663373ebfb9aaa7b14ddf77def7114c281aa4ded",
+      "202-openssf-scorecard-reports-on-main": "bcff5dada4a9ea069d5d18327e702b272615b816d22797fd10e999ebe6893105",
       "3-1-triggers": "9c96e136b773c3ae326e64607d16449e9f6005799f45627e0d14b0a608e32920",
       "3-2-least-privilege": "c10cdb237db37a17222a2eb3965463bb57953126a9164657b931abb527a8b388",
       "3-3-output": "22b562e53bc65729bccbf5c9fef1a8c33f44863ac8215614c801c4746e9065db",
@@ -43,7 +43,7 @@
       "3-behavior": "674736aa9ceb64787ebbc24d544589870d87b3f3fe61d5068630e9d37d508803",
       "4-out-of-scope": "5c6da19f03022bd5921914c7a74d5b2012debb0c5e8c8af0c4695d57eb24a17b",
       "5-resolved-decisions": "b9baf9378a9b72eb21123026813000c20feabc686a377a07fdbe474910a05b93",
-      "verification": "ec6e1faa683e8c04cc8470ef3327baaf4611522cef1e0c8111ec715ed10da926"
+      "verification": "cc2d541fbd9c2194c52a37b54eb289e13d0640fd8a9b338503046b9cb153269e"
     },
     "sectionHeadings": [
       "202: OpenSSF Scorecard reports on main",
@@ -64,6 +64,6 @@
     "summary": "An unmanaged `scorecard.yml` runs the OpenSSF Scorecard action on every push to `main`, weekly, and on any branch-protection change, uploads its SARIF to code scanning and publishes the result to the OpenSSF API. Every action is pinned to a commit SHA. It is a report, not a gate: no pull request waits on it and `ci-gate` does not need it.\n",
     "title": "OpenSSF Scorecard reports on main"
   },
-  "shardHash": "609da7f22b03b703c524890c763d8e46dc743be6cb77e6fcb7b9dd5043c81ecb",
+  "shardHash": "52e4f48f2217a21b937fab45e8bdf62c2ef7d0adbf140f559d3ff73557951cb8",
   "specVersion": "1.10.0"
 }

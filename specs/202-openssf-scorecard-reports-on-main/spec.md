@@ -108,6 +108,8 @@ grep -qE '^permissions: read-all$' .github/workflows/scorecard.yml
 grep -qF 'persist-credentials: false' .github/workflows/scorecard.yml
 grep -qE '^      contents: read' .github/workflows/scorecard.yml
 grep -qE '^      actions: read' .github/workflows/scorecard.yml
+grep -qE '^      security-events: write' .github/workflows/scorecard.yml
+grep -qE '^      id-token: write' .github/workflows/scorecard.yml
 # 3.3: the analysis publishes and uploads SARIF.
 grep -qF 'uses: ossf/scorecard-action@' .github/workflows/scorecard.yml
 grep -qF 'publish_results: true' .github/workflows/scorecard.yml
