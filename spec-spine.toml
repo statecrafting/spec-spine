@@ -135,6 +135,14 @@ extra_hashed_inputs = [
   # ledger should notice, and it is rare enough that restaling every shard is
   # the right price.
   "crates/spec-spine-types/schemas/*.json",
+  # Spec 200: the dependency policy and its records. deny.toml is the gate CI
+  # runs (spec 135); .cargo/audit.toml and the cargo-vet records agree with
+  # it. A policy file whose edit stales nothing is the one an attestation
+  # should not be silent about (L-008).
+  "deny.toml",
+  ".cargo/audit.toml",
+  "supply-chain/*.toml",
+  "supply-chain/imports.lock",
 ]
 # Spec 092 3.8: `.derived` is gone from this list, and not because the tree
 # stopped being excluded. This list matches path COMPONENTS, which cannot
@@ -253,4 +261,9 @@ governed_scope = [
   ".claude/settings.json",
   ".claude/skills/*/SKILL.md",
   ".claude/agents/*.md",
+  # Spec 200.
+  "deny.toml",
+  ".cargo/audit.toml",
+  "supply-chain/*.toml",
+  "supply-chain/imports.lock",
 ]
