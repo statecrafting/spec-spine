@@ -1,6 +1,6 @@
 ---
 id: "204-an-agent-stays-on-its-pull-request"
-title: "An agent stays on its pull request until it is clean, quiet, or out of time"
+title: "An agent stays on its pull request until it is clean, at an owner checkpoint, quiet, or out of time"
 status: draft
 kind: "process"
 created: "2026-10-21"
@@ -30,7 +30,7 @@ references:
   - { unit: { kind: file, path: ".github/workflows/statecraft-ci.yml" }, role: "the current route's required checks, ci-gate and review-exception" }
 ---
 
-# 204: An agent stays on its pull request until it is clean, quiet, or out of time
+# 204: An agent stays on its pull request until it is clean, at an owner checkpoint, quiet, or out of time
 
 ## 1. Purpose
 
