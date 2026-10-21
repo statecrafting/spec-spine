@@ -1,0 +1,87 @@
+{
+  "record": {
+    "created": "2026-10-21",
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "198-ratification-is-the-owner-review-exception"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      }
+    ],
+    "id": "204-an-agent-stays-on-its-pull-request",
+    "implementation": "pending",
+    "kind": "process",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the nearest existing behaviour: watch by head SHA, read every thread, remediate, merge; it runs inside this contract",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/shepherd/SKILL.md"
+        }
+      },
+      {
+        "role": "a waiting review-exception is an owner checkpoint, never something to work around",
+        "unit": {
+          "kind": "file",
+          "path": "specs/198-ratification-is-the-owner-review-exception/spec.md"
+        }
+      },
+      {
+        "role": "the current route's required checks, ci-gate and review-exception",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ci.yml"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "e68cbacc3b7d68aebfd3f8325ab41f184747abebc9b38d741820e6d8341f3b39",
+      "2-territory": "19807cb2daddb0fbb568af47fd7ec32b6029c486b232fb71709b236c6abe4f34",
+      "204-an-agent-stays-on-its-pull-request-until-it-is-clean-quiet-or-out-of-time": "4d4456db95beeb6daf1866760815f00db489e29d4340077651f08b5c053f74ef",
+      "3-1-the-review-route": "2dbb293cec9e7e0569f859ba5698325fa6c2d4e64463db0ae4ffcf4bf903ff07",
+      "3-2-when-the-contract-starts": "0ce3637a39b8bacb1ee889349554091f6ee0cd7c66f5de37f5e2fc4ff8716068",
+      "3-3-the-poll": "ae15086c10e3b6031c75581736cf0f6d5db9a02ad06704821b56dfe637075ea0",
+      "3-4-answering": "d77e28b9dcfafc28bd68a516e67c4dfcdee25499fd39fddfe5ea55fdc572b721",
+      "3-5-the-exits": "7198ab2824164d7296429ac25fbf2381c577f9431e7c676db5a82b911db9765a",
+      "3-6-the-report": "53304e6a2d2ea396a4d134bc86155945482d05ded2c5073308201ddbb7d62d0f",
+      "3-behavior": "d4dd73aaa6f01249ec0f4625ff2a68bd780f4bc775b5c4ed122f437556ac3f60",
+      "4-relation-to-shepherd": "60d3a20c9bbf3ad664540288b015322be58860e7ec0120fb8abbd88a218c745f",
+      "5-acceptance-criteria": "f3095ad4af1f56e12842e0a1a11fc86832140fedac71038ceae7751b398b091b",
+      "6-out-of-scope": "c224c3ad7d24818fcf41f517695856694e97a7230a5c33f98990565d5ce0503f",
+      "7-resolved-decisions": "275eeefe480264d9a7bdfabce2152759e2389afab8d4f6076a7106376702ca2d",
+      "verification": "c20bf97b664ba27b0e91107d022810c73cb42a01cbd5a615020044519b6ab60b"
+    },
+    "sectionHeadings": [
+      "204: An agent stays on its pull request until it is clean, quiet, or out of time",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The review route",
+      "3.2 When the contract starts",
+      "3.3 The poll",
+      "3.4 Answering",
+      "3.5 The exits",
+      "3.6 The report",
+      "4. Relation to `/shepherd`",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/204-an-agent-stays-on-its-pull-request/spec.md",
+    "status": "draft",
+    "summary": "Opening or updating a pull request is not the end of an agent's task. The agent keeps polling the change's review route every two minutes, answers every review item on the current head (reply first, then resolve), treats every push as a reset, and leaves only on one of four exits: clean, an owner checkpoint, thirty quiet minutes, or a ninety minute ceiling. It reports the exit and the head SHA, and a change left with open items is reported unfinished. The contract is stated over the review route and its required checks; GitHub is the current route, not the authority. The build adds the contract to `AGENTS.md`.\n",
+    "title": "An agent stays on its pull request until it is clean, quiet, or out of time"
+  },
+  "shardHash": "f3cff2cebfb5785298c9c3e3bc6c9396175a47c795785a22d5b71d2b3e42658d",
+  "specVersion": "1.10.0"
+}
