@@ -1,7 +1,7 @@
 {
   "inputs": {
     ".cargo/audit.toml": {
-      "contentHash": "07ff0a82352db98875a807b6396bba514c21d202d36c355ac3c2c8240b318965"
+      "contentHash": "807c57d597f711ed5efc85732b88b89f34a6996115ae4833d082f5e6efa66992"
     },
     ".claude/agents/architect.md": {
       "contentHash": "f630f4896c37aef757993df86302dfba547fe66c093f09dc2124baa69337d033"

@@ -6,7 +6,7 @@
 
 [advisories]
 ignore = []
-informational_warnings = ["unmaintained", "unsound"]
+informational_warnings = ["unmaintained"]
 
 [output]
 deny = ["unsound", "yanked"]

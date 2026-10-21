@@ -65,7 +65,7 @@ against `deny.toml`. Nothing here changes what CI refuses.
 ### 3.2 `cargo audit` reads the same policy
 
 `.cargo/audit.toml` ignores no advisory, denies `unsound` and `yanked`
-findings, and treats `unmaintained` as informational, which matches
+findings, and reports `unmaintained` as a warning, which matches
 `deny.toml` (`yanked = "deny"`, no ignore list). An advisory ignored in one
 file is ignored in the other in the same change, with its id and reason
 beside it in both.
