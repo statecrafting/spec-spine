@@ -49,9 +49,11 @@ cancelled.
 
 ### 3.2 Least privilege
 
-The workflow's default token is `read-all`. The one job adds
-`security-events: write` to upload SARIF and `id-token: write` so the OpenSSF
-API can verify the run that publishes. Checkout does not persist
+The workflow's default token is `read-all`. The one job names its scopes,
+since a job-level block sets every unnamed scope to none: `contents: read`
+and `actions: read` for the analysis, `security-events: write` to upload
+SARIF, and `id-token: write` so the OpenSSF API can verify the run that
+publishes. Checkout does not persist
 credentials.
 
 ### 3.3 Output
@@ -104,6 +106,8 @@ sh -c '! grep -qE "^  (pull_request|pull_request_target|merge_group):" .github/w
 # 3.2: least privilege.
 grep -qE '^permissions: read-all$' .github/workflows/scorecard.yml
 grep -qF 'persist-credentials: false' .github/workflows/scorecard.yml
+grep -qE '^      contents: read' .github/workflows/scorecard.yml
+grep -qE '^      actions: read' .github/workflows/scorecard.yml
 # 3.3: the analysis publishes and uploads SARIF.
 grep -qF 'uses: ossf/scorecard-action@' .github/workflows/scorecard.yml
 grep -qF 'publish_results: true' .github/workflows/scorecard.yml

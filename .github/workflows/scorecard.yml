@@ -27,7 +27,11 @@ jobs:
   analysis:
     name: scorecard analysis
     runs-on: ubuntu-latest
+    # A job-level block sets every unnamed scope to none, so the reads the
+    # analysis makes through the API are named here too.
     permissions:
+      contents: read           # repository contents and branch protection
+      actions: read            # workflow runs, for the CI-Tests check
       security-events: write   # upload the SARIF to code scanning
       id-token: write          # publish_results: the OpenSSF API verifies the run's identity
     steps:
