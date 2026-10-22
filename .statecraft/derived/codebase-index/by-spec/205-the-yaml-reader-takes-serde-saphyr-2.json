@@ -1,0 +1,78 @@
+{
+  "mapping": {
+    "amends": [
+      "196-yaml-parsing-moves-off-unsafe-libyaml"
+    ],
+    "dependsOn": [
+      "196-yaml-parsing-moves-off-unsafe-libyaml"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-types/src/yaml.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "supply-chain/config.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/yaml.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/yaml.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "supply-chain/config.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/config.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.lock"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.lock"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      }
+    ],
+    "specId": "205-the-yaml-reader-takes-serde-saphyr-2",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "ae759b81f2edde3d59f86d29793aec824624568c73732b36671b7738243deae8"
+}
