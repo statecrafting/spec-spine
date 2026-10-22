@@ -21,6 +21,8 @@ amends:
   # 196 D-1 pinned 1.3.0 and declined 2.0.0; 3.1 below replaces that pin.
   - "196-yaml-parsing-moves-off-unsafe-libyaml"
 extends:
+  # 3.2: the reader's non-finite option moves to its 2.0 name.
+  - { spec: "196-yaml-parsing-moves-off-unsafe-libyaml", unit: { kind: file, path: "crates/spec-spine-types/src/yaml.rs" }, nature: corrective }
   # 3.3: the three exemptions move to the new versions; the counts do not change.
   - { spec: "200-the-dependency-policy-has-an-owner-and-records", unit: { kind: file, path: "supply-chain/config.toml" }, nature: additive }
 references:

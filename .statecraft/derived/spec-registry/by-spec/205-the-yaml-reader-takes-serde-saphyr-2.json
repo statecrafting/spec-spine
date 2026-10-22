@@ -9,6 +9,14 @@
     ],
     "extends": [
       {
+        "nature": "corrective",
+        "spec": "196-yaml-parsing-moves-off-unsafe-libyaml",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/yaml.rs"
+        }
+      },
+      {
         "nature": "additive",
         "spec": "200-the-dependency-policy-has-an-owner-and-records",
         "unit": {
@@ -67,6 +75,6 @@
     "summary": "Spec 196 pinned `serde-saphyr` at `=1.3.0` and declined 2.0.0 because it had been published the day before. Dependabot #504 proposes 2.0.0 (with `granit-parser` 2.0.0 and `sha2` 0.11.1) and fails to compile: 2.0 deprecates the option 196's reader sets to refuse a non-finite float. This spec takes 2.0.0, sets the option's replacement to the same refusal, and moves the three `cargo vet` exemptions to the new versions. Every parity row 196 pinned holds unchanged.\n",
     "title": "The YAML reader takes serde-saphyr 2.0"
   },
-  "shardHash": "f757e28cc3f3c48019dde12e48f5bccb0973a52957956448c8330e76960a7a0d",
+  "shardHash": "ae759b81f2edde3d59f86d29793aec824624568c73732b36671b7738243deae8",
   "specVersion": "1.10.0"
 }

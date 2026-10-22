@@ -8,11 +8,28 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-types/src/yaml.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "supply-chain/config.toml",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/yaml.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/yaml.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -57,5 +74,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "f757e28cc3f3c48019dde12e48f5bccb0973a52957956448c8330e76960a7a0d"
+  "shardHash": "ae759b81f2edde3d59f86d29793aec824624568c73732b36671b7738243deae8"
 }
