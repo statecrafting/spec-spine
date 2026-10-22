@@ -1,0 +1,61 @@
+{
+  "mapping": {
+    "amends": [
+      "196-yaml-parsing-moves-off-unsafe-libyaml"
+    ],
+    "dependsOn": [
+      "196-yaml-parsing-moves-off-unsafe-libyaml"
+    ],
+    "implementingPaths": [
+      {
+        "path": "supply-chain/config.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "supply-chain/config.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/config.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.lock"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.lock"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      }
+    ],
+    "specId": "205-the-yaml-reader-takes-serde-saphyr-2",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "f757e28cc3f3c48019dde12e48f5bccb0973a52957956448c8330e76960a7a0d"
+}
