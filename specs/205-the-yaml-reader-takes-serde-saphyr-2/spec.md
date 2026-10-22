@@ -1,7 +1,7 @@
 ---
 id: "205-the-yaml-reader-takes-serde-saphyr-2"
 title: "The YAML reader takes serde-saphyr 2.0"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-21"
 implementation: complete
