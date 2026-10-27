@@ -62,13 +62,13 @@
     "sectionDigests": {
       "1-purpose": "8015f23540ea3c569ef9ef867991aab1de470b233e131c65795ffcb9205a3423",
       "2-territory": "24ca486ade7a5c18be99f7166af46d01f9c0e9d0535961d440893753d7d1e731",
-      "208-the-0-32-0-release-moves-the-package-version-the-pin-and-the-registry-schema-together": "30fb70e43c8c4f30ceaa6053090c7160569b32fe11b0d93658accde88e7a217b",
+      "208-the-0-32-0-release-moves-the-package-version-the-pin-and-the-registry-schema-together": "1b7a4ca2d2bf19e47311cfdac2d532e4a7dd1dec45adee25b49a0b1577978b53",
       "3-1-one-version-one-pin": "cf603dd9411704eba493d444ee4cd8d3997dd53a7011c014cf9a05e88fe34861",
       "3-2-the-release-precedes-the-merge": "a5114e8769bf27b35aec089938edab8f05d198d2ab301de33ede6331d27e7b31",
       "3-3-the-registry-schema-restamp": "35d98b6ecab23ddf5711678e7ee568a82e8a877a750bf0b721930efd625cf935",
       "3-4-acceptance": "1d41c9fdab41ea8448f4d7eca537607b66811d99ce7d0db17a6697d52e7c29b9",
       "3-behavior": "21519a79adeb8f125110c3301280e410ade67d89509280811956cd33057e3136",
-      "decisions": "434e96dd81407ec7fd59a2334b2138a03c6dfcb462939e170aaa35e088f5a6c9",
+      "decisions": "75f1e7424951555cf0c8ebc0aabadb55e3047230d931fe2e264e9dabec4c6aef",
       "verification": "2233b641fe4174a0902bae6627e1d6cdc9e6064ecbc880a15148d526b64bfb38"
     },
     "sectionHeadings": [
@@ -88,6 +88,6 @@
     "summary": "`main` moves from 0.31.0 to 0.32.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. Spec 207's registry schema 1.11.0 and its restamp ride the same change. As for 0.31.0 (spec 199 3.2), the release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
     "title": "The 0.32.0 release moves the package version, the pin and the registry schema together"
   },
-  "shardHash": "2708aa0bfd83d9c8e1f09aeb1870cccf735520befd73b6d5d0ed1309710c11ed",
+  "shardHash": "7604a8d630fec44cb3cb98be9ad3e48c192465472313912e94f7ff064c9d8d28",
   "specVersion": "1.11.0"
 }

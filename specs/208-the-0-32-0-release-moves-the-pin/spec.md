@@ -111,7 +111,9 @@ block asserts the registry schema and is not repeated here.
 
 **D-1 (2026-10-27).** The owner directed the 0.32.0 release on 2026-10-27,
 carrying spec 207's registry schema 1.11.0, built on 207's branch in one
-change, as spec 169 rode spec 195. The tag and publication are the owner's.
+change, as spec 169 rode spec 195. The owner approved its publication on
+2026-10-27: tagged at this change's head once its pull request is open, after
+the packaged-producer check and the release sweep pass on that head.
 
 ## Verification
 
