@@ -51,8 +51,8 @@
       }
     ],
     "specId": "202-openssf-scorecard-reports-on-main",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "52e4f48f2217a21b937fab45e8bdf62c2ef7d0adbf140f559d3ff73557951cb8"
+  "shardHash": "3945fa3f992d20117359e798492d0de09d9bb3829c4872180246ffa43b8ace66"
 }
