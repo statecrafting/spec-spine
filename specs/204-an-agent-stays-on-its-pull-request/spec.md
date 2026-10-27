@@ -4,7 +4,7 @@ title: "An agent stays on its pull request until it is clean, at an owner checkp
 status: approved
 kind: "process"
 created: "2026-10-21"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: low
 depends_on:

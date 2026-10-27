@@ -16,7 +16,7 @@
       }
     ],
     "id": "204-an-agent-stays-on-its-pull-request",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "process",
     "owner": "The spec-spine Authors",
     "references": [
@@ -82,6 +82,6 @@
     "summary": "Opening or updating a pull request is not the end of an agent's task. The agent keeps polling the change's review route every two minutes, answers every review item on the current head (reply first, then resolve), treats every push as a reset, and leaves only on one of four exits: clean, an owner checkpoint, thirty quiet minutes, or a ninety minute ceiling. It reports the exit and the head SHA, and a change left with open items is reported unfinished. The contract is stated over the review route and its required checks; GitHub is the current route, not the authority. The build adds the contract to `AGENTS.md`.\n",
     "title": "An agent stays on its pull request until it is clean, at an owner checkpoint, quiet, or out of time"
   },
-  "shardHash": "8b71fb9197c6c7b8514289e5767dbf3fd2416c394f923c3aea9c87beb96f6cde",
+  "shardHash": "839896181dd2d3b3c1a86d4e759586d2d7cffa06aab3898e1c4a2c468acbe143",
   "specVersion": "1.10.0"
 }
