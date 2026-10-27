@@ -31,7 +31,7 @@
       }
     ],
     "id": "201-a-release-proves-itself-after-it-publishes",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "intent": {
       "goal": "A published release carries everything needed to verify it offline, and the release workflow itself proves the published assets verify.",
       "nonGoals": [
@@ -45,14 +45,14 @@
     "sectionDigests": {
       "1-purpose": "8b39c093a3ad65d5fd139f8d49f6e30ad00be8955d7c62b9cd0bf889f43415ce",
       "2-territory": "e6dda4b548145a5eb5daf21ce423e21ed705ae2a9aca976a910924747d39a5a6",
-      "201-a-release-ships-its-attestation-bundles-requires-signing-and-verifies-what-it-published": "1ca6ff08befe116d5a723620551cb57791c95e9e3207648a64346b0ce60b2087",
+      "201-a-release-ships-its-attestation-bundles-requires-signing-and-verifies-what-it-published": "16bfcc97e10fe902c2143c1f00a455a74e83300ce6bf9fbc2c10d6529eb041f1",
       "3-1-the-bundle-is-a-release-asset": "377ceddfa2d72149896cb74e9a49e4351f15a1fe281ef1e2996788b90751c2df",
       "3-2-signing-is-required": "c455337052c98a87470e3a764b8568a623166c4f4a74e9e6c2321d6b224a481d",
       "3-3-the-release-verifies-what-it-published": "6d9bd1c6e7314984a7779f7c7a2255b93e2df2b6fc844564c625c9cc78dbb7b6",
       "3-4-pinned-like-the-rest": "652e6e9dbad62ce4f012943420e3d90566dc6319341e678f8d9c3ee0812be3ac",
       "3-behavior": "5fa87a0fa979bb4cffe0c8ac1035b2d2910602a7476257bf2fb1a300bea6a386",
       "4-out-of-scope": "7d135799e8356a562d7b9541f3c8dd5ba500ba61d33798f17553cdcc9e19464a",
-      "5-resolved-decisions": "a8834de5f51310bb50d191571861797f2af5e377df9b97ccd538cd793dec2526",
+      "5-resolved-decisions": "107e2f9f1ffd25b98be095eea7c4804c4b0f68e6a1a2d68295995357a53d0f99",
       "verification": "90a9c5e752fb6fd2b4abc3686f3883c8d77fb9e0210be3cc3650e0f0f984a727"
     },
     "sectionHeadings": [
@@ -73,6 +73,6 @@
     "summary": "Spec 019 records each archive's build-provenance attestation only in GitHub's attestation store and leaves the bundle as \"a later additive refinement\". This spec is that refinement and two more. Each archive's Sigstore bundle (`<archive>.intoto.jsonl`) is attached to the GitHub Release next to the archive, so an archive verifies offline. Signing is required on every `v*` tag: a build that cannot obtain the OIDC token or whose attestation step yields no bundle fails before any publish job runs. A final job in `release.yml` downloads what the release actually published and verifies it: every checksum, every attestation against both its attached bundle and the store, and the presence of every archive's SBOM and bundle. A failed check fails the release workflow.\n",
     "title": "A release ships its attestation bundles, requires signing, and verifies what it published"
   },
-  "shardHash": "7693368e18ad8a463a67b91bb1800ce444bd2dee183f1d6b02e87b3a7c7d20de",
+  "shardHash": "57d2858abcd54f2ae54dfd7d5f90b5afd03b1e7c4b263bd5c23fbbbb353f8aab",
   "specVersion": "1.10.0"
 }
