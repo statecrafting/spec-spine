@@ -35,8 +35,8 @@
       }
     ],
     "specId": "206-a-stopped-merge-regenerates-its-derived-tree",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "b390ebecf226458b85f91efcce49272805ade075e0a6a1caaf67bb9f34c3a431"
+  "shardHash": "b1fe349d240187a70c1b6bef9d9fc6fea01c981732edd533cffb36547c1a16d9"
 }

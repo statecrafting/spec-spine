@@ -1,7 +1,7 @@
 ---
 id: "206-a-stopped-merge-regenerates-its-derived-tree"
 title: "A stopped merge regenerates its derived tree, and refuses anything else that conflicts"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-27"
 implementation: pending
@@ -349,6 +349,10 @@ driver call this verb, or retire it; this spec does neither.
   statecraft-cli's change to make once this verb ships.
 
 ## 7. Resolved decisions
+
+**2026-10-27: ratified by the owner.** The owner confirmed every decision
+below as written and directed ratification in this pull request; the owner
+exception approved on its run is the ratification of record.
 
 **D-1 (2026-10-27): one top-level verb, not a flag on `compile` or `check`.**
 `compile` writes one tree and `check` writes nothing; this verb writes both
