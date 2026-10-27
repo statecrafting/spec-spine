@@ -56,8 +56,8 @@
       }
     ],
     "specId": "203-the-determinism-build-restores-a-cargo-cache",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "6d63260a4efef4e7485c7cd53dc21814b92f2641d97f056cb836264b7f030012"
+  "shardHash": "74ced9fbca9fb3236493575c795441920f58db4f013d1b2e1e84f0e24bfe7cf0"
 }
