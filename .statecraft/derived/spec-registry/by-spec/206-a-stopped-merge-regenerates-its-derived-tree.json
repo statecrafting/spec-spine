@@ -1,0 +1,85 @@
+{
+  "record": {
+    "created": "2026-10-27",
+    "dependsOn": [
+      "001-compile-registry",
+      "004-codebase-index",
+      "022-index-sharding",
+      "043-verify-declared-acceptance",
+      "062-one-name-one-freshness-verb",
+      "092-the-engine-ships-governance-not-an-environment",
+      "094-one-gate-and-the-boundaries-it-holds",
+      "122-a-commit-refuses-an-unresolved-merge",
+      "132-one-exit-contract-for-the-family",
+      "162-capability-catalog",
+      "170-a-consumer-is-served-answers-not-access"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_resolve_derived.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/resolve_derived.rs",
+        "planned": true
+      }
+    ],
+    "id": "206-a-stopped-merge-regenerates-its-derived-tree",
+    "implementation": "pending",
+    "intent": {
+      "goal": "After a merge, rebase or cherry-pick stops, one verb settles every derived-tree conflict from the complete merged tree, or refuses and says why.",
+      "nonGoals": [
+        "Resolving a conflict in any authored file, a spec included",
+        "Continuing, committing or aborting the git operation",
+        "Replacing or retiring spec 094's merge driver"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "aea8a722cb830d128163acf8b35c7000abe689f57c290a360aef6a320c9975ac",
+      "2-territory": "1eef5a215c9ee563befe8357b20321b75ff2c6ff701513cc3438c4969a8d42ca",
+      "206-a-stopped-merge-regenerates-its-derived-tree-and-refuses-anything-else-that-conflicts": "3cb04ab9e53072ff536fc05ee6b82f769cf480c64429e184e97ce3668fd1b23b",
+      "3-1-the-verb": "9eab5093fa08e42fd8cd3af8e2928b5fff4485f69e9ab976389f160a926f7e36",
+      "3-2-what-it-reads": "3d2d6b7baa9e642f8897899c1ccb9fa9c30e46957eb4e26dcfdfa9675003ceab",
+      "3-3-when-there-is-nothing-to-resolve": "1865e5eae5d094d22064ef024d5057ef462a16bf80902f205d4a0320f32fa6ef",
+      "3-4-when-it-refuses": "ba9b55d1efed8509fa0f8e360b4dd5a59156a3362922ea5774b8644184f40b57",
+      "3-5-regeneration": "71d2a3af51ac31bfa40c82fede644e06a8b44dd9a89e151f83fa9051d55e2946",
+      "3-6-what-the-merge-did-to-authored-text": "34d841003c2ea720daf850923ea4665788f32c4be5f6a681f6b707ffc456433f",
+      "3-7-the-verdict": "d1af22e2c8a18ff6e1fe092df136b6fa185f326f66f5aae21e1b8bbfdc67389b",
+      "3-behavior": "e75a82818e18d8425385f7f52b0b94d4bdfc970d422d05f9e064789f6739f9dd",
+      "4-relation-to-spec-094-s-merge-driver": "b7602bf72c3bf51affe521a2f911d4a799345f318227bbea497b01397f23a90a",
+      "5-acceptance-criteria": "f6f941ffc7885b164ca9f9e4855ad0831f99a17b7a348cbd29f2c4540b6980ae",
+      "6-out-of-scope": "efe3081e0cc969455fb5e5c90320ed8feeae8b2c41f3afded822f230d52e1cea",
+      "7-resolved-decisions": "10459e02067254a7ed24041e45dce5274f4bb46e9cfbd86f0246ea5560c2b936",
+      "verification": "c47d7c8992bdd9cddbb9611f4846c50fa1cc273ea06d64dcfc7edfed327f0cbd"
+    },
+    "sectionHeadings": [
+      "206: A stopped merge regenerates its derived tree, and refuses anything else that conflicts",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The verb",
+      "3.2 What it reads",
+      "3.3 When there is nothing to resolve",
+      "3.4 When it refuses",
+      "3.5 Regeneration",
+      "3.6 What the merge did to authored text",
+      "3.7 The verdict",
+      "4. Relation to spec 094's merge driver",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/206-a-stopped-merge-regenerates-its-derived-tree/spec.md",
+    "status": "draft",
+    "summary": "A rebase or merge that stops on a conflict in the committed derived tree is resolved by hand today: take either side, run `compile` and `index`, stage the tree, and hope nothing else was conflicted or lying untracked in the working tree when the indexer read it. Every adopter that restacks pull requests has scripted that sequence, and spec 094's merge driver, which covers it inside git, documents that it can emit clean but stale shards because it runs before the merged tree is complete. This spec adds `spec-spine resolve-derived`, run after git has stopped, generalizing statecraft-cli's `scripts/resolve-shard-conflicts.sh`. It refuses when any path outside the derived root is still unmerged, or when the working tree holds anything the compile would read that is not staged; otherwise it regenerates both shard trees from the staged merge, stages exactly the derived root, and then checks what the merge did to authored text: no conflict marker staged, and the carried change's added and removed lines unchanged by the merge. It confirms freshness the way `check` does and reports in the family envelope. It never continues, commits or aborts the operation, and it writes nothing outside the derived root.\n",
+    "title": "A stopped merge regenerates its derived tree, and refuses anything else that conflicts"
+  },
+  "shardHash": "b390ebecf226458b85f91efcce49272805ade075e0a6a1caaf67bb9f34c3a431",
+  "specVersion": "1.10.0"
+}
