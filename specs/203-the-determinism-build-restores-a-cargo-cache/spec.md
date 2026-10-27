@@ -1,7 +1,7 @@
 ---
 id: "203-the-determinism-build-restores-a-cargo-cache"
 title: "The determinism build restores a cargo cache, measured"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-21"
 implementation: complete
@@ -121,6 +121,10 @@ before medians above vary by up to 110 s on one triple.
 - Releasing cache space held by other entries.
 
 ## 5. Resolved decisions
+
+**2026-10-27: ratified by the owner.** The owner confirmed every decision
+below as written and directed ratification in this pull request; the owner
+exception approved on its run is the ratification of record.
 
 **D-1 (2026-10-21): measure on the pull request, then restrict saves.** The
 first commit saves from any ref, so this pull request's own runs can show a
