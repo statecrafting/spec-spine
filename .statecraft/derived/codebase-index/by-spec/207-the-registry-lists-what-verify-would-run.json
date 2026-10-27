@@ -1,0 +1,26 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "009-registry-query-projection-flags",
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "153-a-test-count-is-exact"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/registry_list_filters.rs"
+        }
+      }
+    ],
+    "specId": "207-the-registry-lists-what-verify-would-run",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "da0cad35b638f70dfa18db6f6cb6346a5621b918cacf06da82de9406738d15ae"
+}
