@@ -4,7 +4,7 @@ title: "A release ships its attestation bundles, requires signing, and verifies 
 status: approved
 kind: "tooling"
 created: "2026-10-21"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:

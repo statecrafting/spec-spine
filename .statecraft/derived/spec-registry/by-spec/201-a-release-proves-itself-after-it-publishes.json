@@ -31,7 +31,7 @@
       }
     ],
     "id": "201-a-release-proves-itself-after-it-publishes",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "intent": {
       "goal": "A published release carries everything needed to verify it offline, and the release workflow itself proves the published assets verify.",
       "nonGoals": [
@@ -73,6 +73,6 @@
     "summary": "Spec 019 records each archive's build-provenance attestation only in GitHub's attestation store and leaves the bundle as \"a later additive refinement\". This spec is that refinement and two more. Each archive's Sigstore bundle (`<archive>.intoto.jsonl`) is attached to the GitHub Release next to the archive, so an archive verifies offline. Signing is required on every `v*` tag: a build that cannot obtain the OIDC token or whose attestation step yields no bundle fails before any publish job runs. A final job in `release.yml` downloads what the release actually published and verifies it: every checksum, every attestation against both its attached bundle and the store, and the presence of every archive's SBOM and bundle. A failed check fails the release workflow.\n",
     "title": "A release ships its attestation bundles, requires signing, and verifies what it published"
   },
-  "shardHash": "5a0ed5c620c2d66f28f76f088afce4ecb742902c691e7017009b80b8fa3da12e",
+  "shardHash": "7693368e18ad8a463a67b91bb1800ce444bd2dee183f1d6b02e87b3a7c7d20de",
   "specVersion": "1.10.0"
 }
