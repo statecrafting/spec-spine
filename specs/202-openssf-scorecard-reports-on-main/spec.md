@@ -1,7 +1,7 @@
 ---
 id: "202-openssf-scorecard-reports-on-main"
 title: "OpenSSF Scorecard reports on main"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-21"
 implementation: complete
@@ -83,6 +83,10 @@ through the Statecraft profile.
 - A README badge.
 
 ## 5. Resolved decisions
+
+**2026-10-27: ratified by the owner.** The owner confirmed every decision
+below as written and directed ratification in this pull request; the owner
+exception approved on its run is the ratification of record.
 
 **D-1 (2026-10-21): a new spec, not an amendment of 019.** 019 is about the
 release's artifacts; Scorecard reads the repository and runs outside the
