@@ -197,3 +197,38 @@ fn an_emitted_affected_read_conforms_to_the_embedded_schema() {
     let bad = serde_json::json!({ "schemaVersion": "0.10.0", "selected": [{ "id": "x", "rule": "engine-source", "plan": [] }] });
     assert!(!validator.is_valid(&bad));
 }
+
+#[test]
+fn a_declared_acceptance_conforms_to_the_shard_schema() {
+    // Spec 207 §3.3 and acceptance 7: the compiled `declaresAcceptance` is
+    // accepted by the embedded shard schema, and is written only when the
+    // spec's own block holds a command.
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path().join("specs").join("001-runs");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("spec.md"),
+        "---\nid: \"001-runs\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-10-27\"\nsummary: \"s\"\n---\n\
+         # 001\n\n## Verification\n\n```verify:cli\ntrue\n```\n",
+    )
+    .unwrap();
+    write_spec(tmp.path(), "002-silent", "");
+    let outcome = compile(&Config::default(), tmp.path()).unwrap();
+    let files = registry_shard_files(&outcome.shards).unwrap();
+    let schema: serde_json::Value = serde_json::from_str(REGISTRY_SPEC_SHARD_SCHEMA).unwrap();
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    for (name, content) in &files {
+        let instance: serde_json::Value = serde_json::from_str(content).unwrap();
+        assert!(validator.is_valid(&instance), "{name} does not conform");
+        let field = instance["record"].get("declaresAcceptance");
+        if name.contains("001-runs") {
+            assert_eq!(field, Some(&serde_json::json!(true)), "{name}");
+        } else {
+            assert_eq!(field, None, "{name}");
+        }
+    }
+    // The schema refuses a value the compiler never writes.
+    let mut forged: serde_json::Value = serde_json::from_str(&files[1].1).unwrap();
+    forged["record"]["declaresAcceptance"] = serde_json::json!(false);
+    assert!(!validator.is_valid(&forged));
+}

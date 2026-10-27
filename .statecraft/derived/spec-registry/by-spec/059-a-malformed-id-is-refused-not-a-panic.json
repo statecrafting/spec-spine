@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-08",
+    "declaresAcceptance": true,
     "dependsOn": [
       "001-compile-registry",
       "046-depends-on-ordinal-monotonicity"
@@ -67,5 +68,5 @@
     "title": "A malformed id is refused, not a panic"
   },
   "shardHash": "800096a75b73322013e40cf96347551676e40022b3f1f09dc9431f12f0d44989",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

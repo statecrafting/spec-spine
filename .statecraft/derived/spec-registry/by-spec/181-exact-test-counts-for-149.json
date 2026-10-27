@@ -7,6 +7,7 @@
       "149-the-installer-is-tested"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "149-the-installer-is-tested",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 149"
   },
   "shardHash": "6a0b9d61db368efb5dee34c1f56e8e8dd367b115361128d9af00c0274dd56b24",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "093-the-harness-this-repository-runs",
       "156-statecraft-profile-10-governs-this-repository"
@@ -94,5 +95,5 @@
     "title": "Ratification has two paths, both an owner approval"
   },
   "shardHash": "4fb503836310b07a4e80384f94e85a2a9e34e84fa87259d044435a0c43d3348f",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

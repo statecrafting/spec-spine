@@ -7,6 +7,7 @@
       "3.4"
     ],
     "created": "2026-09-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "127-a-derived-file-is-where-its-path-says",
       "144-a-repository-path-is-one-type"
@@ -62,5 +63,5 @@
     "title": "A link above the derived root is checked on read"
   },
   "shardHash": "4a41ec4e0843bce54be04b6f82aeaac2af3d2ec33eca60d1f4ea6feea3ee016f",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

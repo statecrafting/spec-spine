@@ -9,6 +9,7 @@
       "3.2"
     ],
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "005-coupling-gate",
       "081-coupling-sees-the-change-being-committed"
@@ -162,5 +163,5 @@
     "title": "A deleted path is judged where it lived"
   },
   "shardHash": "92deddec966ed40e749a690840fac270eb04185625ec4ef903bbcb7a1f858e51",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

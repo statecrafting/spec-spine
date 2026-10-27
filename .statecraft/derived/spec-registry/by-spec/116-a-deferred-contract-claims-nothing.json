@@ -7,6 +7,7 @@
       "3"
     ],
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "003-conformance-lint"
     ],
@@ -113,5 +114,5 @@
     "title": "A deferred contract claims nothing"
   },
   "shardHash": "d2de257e693f3d7031068d84b57c332445f48344076295f5b8921ed915aafa87",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

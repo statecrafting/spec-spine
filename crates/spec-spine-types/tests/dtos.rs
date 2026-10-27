@@ -78,7 +78,7 @@ fn schema_versions_are_pinned() {
     // additive MINOR (spec 111), optional `moves`, a spec's declared
     // relocation, split, merge or removal of a path. A consumer that knows
     // 1.x keeps working, which is the MINOR rule.
-    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.10.0");
+    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.11.0");
     // 1.1.0: additive MINOR (spec 023): unresolved-unit severity tiers (W-001 /
     // W-002 warnings) on top of the spec-024 sharded MAJOR; 1.2.0: additive
     // MINOR (spec 141), the global inputs sidecar; 1.3.0: semantics-only MINOR

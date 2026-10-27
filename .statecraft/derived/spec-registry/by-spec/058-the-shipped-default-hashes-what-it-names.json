@@ -4,6 +4,7 @@
       "054-the-scaffold-ships-what-adopters-wrote"
     ],
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "004-codebase-index",
       "050-claimed-but-unwitnessed",
@@ -110,5 +111,5 @@
     "title": "The shipped default hashes what it names"
   },
   "shardHash": "79d02e75489e43717958d26c93e1686e7c2a744ec7743ba5a85ed26321b24ac4",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

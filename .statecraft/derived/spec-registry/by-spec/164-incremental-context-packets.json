@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "107-a-context-closure-is-declared",
       "110-an-interface-reference-is-digest-pinned",
@@ -384,5 +385,5 @@
     "title": "A packet delta reproduces the packet it names"
   },
   "shardHash": "cae28220c78428952024d6bcd20ae6f77adcf0b44d9c932115d859bbec1cac3e",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -5,6 +5,7 @@
       "071-a-change-is-classified-under-the-bases-rules"
     ],
     "created": "2026-09-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "018-structured-partial-supersedes",
       "071-a-change-is-classified-under-the-bases-rules",
@@ -252,5 +253,5 @@
     "title": "A relocation is proven"
   },
   "shardHash": "4b5891b8d766c1e15815cb5f773e8599e1978120484688ae706a36de3679b5ac",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

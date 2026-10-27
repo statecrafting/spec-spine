@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-11",
+    "declaresAcceptance": true,
     "dependsOn": [
       "021-ledger-seal",
       "022-index-sharding",
@@ -172,5 +173,5 @@
     "title": "An authority snapshot says what it read"
   },
   "shardHash": "87e082530ece8d7bbca3195601cac522ce362f3a0241f60fc427930a4e2b24f7",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

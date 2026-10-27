@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-10-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "093-the-harness-this-repository-runs",
       "198-ratification-is-the-owner-review-exception"
@@ -83,5 +84,5 @@
     "title": "An agent stays on its pull request until it is clean, at an owner checkpoint, quiet, or out of time"
   },
   "shardHash": "85ad1d6803feaaa491dc17fd4c57757349967f84a876d03b22e274408b26d027",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

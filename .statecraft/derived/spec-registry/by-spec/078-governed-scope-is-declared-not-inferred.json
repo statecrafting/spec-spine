@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-15",
+    "declaresAcceptance": true,
     "dependsOn": [
       "005-coupling-gate",
       "008-coupling-floor-claim-precedence",
@@ -199,5 +200,5 @@
     "title": "Governed scope is declared, not inferred"
   },
   "shardHash": "97010b1a9c2fa3d09b038af92bdd5854af33ea21b2327698efda4d0b14ae7752",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

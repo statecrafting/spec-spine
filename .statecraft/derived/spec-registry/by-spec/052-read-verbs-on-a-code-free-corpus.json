@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "010-index-render-orphans",
       "029-ownership-coverage",
@@ -108,5 +109,5 @@
     "title": "Two read verbs that mislead a specify-first corpus"
   },
   "shardHash": "e6c86e8e8dec733f4cf36ac1e5b22dcce9d25357e9a0d3a3b9b6d927063f4c3b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

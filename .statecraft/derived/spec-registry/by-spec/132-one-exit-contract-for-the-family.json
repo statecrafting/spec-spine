@@ -25,6 +25,7 @@
       "070-an-authority-snapshot-says-what-it-read"
     ],
     "created": "2026-09-24",
+    "declaresAcceptance": true,
     "dependsOn": [
       "034-machine-readable-verdicts",
       "062-one-name-one-freshness-verb",
@@ -746,5 +747,5 @@
     "title": "One exit contract for the family"
   },
   "shardHash": "5396196bcf4361912fd38ba1d51506492d5f0cff46b5fb1bd3e640d761911e1b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

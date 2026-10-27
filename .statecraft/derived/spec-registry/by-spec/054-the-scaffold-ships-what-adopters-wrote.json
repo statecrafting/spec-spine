@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "036-declared-state-dir",
       "040-governance-document-gaps"
@@ -81,5 +82,5 @@
     "title": "The scaffold ships what every adopter wrote by hand"
   },
   "shardHash": "4faa740068f3eaa8486053e4f457477224a8bccf09fde44a2010236f1d488afa",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-17",
+    "declaresAcceptance": true,
     "dependsOn": [
       "043-verify-declared-acceptance",
       "063-planned-territory-is-declared-not-inferred",
@@ -83,5 +84,5 @@
     "title": "The template teaches the whole grammar"
   },
   "shardHash": "1b3f4f0f09783f6648146adf02d9d24032556b1f37a92b6e924e24f06ed817a8",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

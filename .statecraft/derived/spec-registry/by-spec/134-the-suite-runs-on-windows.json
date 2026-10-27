@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-24",
+    "declaresAcceptance": true,
     "dependsOn": [
       "094-one-gate-and-the-boundaries-it-holds"
     ],
@@ -102,7 +103,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "f1b7d855e65f52e2000045ccd8c85089f402e9b9f4f51c4611b78f006567c454",
-      "134-the-suite-runs-on-windows": "91d27699a5257c94f2076c0b4cbfafc104d0598e7615029be066e80f1ce4dd1f",
+      "134-the-suite-runs-on-windows": "fb1d227983e39679c3428fb0836f45d64585596cc56eef1aac5297404614eb14",
       "2-territory": "c80e1d6056eaf501cc9d1d374519364df053c8599b55f7ba9fe32dc773ece246",
       "3-1-a-windows-test-check-of-its-own": "689c07cc9f937757b6b2427d6e552d04e1dda1894862855e9c679f79a56ffbd5",
       "3-2-nothing-is-skipped-silently": "855cd5b5c4b2e7cd56a7524c0237a6f5050ed7d8701d3eb15d82159df05d4888",
@@ -110,7 +111,7 @@
       "3-behavior": "a373c6f62260ae76ee5f0370f4891abab632c8bf4bf039e9291d7af2906a26ce",
       "4-out-of-scope": "70f3afa5ca642065beb5dd7ed90f24e51fec22fda263eeb05d19ef60dd822f95",
       "5-resolved-decisions": "0fc971b860ea958247b284954c0c38b08806e94e4a9f2153b6dea981365851a8",
-      "verification": "3c70b53b30311b1928b106fb6a4c91ac952c08e46482d592a53074b80a0f8f59"
+      "verification": "f5375fef844443b81a1370168cc02dbf8b0f410c74c972af0bbcbe758e8cd110"
     },
     "sectionHeadings": [
       "134: The suite runs on Windows",
@@ -129,6 +130,6 @@
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "3ad99b365f02eae85950ec250c45b03f8b256e53d85443a232b2176527a93801",
-  "specVersion": "1.10.0"
+  "shardHash": "3e29c8fe47d062366eac2963304aee3138f459ed9ec8b4f78b278f0cbf8b8432",
+  "specVersion": "1.11.0"
 }

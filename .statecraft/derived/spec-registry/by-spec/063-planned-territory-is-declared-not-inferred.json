@@ -4,6 +4,7 @@
       "023-unresolved-unit-severity"
     ],
     "created": "2026-09-08",
+    "declaresAcceptance": true,
     "dependsOn": [
       "003-conformance-lint",
       "004-codebase-index",
@@ -204,5 +205,5 @@
     "title": "Planned territory is declared, not inferred"
   },
   "shardHash": "12149b11eb89f226a2835a3e44cde88d4346502f990e40728cf954d6bf5e6446",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

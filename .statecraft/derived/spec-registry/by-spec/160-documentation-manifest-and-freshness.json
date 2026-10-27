@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-26",
+    "declaresAcceptance": true,
     "dependsOn": [
       "074-a-governed-read-names-its-version",
       "110-an-interface-reference-is-digest-pinned",
@@ -273,5 +274,5 @@
     "title": "Declare documentation inputs and freshness"
   },
   "shardHash": "1cfda41e4766ca9633670ff7ed55a72bdca618426f35553ce8d5ead10488554b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -7,6 +7,7 @@
       "138-the-legacy-ledger-is-paid-coupling-and-freshness"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "138-the-legacy-ledger-is-paid-coupling-and-freshness",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 138"
   },
   "shardHash": "d03b8aa1178b86c4e325f13e93b924284d3f660c065adf2b79fe5d3fb6d70905",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

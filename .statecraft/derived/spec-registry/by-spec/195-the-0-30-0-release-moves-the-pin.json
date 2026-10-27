@@ -7,6 +7,7 @@
       "193-the-0-29-0-release-moves-the-pin"
     ],
     "created": "2026-10-10",
+    "declaresAcceptance": true,
     "dependsOn": [
       "124-the-expansion-line-carries-its-own-version",
       "156-statecraft-profile-10-governs-this-repository",
@@ -59,14 +60,14 @@
     "kind": "tooling",
     "sectionDigests": {
       "1-purpose": "5cb20f6dd94b46a18a54fca7a36fb08e9f836d454c95b2853b3310110a52b273",
-      "195-the-0-30-0-release-moves-the-package-version-and-the-pin-together": "d5e6fde3b26333bb68a85fbeaa28e68d7fd14bce2497db5c375e90ae7d13cc3b",
+      "195-the-0-30-0-release-moves-the-package-version-and-the-pin-together": "2b22c9451bd41f75c40c71afa48af44865b2b28fced5b18ce450c08657f7cc0d",
       "2-territory": "73057885781d771b95fd090af8963690298ac7e4b8d7a544b1e1955d3636c9f7",
       "3-1-one-version-one-pin": "ebf349382a598a8ed0aa3bd882fc6b2590b954fa858bcfe1adb63c364c675f57",
       "3-2-the-release-precedes-the-merge": "e48f9fa4e3749e252e4231678e923c0861210ff463d355f79ed9b45079c3fc72",
       "3-3-acceptance": "29140da9d7ac0ef88f5a27c10abd0034d009122a418559e89eb6f894eabf1f0b",
       "3-behavior": "efe63b30952731823239f3eb455eecd4123d1740d5a5522d4d567c701837fb12",
       "decisions": "8c46c10f514e0e5fdb96de6bc67ca5dfea544e605537877af8267d641eca3d05",
-      "verification": "f381031072db413833f30ad20f3aed2e1aee9979d69639a31210ddcb59a9aa93"
+      "verification": "cdf1e40c4240940259a226377696be0af4e3dddd788208f1638dc39517f5eae9"
     },
     "sectionHeadings": [
       "195: The 0.30.0 release moves the package version and the pin together",
@@ -84,6 +85,6 @@
     "summary": "`main` moves from 0.29.0 to 0.30.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. As for 0.29.0 (spec 193 3.2), the release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
     "title": "The 0.30.0 release moves the package version and the pin together"
   },
-  "shardHash": "ddd5201f3e30e8085d617d2ad545533973b5a2d7afa96fa672f3b4a8140926e2",
-  "specVersion": "1.10.0"
+  "shardHash": "89578fdcf63936eb685cc491812f6ff864c508ea815a2b129803531de1ad1b7d",
+  "specVersion": "1.11.0"
 }

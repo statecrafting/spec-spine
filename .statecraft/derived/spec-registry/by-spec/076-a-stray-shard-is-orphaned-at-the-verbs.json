@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-14",
+    "declaresAcceptance": true,
     "dependsOn": [
       "044-index-diagnostics-reach-a-gate",
       "062-one-name-one-freshness-verb",
@@ -112,5 +113,5 @@
     "title": "A stray shard is orphaned at the verbs"
   },
   "shardHash": "769dfafaff08b3dfe9fcfcf40b4d06f089a30f294befa3388d7e2974f1552674",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

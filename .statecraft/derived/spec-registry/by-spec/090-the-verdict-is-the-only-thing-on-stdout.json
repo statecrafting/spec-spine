@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-19",
+    "declaresAcceptance": true,
     "dependsOn": [
       "032-stdout-closed-reader",
       "034-machine-readable-verdicts",
@@ -95,5 +96,5 @@
     "title": "The verdict is the only thing on stdout"
   },
   "shardHash": "01a6c552e5d07e33ee95bb256ebfd002229f5d9023d815a25232e5abc13ebbf6",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "003-conformance-lint",
       "030-dependency-cycle-refusal",
@@ -84,5 +85,5 @@
     "title": "A dependency points backward, and the corpus can say so"
   },
   "shardHash": "e301b37d58f4881b5384283354b640b11640accaaa6026b77111918bc69abb12",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

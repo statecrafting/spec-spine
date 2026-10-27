@@ -4,6 +4,7 @@
       "004-codebase-index"
     ],
     "created": "2026-10-04",
+    "declaresAcceptance": true,
     "dependsOn": [
       "004-codebase-index",
       "005-coupling-gate",
@@ -99,5 +100,5 @@
     "title": "A dependency bump in a hashed manifest is not a governed change"
   },
   "shardHash": "ca907255530b4bd3365a1de85d77e0b21719bfdfa8b477ea6dfbc5a89f4b28ba",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

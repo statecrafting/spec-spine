@@ -6,6 +6,7 @@
       "145-an-unresolved-claim-is-not-called-stale"
     ],
     "created": "2026-09-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "096-compaction-is-a-verb-not-a-session",
       "132-one-exit-contract-for-the-family",
@@ -175,5 +176,5 @@
     "title": "A refusal says what it is in every form"
   },
   "shardHash": "71f16e5a5bafc8a075883b14213a1bbf5b8b09e77998908108862d2e19c26912",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

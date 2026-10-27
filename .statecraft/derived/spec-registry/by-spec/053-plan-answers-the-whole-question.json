@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "035-registry-plan-ready-set",
       "041-in-progress-is-in-flight",
@@ -99,5 +100,5 @@
     "title": "The plan answers the whole question, and names one pick"
   },
   "shardHash": "4db0b1220887007002c094d8ad4fe470e61891ee6d5eaa9ed9de206a27c05bb4",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

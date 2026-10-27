@@ -7,6 +7,7 @@
       "049-compile-one-spec"
     ],
     "created": "2026-09-17",
+    "declaresAcceptance": true,
     "dependsOn": [
       "049-compile-one-spec",
       "071-a-change-is-classified-under-the-bases-rules",
@@ -68,5 +69,5 @@
     "title": "A version pin is not a contract"
   },
   "shardHash": "ef2d5a2ea0f88f036857b9f6d81a38d2ace5e2bff1317208f1dc757d722a9312",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

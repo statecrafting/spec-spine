@@ -77,7 +77,11 @@
 /// relations from an obligation to a typed target, every spec reference
 /// normalized to its full id. Absent on every existing spec, so only
 /// `specVersion` restamps and no `shardHash` moves.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.10.0";
+/// `1.11.0` (spec 207): additive `declaresAcceptance` on a record, true when
+/// the spec's own `## Verification` section holds a command, omitted when
+/// false. Present on most existing specs, so their shard bytes change beside
+/// `specVersion`; no `shardHash` moves (it is over `spec.md`'s bytes).
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.11.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 011).

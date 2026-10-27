@@ -8,6 +8,7 @@
       "4"
     ],
     "created": "2026-10-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "006-distribution",
       "019-release-supply-chain-artifacts"
@@ -74,5 +75,5 @@
     "title": "A release ships its attestation bundles, requires signing, and verifies what it published"
   },
   "shardHash": "57d2858abcd54f2ae54dfd7d5f90b5afd03b1e7c4b263bd5c23fbbbb353f8aab",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

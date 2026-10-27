@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-11",
+    "declaresAcceptance": true,
     "dependsOn": [
       "000-spec-spine-bootstrap",
       "005-coupling-gate",
@@ -179,5 +180,5 @@
     "title": "A change is classified under the base's rules"
   },
   "shardHash": "cd5644d6b43c0d523c2ea36fb03445ee1664ae9bb985581c891c787b8986088b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -7,6 +7,7 @@
       "052-read-verbs-on-a-code-free-corpus"
     ],
     "created": "2026-09-17",
+    "declaresAcceptance": true,
     "dependsOn": [
       "052-read-verbs-on-a-code-free-corpus",
       "074-a-governed-read-names-its-version",
@@ -73,5 +74,5 @@
     "title": "An exact key set refuses what the rule allows"
   },
   "shardHash": "4cd3014ebdb3bd09a4dfe70c233ad1cb09c8d60ea18563e82eb4569171118a64",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

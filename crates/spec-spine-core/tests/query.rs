@@ -57,6 +57,7 @@ fn list_filters_by_status() {
         &reg,
         &ListFilter {
             status: Some(Status::Approved),
+            ..ListFilter::default()
         },
     );
     assert_eq!(approved.len(), 2);
@@ -64,6 +65,7 @@ fn list_filters_by_status() {
         &reg,
         &ListFilter {
             status: Some(Status::Draft),
+            ..ListFilter::default()
         },
     );
     assert!(drafts.is_empty());

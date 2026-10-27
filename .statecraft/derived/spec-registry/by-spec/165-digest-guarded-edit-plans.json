@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "037-amendment-authoring",
       "106-obligations-are-declared-constraints",
@@ -348,5 +349,5 @@
     "title": "Plan a governed edit without applying it"
   },
   "shardHash": "00b7bf96b2b124b80cc7bf961f00bede756e37ebdc3007fa311a3d835a39ea7d",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

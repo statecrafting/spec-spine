@@ -1317,7 +1317,11 @@ fn operations() -> Vec<Operation> {
             "List specs (optionally filtered by status)",
             &["002-registry-query"],
         )
-        .cli("registry list", "read-document", &["--status=STATUS", "--json", "--ids-only"])
+        .cli(
+            "registry list",
+            "read-document",
+            &["--status=STATUS", "--implementation=STATE", "--has-acceptance", "--json", "--ids-only"],
+        )
         .authority(&["gate-verdict"])
         .finding(&["stale"])
         .read("registry-list")

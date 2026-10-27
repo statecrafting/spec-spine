@@ -79,18 +79,68 @@ fn reject_unknown_major(what: &str, found: &str, ours: &str) -> Result<(), Error
     Ok(())
 }
 
-/// Filter for [`list`]. Extend additively as needs grow.
+/// Filter for [`list`]. Extend additively as needs grow. Every set member
+/// narrows the result, so the filters intersect (spec 207 §3.4).
 #[derive(Debug, Default, Clone)]
 pub struct ListFilter {
     pub status: Option<Status>,
+    /// Spec 207 §3.1: keep the specs whose frontmatter `implementation`
+    /// equals this value. A spec with no value matches no state.
+    pub implementation: Option<Implementation>,
+    /// Spec 207 §3.2: keep the specs for which `verify <id>` would run at
+    /// least one command, resolved through `amendsVerification`.
+    pub has_acceptance: bool,
 }
 
 /// Specs matching `filter`, in registry (id) order.
 pub fn list<'a>(registry: &'a Registry, filter: &ListFilter) -> Vec<&'a SpecRecord> {
+    let sources = filter.has_acceptance.then(|| acceptance_sources(registry));
+    let declares: BTreeMap<&str, bool> = registry
+        .specs
+        .iter()
+        .map(|s| (s.id.as_str(), s.declares_acceptance))
+        .collect();
     registry
         .specs
         .iter()
         .filter(|s| filter.status.is_none_or(|st| s.status == st))
+        .filter(|s| {
+            filter
+                .implementation
+                .is_none_or(|want| s.implementation == Some(want))
+        })
+        .filter(|s| {
+            let Some(sources) = &sources else {
+                return true;
+            };
+            let from = sources.get(&s.id).map_or(s.id.as_str(), String::as_str);
+            declares.get(from).copied().unwrap_or(false)
+        })
+        .collect()
+}
+
+/// Spec 207 §3.2: for each spec whose `## Verification` block another spec
+/// replaces, the id of the spec whose block `verify <id>` runs. A spec absent
+/// from the map answers from its own block.
+///
+/// The chain is the one `verify` follows (spec 082 3.2, transitively as spec
+/// 153 3.2 does), by the same code: the holder rule and the chain walk live in
+/// [`crate::verify`], and this reads their inputs from the compiled records
+/// instead of from spec text, so the answer comes from the committed ledger
+/// (207 D-1). Pure.
+pub fn acceptance_sources(registry: &Registry) -> BTreeMap<String, String> {
+    let mut records: Vec<&SpecRecord> = registry.specs.iter().collect();
+    records.sort_by(|a, b| a.id.cmp(&b.id));
+    let holders = crate::verify::holders_from(
+        records
+            .iter()
+            .map(|r| (r.id.as_str(), r.status, r.amends_verification.as_slice())),
+    );
+    records
+        .iter()
+        .filter_map(|r| {
+            crate::verify::follow_holders(&holders, &r.id).map(|from| (r.id.clone(), from))
+        })
         .collect()
 }
 

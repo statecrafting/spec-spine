@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-06",
+    "declaresAcceptance": true,
     "dependsOn": [
       "015-short-id-resolution",
       "034-machine-readable-verdicts"
@@ -146,5 +147,5 @@
     "title": "`spec-spine verify <id>`: run a spec's declared acceptance"
   },
   "shardHash": "d0b7f941aae19138d093ba4d258c3b7adb834d57dac3775df93d1a3339ae44e3",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

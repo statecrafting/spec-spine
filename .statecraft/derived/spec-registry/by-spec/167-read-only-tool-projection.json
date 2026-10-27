@@ -4,6 +4,7 @@
       "162-capability-catalog"
     ],
     "created": "2026-10-10",
+    "declaresAcceptance": true,
     "dependsOn": [
       "074-a-governed-read-names-its-version",
       "132-one-exit-contract-for-the-family",
@@ -272,5 +273,5 @@
     "title": "Project cataloged reads as read-only tools"
   },
   "shardHash": "e0093604b3947840d86a7197407a5495c72ffc497249edd2340578a6b82f7e0b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

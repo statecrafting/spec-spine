@@ -7,6 +7,7 @@
       "156-statecraft-profile-10-governs-this-repository"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "151-carried-acceptance-tests-what-it-names",
       "156-statecraft-profile-10-governs-this-repository"
@@ -18,7 +19,7 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "e496caf1dc3d8dc2445dfe03da8bbab62fc2716c4d7e32a29f3cde000681a68d",
-      "187-exact-test-counts-for-156": "a755ce29df7d8c3656620e0246f3e055a4b496395298afdc09babbeacbaa1449",
+      "187-exact-test-counts-for-156": "419f35dd16027898bbaf7f16bdf41d89a9293f6d62c0938a1a3eaa351a6205c5",
       "2-territory": "655644e55180b34a2baa4363fc082c994d06165b15eb851dbba54e57f8496ddf",
       "3-1-156-s-block-is-carried": "cadbaef7bd68fbde12931b96804beda2b0afa501ec75ab6decec06caf0e5ea3e",
       "3-2-each-loose-line-names-its-tests": "6fa8c095395dbc52186523a753705e4d6883bfb5b8ba9d816745209edb5e8d60",
@@ -26,7 +27,7 @@
       "3-behavior": "20dddc56793802421a15a4f7673a0f02def89847d719d11ea590e85c2639e18c",
       "4-out-of-scope": "47f9ea54837f5b2ce5b17d6d699e88886b3b9a68a33454b802faac25050fc0aa",
       "5-resolved-decisions": "a50b34e03020f984b78e76c39b7aba404e91d72e55685952c7698b7846a01f94",
-      "verification": "a680cf5a46aa7a78b001d0d1ec074b0ce94c373e026783fc31beec39e9048c9d"
+      "verification": "8fa9029e49c1c4b337ba18ad4ebb8e6a462c06077195d77dbd630e388baf7daf"
     },
     "sectionHeadings": [
       "187: Exact test counts for 156",
@@ -45,6 +46,6 @@
     "summary": "Spec 156's acceptance block carries four lines that accept `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the target runs. This spec holds 156's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
     "title": "Exact test counts for 156"
   },
-  "shardHash": "ecbe8190d5e99e2c435b34ac050bd3f6d6e745f7c5bd474434e760d767c3162e",
-  "specVersion": "1.10.0"
+  "shardHash": "83eb0cc09b95b8fa6db80d9b4ab04466ac32d0f64b1721e67f64dd489249abd5",
+  "specVersion": "1.11.0"
 }

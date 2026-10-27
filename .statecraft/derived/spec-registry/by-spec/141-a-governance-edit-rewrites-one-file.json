@@ -9,6 +9,7 @@
       "069-the-committed-index-is-compared-not-trusted"
     ],
     "created": "2026-09-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "022-index-sharding",
       "060-a-workflow-bump-is-not-a-governed-change",
@@ -283,5 +284,5 @@
     "title": "A governance edit rewrites one file"
   },
   "shardHash": "8729802016e725a418186a4cbbd71af12769270aae413257b498c43210b3d9ff",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

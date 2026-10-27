@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "038-completion-held-to-claims",
       "040-governance-document-gaps",
@@ -86,5 +87,5 @@
     "title": "The contract records the lifecycle table and the extra keys"
   },
   "shardHash": "da314573c6e3d572c7b9c967b30254f33bb2ea935c3d809bf7cd7cd896917e72",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -821,8 +821,9 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
 /// verbatim so downstream-specific keys reach `registry.json` (the overlay seam).
 fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
     let spec_path_for_digests = spec_path.clone();
+    let id = fm.id;
     SpecRecord {
-        id: fm.id,
+        id: id.clone(),
         title: fm.title,
         status: fm.status,
         created: fm.created,
@@ -862,6 +863,10 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         moves: fm.moves,
         relocates: fm.relocates,
         traceability: fm.traceability,
+        // Spec 207 §3.3: the spec's own block, by `verify`'s own parse.
+        declares_acceptance: !crate::verify::plan_from_markdown(&id, body)
+            .commands
+            .is_empty(),
         extra_frontmatter: fm.extra_frontmatter,
     }
 }

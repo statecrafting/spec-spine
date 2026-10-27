@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "001-compile-registry",
       "028-registry-freshness-check",
@@ -136,5 +137,5 @@
     "title": "Validate one draft without a temporary repository"
   },
   "shardHash": "0b45fbd9ec55f54cf2985caa07475ffeccee24feb8d5dd20ca88148d5437eaa3",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

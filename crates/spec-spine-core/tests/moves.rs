@@ -721,6 +721,7 @@ fn minimal_record(id: &str, moves: Vec<MoveDeclaration>) -> SpecRecord {
         moves,
         relocates: Vec::new(),
         traceability: Vec::new(),
+        declares_acceptance: false,
         extra_frontmatter: Default::default(),
     }
 }

@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-10-12",
+    "declaresAcceptance": true,
     "dependsOn": [
       "135-the-toolchain-floor-and-dependencies-are-checked"
     ],
@@ -174,5 +175,5 @@
     "title": "YAML parsing moves off unsafe-libyaml"
   },
   "shardHash": "572fe5f7fc4dbcbb2c9237bafac0b128d5d07a85a3ec2e8be91422fc6211baf2",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

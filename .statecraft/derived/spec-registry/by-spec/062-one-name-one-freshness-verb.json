@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-08",
+    "declaresAcceptance": true,
     "dependsOn": [
       "004-codebase-index",
       "028-registry-freshness-check",
@@ -175,5 +176,5 @@
     "title": "One name for the protocol, one verb for freshness"
   },
   "shardHash": "e2d6697befc5e396309e68107fdb799db8ef5f7a62f1b9b6a6c54ea7d709a72a",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -31,6 +31,7 @@
       "135-the-toolchain-floor-and-dependencies-are-checked"
     ],
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "092-the-engine-ships-governance-not-an-environment",
       "094-one-gate-and-the-boundaries-it-holds",
@@ -217,7 +218,7 @@
       "1-2-adoption-must-not-narrow-the-gate": "c0b6dc20a198b718f7e3f8d6fc7e5a59ee0c292bd5e16c20da62c96fdac3a38b",
       "1-3-the-pin-is-intentionally-different-here": "d49ec9f52f4ef53fe030154305d0dacce2ea6122eaa3bfacd393624d70a34ea5",
       "1-purpose": "f3989359debcb459f218087355e14ba440e1774d4c1ceebea470aa6ae9227fb4",
-      "156-statecraft-profile-11-governs-this-repository": "3568ba4944f114a376de3ca7dce5e39945c25ced1ea49b7f5c7b3421c34776df",
+      "156-statecraft-profile-11-governs-this-repository": "b65764264a2f03a118ef426a54f3f8e5e33e7fbaae141bb1831c3c8a1b94a97c",
       "2-territory": "44e70a43aa2e35f7007790cfc47890a743d662ba6e7828f7eed9226b686891e2",
       "3-1-one-recorded-profile-11-adoption": "4c3c6650b732cf0045f3f0b8a58d7b8dd7beb5c8992366b6dd00725beb8496e6",
       "3-2-profile-11-owns-the-aggregate-and-the-local-gate": "eb640a6243e02e0c875c515ffe0686c640eb8f2c97398ef8efd4a2b5a064cb19",
@@ -229,7 +230,7 @@
       "3-behavior": "ad51d734d2385896dd3fdba1a51f258291cb7f0bdf60f6d9d711326e901edac6",
       "4-out-of-scope": "ff8d21a5a90a9ab242b5a6284bac1ccedcf5f86aeb5461c8bbcf8d74e56b0ea5",
       "5-resolved-decisions": "25d75a23364e59539a51fadec108bb9643c68cb5d965f6a73464883c936e54c6",
-      "verification": "5e76e195df9751fe4b9cc2cf848a56303dcf7a02ecf4548ae1d0979c8fecba68"
+      "verification": "f2dd380d5bced98db5046373e4338c1cf61b1933969af5e8858cc9f9f462abd4"
     },
     "sectionHeadings": [
       "156: Statecraft Profile 11 governs this repository",
@@ -255,6 +256,6 @@
     "summary": "Statecraft is the adopted owner of the managed development environment, but this repository still carries its pre-adoption CI workflow, AI review and instruction surface. Profile 11 is adopted at one recorded identity, with its exact spec-spine pin and managed authority files, while the Windows, MSRV, cargo-deny, no-default-features, self-governance and determinism checks particular to this engine remain required behind the one ci-gate status.\n",
     "title": "Statecraft Profile 11 governs this repository"
   },
-  "shardHash": "e86631495642f71de8186f20a9d92ed54606a759189109f0923785d410fa0a1f",
-  "specVersion": "1.10.0"
+  "shardHash": "f1b2393534070ce1c22a83222d7b6c5ceb91aceee64b51a41716ec820b0e383a",
+  "specVersion": "1.11.0"
 }

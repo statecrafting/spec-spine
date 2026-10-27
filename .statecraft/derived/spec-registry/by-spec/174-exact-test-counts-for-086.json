@@ -7,6 +7,7 @@
       "086-an-exact-key-set-refuses-what-the-rule-allows"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "086-an-exact-key-set-refuses-what-the-rule-allows",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 086"
   },
   "shardHash": "2d690e9d31d7aec172deac4b92093fb1a93fa2c51024f1c098b76bf6ef1a8bdd",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

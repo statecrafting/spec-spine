@@ -5,6 +5,7 @@
       "079-a-blocking-claim-is-not-a-stale-shard"
     ],
     "created": "2026-09-16",
+    "declaresAcceptance": true,
     "dependsOn": [
       "062-one-name-one-freshness-verb",
       "069-the-committed-index-is-compared-not-trusted",
@@ -88,5 +89,5 @@
     "title": "An unresolved claim exits as a validation failure"
   },
   "shardHash": "d7a7b632e562d5509771c8678c75ac4a2fb3161d9e7321ebd8215fa49b904ac0",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

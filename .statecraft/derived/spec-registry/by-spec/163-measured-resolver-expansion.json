@@ -6,6 +6,7 @@
       "155-selected-content-accessor"
     ],
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "004-codebase-index",
       "016-directory-crate-module-units",
@@ -309,5 +310,5 @@
     "title": "Expand structural resolution only where measurement proves it deterministic"
   },
   "shardHash": "527c3a118a9bb02c60a15e1c0fb09cb15b2e19b35a4947f1a5e969a604f657dc",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }
