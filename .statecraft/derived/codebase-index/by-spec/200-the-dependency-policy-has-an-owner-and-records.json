@@ -102,8 +102,8 @@
       }
     ],
     "specId": "200-the-dependency-policy-has-an-owner-and-records",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "1749ffe03037fe6741ccf31fd2cfedbb4843985ea03343a6bc0f8f0f9d137873"
+  "shardHash": "af37695da24928e85b2471ba64990e12837598a59f7ca819d8d9b88fa84a4886"
 }

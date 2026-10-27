@@ -1,7 +1,7 @@
 ---
 id: "200-the-dependency-policy-has-an-owner-and-records"
 title: "The dependency policy has an owner, and its audit and vet records are committed"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-21"
 implementation: complete
@@ -100,6 +100,10 @@ one is a `C-002` refusal. This spec's `establishes` is the claim.
 - Any edit to `deny.toml`'s policy.
 
 ## 5. Resolved decisions
+
+**2026-10-27: ratified by the owner.** The owner confirmed every decision
+below as written and directed ratification in this pull request; the owner
+exception approved on its run is the ratification of record.
 
 **D-1 (2026-10-21): workspace crates are first-party for `cargo vet`.**
 `cargo vet init` marks the three published workspace crates
