@@ -342,9 +342,11 @@ impl Git<'_> {
         Ok((code == 0 && !id.is_empty()).then(|| id.to_string()))
     }
 
-    /// The empty tree, for a carried change with no parent.
+    /// The empty tree, for a carried change with no parent. `output()` gives
+    /// git a null stdin, so `--stdin` hashes empty input on every platform,
+    /// with no `/dev/null` path.
     fn empty_tree(&self) -> Result<String, Error> {
-        let (_, out) = self.run(&["hash-object", "-t", "tree", "/dev/null"], &[])?;
+        let (_, out) = self.run(&["hash-object", "-t", "tree", "--stdin"], &[])?;
         Ok(out.trim().to_string())
     }
 
@@ -448,5 +450,27 @@ impl Git<'_> {
         let excluded = outside(derived);
         args.extend_from_slice(&["--", ":(top)", &excluded]);
         Ok(plan::change_lines(&self.read(&args)?))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_empty_tree_needs_no_dev_null() {
+        let dir = tempfile::tempdir().unwrap();
+        let init = Command::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(["init", "-q"])
+            .status()
+            .unwrap();
+        assert!(init.success());
+        let git = Git { repo: dir.path() };
+        assert_eq!(
+            git.empty_tree().unwrap(),
+            "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+        );
     }
 }
