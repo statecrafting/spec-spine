@@ -1,7 +1,7 @@
 ---
 id: "204-an-agent-stays-on-its-pull-request"
 title: "An agent stays on its pull request until it is clean, at an owner checkpoint, quiet, or out of time"
-status: draft
+status: approved
 kind: "process"
 created: "2026-10-21"
 implementation: pending
@@ -175,6 +175,10 @@ A change `/shepherd` merges has met (a). A CRITICAL stop is exit (b).
   put it.
 
 ## 7. Resolved decisions
+
+**2026-10-27: ratified by the owner.** The owner confirmed every decision
+below as written and directed ratification in this pull request; the owner
+exception approved on its run is the ratification of record.
 
 **D-1 (2026-10-21): the owner checkpoint is its own exit.** The source
 contract has three exits. Here a required job can wait on the owner

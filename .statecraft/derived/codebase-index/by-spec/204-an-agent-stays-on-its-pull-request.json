@@ -65,8 +65,8 @@
       }
     ],
     "specId": "204-an-agent-stays-on-its-pull-request",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "8ace411c2d94cdda802bf172f3c1022d680856e5e748b004bc439265efc4bf5c"
+  "shardHash": "8b71fb9197c6c7b8514289e5767dbf3fd2416c394f923c3aea9c87beb96f6cde"
 }
