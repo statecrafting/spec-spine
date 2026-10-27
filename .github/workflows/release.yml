@@ -16,7 +16,9 @@ name: release
 # archives (no second Rust build); publish-npm is gated on NPM_TOKEN and
 # publish-pypi on vars.PYPI_TRUSTED_PUBLISHING: absent the one-time setup each
 # is a clean no-op. Each archive ships a per-target CycloneDX SBOM and a SLSA
-# build-provenance attestation (spec 019).
+# build-provenance attestation (spec 019), whose Sigstore bundle is attached as
+# `<archive>.intoto.jsonl`; a build that cannot sign fails before any publish,
+# and verify-release re-checks the published release after publish (spec 201).
 
 on:
   push:
@@ -109,10 +111,41 @@ jobs:
         run: |
           set -euo pipefail
           node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));const n=(d.components||[]).length;console.log('SBOM components:',n);if(n===0){console.error('refusing to ship an SBOM with zero components (syft cataloger regression?)');process.exit(1);}" "${ARCHIVE_BASE}.cdx.json"
+      # Spec 201 §3.2: every `v*` tag is a signed release, with no opt-out. A
+      # build that cannot request the OIDC token cannot sign, so it fails here,
+      # before the attestation, and every publish job (`needs: build`) skips.
+      - name: Require signing (OIDC token available)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+            echo "::error title=signing unavailable::no OIDC token (ACTIONS_ID_TOKEN_REQUEST_URL / ACTIONS_ID_TOKEN_REQUEST_TOKEN absent); refusing to publish an unsigned release"
+            exit 1
+          fi
+          echo "OIDC token request available; the archive will be signed"
       - name: Attest build provenance for the archive
+        id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: ${{ env.ARCHIVE_FILE }}
+      # Spec 201 §3.1/§3.2: the Sigstore bundle travels with the archive as
+      # `<archive>.intoto.jsonl`, so an archive verifies offline; an absent or
+      # empty bundle fails the build before anything publishes.
+      - name: Stage the attestation bundle next to its archive
+        shell: bash
+        env:
+          BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          src="${BUNDLE_PATH:-}"
+          # Windows runners hand back a native path; Git Bash reads it via cygpath.
+          if [ -n "$src" ] && command -v cygpath >/dev/null 2>&1; then src="$(cygpath -u "$src")"; fi
+          if [ -z "$src" ] || [ ! -s "$src" ]; then
+            echo "::error title=no attestation bundle::attestation produced no bundle for ${ARCHIVE_FILE}; refusing to publish an unsigned release"
+            exit 1
+          fi
+          cp "$src" "${ARCHIVE_FILE}.intoto.jsonl"
+          ls -la "${ARCHIVE_FILE}.intoto.jsonl"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -123,6 +156,7 @@ jobs:
             spec-spine-*.zip
             spec-spine-*.zip.sha256
             spec-spine-*.cdx.json
+            spec-spine-*.intoto.jsonl
           if-no-files-found: error
 
   publish:
@@ -145,6 +179,73 @@ jobs:
           files: dist/*
           fail_on_unmatched_files: true
           generate_release_notes: true
+
+  # Spec 201 §3.3: the release proves what it published. This job reads the
+  # GitHub Release for the tag (the assets a consumer downloads, not the build
+  # artifacts) and fails the run unless every triple's archive, .sha256, SBOM
+  # and attestation bundle are present, the checksum matches, and the
+  # attestation verifies both against the attached bundle and against the
+  # attestation store. It unpublishes nothing: a red run is the signal, and the
+  # remedy is the maintainer's (docs/releasing.md).
+  verify-release:
+    name: verify the published release
+    needs: publish
+    runs-on: ubuntu-latest
+    # attestations: read because `gh attestation verify` without --bundle reads
+    # the attestation store through the API.
+    permissions:
+      contents: read
+      attestations: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Download the published release assets
+        run: |
+          set -euo pipefail
+          mkdir -p published
+          gh release download "$TAG" --repo "$REPO" --dir published
+          ls -la published
+      - name: Verify every archive's checksum, SBOM and attestation (bundle and store)
+        working-directory: published
+        run: |
+          set -uo pipefail
+          failures=0
+          fail() { echo "::error title=verify-release::$1"; failures=$((failures + 1)); }
+          for triple in x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
+                        x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-msvc; do
+            ext=tar.gz; [ "$triple" = x86_64-pc-windows-msvc ] && ext=zip
+            archive="spec-spine-${TAG}-${triple}.${ext}"
+            echo "::group::${archive}"
+            # 1. the archive, its .sha256, its SBOM and its bundle are all present.
+            missing=0
+            for f in "$archive" "${archive}.sha256" "spec-spine-${TAG}-${triple}.cdx.json" "${archive}.intoto.jsonl"; do
+              if [ ! -s "$f" ]; then fail "missing or empty release asset: $f"; missing=1; fi
+            done
+            if [ "$missing" -eq 0 ]; then
+              # 2. the archive's SHA-256 equals its .sha256 sidecar.
+              expected="$(awk 'NR == 1 { print tolower($1) }' "${archive}.sha256")"
+              actual="$(sha256sum "$archive" | awk '{ print $1 }')"
+              if [ "$expected" = "$actual" ]; then
+                echo "sha256 ok: $actual"
+              else
+                fail "sha256 mismatch for $archive: sidecar $expected, asset $actual"
+              fi
+              # 3. the attestation verifies against the attached bundle.
+              gh attestation verify "$archive" --bundle "${archive}.intoto.jsonl" --repo "$REPO" \
+                || fail "attestation does not verify against the attached bundle: $archive"
+              # 4. the attestation verifies against the attestation store.
+              gh attestation verify "$archive" --repo "$REPO" \
+                || fail "attestation does not verify against the attestation store: $archive"
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$failures" -ne 0 ]; then
+            echo "verify-release: $failures check(s) failed for $TAG; the release is published but does not verify (docs/releasing.md)" >&2
+            exit 1
+          fi
+          echo "verify-release: every published asset for $TAG verifies"
 
   publish-crates:
     name: publish to crates.io

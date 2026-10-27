@@ -4,7 +4,7 @@ title: "A release ships its attestation bundles, requires signing, and verifies 
 status: approved
 kind: "tooling"
 created: "2026-10-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -155,6 +155,30 @@ the first acceptance over 019's steps.
 **D-3 (2026-10-21): verification runs inside `release.yml`.** The repository
 has no release script; a separate workflow triggered on `release: published`
 would not fail the run that published, which is the run a maintainer watches.
+
+**D-4 (2026-10-27): presence means present and non-empty.** §3.3 item 1 says
+"present"; `verify-release` refuses an asset that is absent or zero bytes,
+the same test §3.2 applies to the bundle in the build. A zero-byte asset is
+not a usable archive, sidecar, SBOM or bundle, and checking emptiness costs
+nothing. The rejected alternative, existence only, would pass a truncated
+upload to the checksum step and report it as a mismatch rather than as the
+missing asset it is.
+
+**D-5 (2026-10-27): `verify-release` reports every failure, then fails once.**
+The job runs all four checks for all five triples and exits 1 at the end if
+any failed, each failure an `::error` line naming the asset and the check.
+Stopping at the first failure was rejected: the maintainer's remedy
+(`docs/releasing.md`) depends on knowing whether one asset or every asset is
+bad.
+
+**D-6 (2026-10-27): the verify job names the repository from the run.** The
+in-workflow `gh attestation verify` calls pass `--repo` from
+`github.repository`, not the literal `statecrafting/spec-spine` the
+consumer command in §3.1 uses, so a fork's tag verifies against its own
+attestations instead of failing against upstream's. The runbook keeps the
+literal for consumers. The bundle path from `actions/attest-build-provenance`
+is converted with `cygpath` when present, because the Windows runner returns
+a native path to the Git Bash step that copies it.
 
 ## Verification
 

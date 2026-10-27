@@ -139,12 +139,63 @@ same `build` matrix (no second Rust build):
   SBOM with zero components.
 - a **SLSA build-provenance attestation** over the archive, recorded in GitHub's
   attestation store via `actions/attest-build-provenance` (no long-lived token).
+  Its Sigstore bundle is also attached to the GitHub Release as
+  `spec-spine-<tag>-<triple>.<ext>.intoto.jsonl`, named after the archive it
+  attests (spec 201, amending 019 §3 and §4).
 
-Verify a downloaded archive:
+`<ext>` is `tar.gz` for the four Unix triples and `zip` for
+`x86_64-pc-windows-msvc`. Verify a downloaded archive offline, against its
+attached bundle:
 
 ```sh
-gh attestation verify spec-spine-<tag>-<triple>.tar.gz --repo statecrafting/spec-spine
+gh attestation verify spec-spine-<tag>-<triple>.<ext> \
+  --bundle spec-spine-<tag>-<triple>.<ext>.intoto.jsonl \
+  --repo statecrafting/spec-spine
 ```
+
+or against the attestation store (needs the GitHub API):
+
+```sh
+gh attestation verify spec-spine-<tag>-<triple>.<ext> --repo statecrafting/spec-spine
+```
+
+**Signing is required (spec 201 §3.2).** Every `v*` tag is a signed release and
+there is no opt-out. In the `build` job, a step before the attestation fails
+when the OIDC token cannot be requested (`ACTIONS_ID_TOKEN_REQUEST_URL` or
+`ACTIONS_ID_TOKEN_REQUEST_TOKEN` absent), and a step after it fails when the
+bundle is absent or empty. Every publish job `needs: build`, so such a build
+publishes nothing on any channel. The log line reads "refusing to publish an
+unsigned release"; the remedy is to restore the workflow's `id-token: write`
+permission (or the runner's OIDC access) and re-run the tag.
+
+### verify-release: the release proves what it published (spec 201 §3.3)
+
+After `publish`, the `verify-release` job downloads the assets of the GitHub
+Release for the tag (what a consumer downloads, not the build artifacts) and
+fails the workflow run unless, for each of the five triples:
+
+1. the archive, its `.sha256`, its `.cdx.json` and its `.intoto.jsonl` are all
+   present and non-empty;
+2. the archive's SHA-256 equals its `.sha256` sidecar;
+3. `gh attestation verify` passes against the attached bundle (`--bundle`);
+4. `gh attestation verify` passes against the attestation store (no
+   `--bundle`).
+
+It reports every failing check before it exits, not just the first. It
+**unpublishes nothing**: the release, and whatever crates.io, npm and PyPI
+published from the same build, stay live. A red `verify-release` is a
+maintainer's call:
+
+- Read the job log; each failure is an `::error` line naming the asset and the
+  check.
+- A missing or truncated asset that the build artifact still holds can be
+  re-attached with `gh release upload <tag> <file> --clobber`, then verified by
+  hand with the commands above. Re-running `verify-release` against a
+  re-uploaded asset is not automated (spec 201 §4).
+- A checksum or attestation that does not verify means the published archive is
+  not the one the build attested. Mark the GitHub Release as a pre-release or
+  delete its assets so `install.sh` stops serving them, and cut a new patch
+  version; never recut the same tag.
 
 These steps run only on a `v*` tag (the release workflow is tag-gated), so they
 are not exercised by PR CI; if the pinned action versions move, sanity-check them
