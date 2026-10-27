@@ -1,7 +1,7 @@
 ---
 id: "201-a-release-proves-itself-after-it-publishes"
 title: "A release ships its attestation bundles, requires signing, and verifies what it published"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-21"
 implementation: pending
@@ -136,6 +136,10 @@ Every action the new steps use is pinned to a full commit SHA with a
 - An opt-out that ships an unsigned release (D-1).
 
 ## 5. Resolved decisions
+
+**2026-10-27: ratified by the owner.** The owner confirmed every decision
+below as written and directed ratification in this pull request; the owner
+exception approved on its run is the ratification of record.
 
 **D-1 (2026-10-21): no opt-out from signing.** A repository variable that
 skipped the signing precondition would make "signed" a property of
