@@ -292,7 +292,7 @@ pub fn json_axes(path: &str) -> Vec<SchemaAxis> {
     let read = || axis("read", READ_SCHEMA_VERSION);
     match path {
         "check" | "compile" | "couple" | "attest" | "lint" | "index check" | "verify"
-        | "verify-attestation" => vec![verdict()],
+        | "verify-attestation" | "resolve-derived" => vec![verdict()],
         "delta" => vec![verdict(), axis("delta", DELTA_SCHEMA_VERSION)],
         "content select"
         | "index coverage"

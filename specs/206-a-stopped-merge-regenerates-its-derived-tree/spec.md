@@ -4,7 +4,7 @@ title: "A stopped merge regenerates its derived tree, and refuses anything else 
 status: approved
 kind: "tooling"
 created: "2026-10-27"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -30,8 +30,21 @@ establishes:
   # other change. The edges onto files other specs own (the verb's
   # registration in `main.rs`, the capability catalog) are added by the build,
   # after ratification, and are named in section 2.
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_resolve_derived.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/resolve_derived.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_resolve_derived.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/resolve_derived.rs" }
+  # The planning half the CLI carries out (3.1, D-5): added by the build.
+  - { kind: file, path: "crates/spec-spine-core/src/resolve_derived.rs" }
+extends:
+  # Added by the build (section 2): the verb's registration, its catalog
+  # entry, the catalog's effect audit, its `--json` axis in the `capabilities`
+  # listing (170), the core module's declaration, and
+  # the regeneration run's plan of what it would write and prune (3.4 item 3).
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-core/src/shard.rs" }, nature: additive }
 summary: >
   A rebase or merge that stops on a conflict in the committed derived tree is
   resolved by hand today: take either side, run `compile` and `index`, stage
@@ -377,6 +390,65 @@ the only check that catches failure mode 4, and it is cheap: two diffs of the
 staged tree. A rebase or cherry-pick has a carried change as well defined as a
 merge's (the commit being applied), so the same comparison applies with the
 sides named in 3.2 item 3.
+
+**D-5 (2026-10-27, build): the plan lives in a new core module.** 3.1 has the
+core return a plan and section 2 expected any library support as an extends on
+the owning module, but no existing module owns merge resolution. The build adds
+`crates/spec-spine-core/src/resolve_derived.rs`, established here: it
+classifies the unmerged and dirty paths, decides 3.3 and 3.4, builds the one
+regeneration run and compares the carried change, and spawns nothing. It needs
+two edits elsewhere, each an extends edge: the `pub mod` line in the core's
+`lib.rs` (001), and `DerivedWrites::planned` in `shard.rs` (022), which lists
+what a run would write and prune without writing, so 3.4 item 3 is decided
+from the same run 3.5 step 2 applies. Rejected: planning in the CLI module,
+which puts the decisions on the side of the seam that executes, and copying
+the prune rule out of `shard.rs`, which would drift from it.
+
+**D-6 (2026-10-27, build): `build-meta.json` is not written.** It is not a
+shard, it carries the wall clock, and 3.5 step 2 never stages it. Writing it
+would add a clock read to a verb whose output is otherwise a function of the
+merged tree. Rejected: writing it as `compile` does.
+
+**D-7 (2026-10-27, build): the verb runs at the top of the working tree.** Git
+reports paths from the top and the derived root is configured relative to
+`--repo`, so the two must be the same directory; a `--repo` that is a
+subdirectory is refused (exit 2) before anything is read. Rejected: re-rooting
+the configuration at the top, which would read a `spec-spine.toml` the caller
+did not name.
+
+**D-8 (2026-10-27, build): `regenerated` and `removed` are measured in the
+index.** The verb reads the index entries under the derived root before writing
+and after staging. A path whose entries changed (a conflict collapsed to stage
+0 included) is `regenerated`; a path with entries before and none after is
+`removed`. Rejected: a diff against `HEAD`, which in a merge is one side, and
+would omit a conflicted shard that regeneration resolved to `HEAD`'s bytes.
+
+**D-9 (2026-10-27, build): a refusal decided before step 1 does not run step
+1.** When 3.4 item 1, 2 or 4 holds, the verb refuses without compiling, so item
+3 is not evaluated; "names every set" covers the sets decided at the same point.
+Compiling a tree the refusal already calls untrustworthy, possibly with an
+unmerged spec in it, would answer nothing the caller can use.
+
+**D-10 (2026-10-27, build): the envelope.** A refusal and an invalid corpus are
+report envelopes (exits 2 and 1) carrying the 3.7 keys, so every refused set
+is named in the same document a success uses. The report adds `result`
+(`nothing-to-resolve`, `refused`, `invalid` or `resolved`), `refusals` (each
+with its `reason` and paths), `violations` under `invalid`, and `engineDefect`
+when the staged tree is not fresh. Keys 3.7 marks absent are `null`. The verb
+token is a constant in the verb's own module rather than in the shared
+`verdict.rs`, which the catalog census reads in one direction only.
+
+**D-11 (2026-10-27, build): the catalog entry.** Staging the derived root is
+declared as a `derived-ledger` write performed through `git`, with
+`ledger-rewrite` authority: the catalog's write vocabulary has no token for a
+git index, and adding one is a catalog schema change this spec does not need.
+The operation is `experimental`, as every verb new since spec 162 has been.
+
+**D-12 (2026-10-27, build): what 3.6 item 2 compares.** Both diffs are read
+with renames off, so a rename is the same delete and add on both sides.
+Binary and mode-only changes carry no added or removed line and are outside
+the comparison. The lists are compared as multisets, so a line repeated is
+compared by its count.
 
 ## Verification
 
