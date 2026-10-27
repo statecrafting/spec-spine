@@ -17,17 +17,69 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_resolve_derived.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_resolve_derived.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/resolve_derived.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/resolve_derived.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/resolve_derived.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
       }
     ],
     "id": "206-a-stopped-merge-regenerates-its-derived-tree",
-    "implementation": "pending",
+    "implementation": "complete",
     "intent": {
       "goal": "After a merge, rebase or cherry-pick stops, one verb settles every derived-tree conflict from the complete merged tree, or refuses and says why.",
       "nonGoals": [
@@ -42,7 +94,7 @@
     "sectionDigests": {
       "1-purpose": "aea8a722cb830d128163acf8b35c7000abe689f57c290a360aef6a320c9975ac",
       "2-territory": "1eef5a215c9ee563befe8357b20321b75ff2c6ff701513cc3438c4969a8d42ca",
-      "206-a-stopped-merge-regenerates-its-derived-tree-and-refuses-anything-else-that-conflicts": "12a439230d2c13a76d7be038edf4d9b5fb4405692f11b2475cccb20508519cf3",
+      "206-a-stopped-merge-regenerates-its-derived-tree-and-refuses-anything-else-that-conflicts": "b3b05284ce2abe69fce4f59ca588f97fe9ab4d7f8cdbdfd477ea2b1fd46fb05f",
       "3-1-the-verb": "9eab5093fa08e42fd8cd3af8e2928b5fff4485f69e9ab976389f160a926f7e36",
       "3-2-what-it-reads": "3d2d6b7baa9e642f8897899c1ccb9fa9c30e46957eb4e26dcfdfa9675003ceab",
       "3-3-when-there-is-nothing-to-resolve": "1865e5eae5d094d22064ef024d5057ef462a16bf80902f205d4a0320f32fa6ef",
@@ -54,7 +106,7 @@
       "4-relation-to-spec-094-s-merge-driver": "b7602bf72c3bf51affe521a2f911d4a799345f318227bbea497b01397f23a90a",
       "5-acceptance-criteria": "f6f941ffc7885b164ca9f9e4855ad0831f99a17b7a348cbd29f2c4540b6980ae",
       "6-out-of-scope": "efe3081e0cc969455fb5e5c90320ed8feeae8b2c41f3afded822f230d52e1cea",
-      "7-resolved-decisions": "b8a2c31520d45fe9d64570789e194a5de2cdf38cc3029caf6e70ba73d4f30b1f",
+      "7-resolved-decisions": "793f4af4717836300756803bdbba14062f7c09e9b3a03004e6014d3ac846997d",
       "verification": "c47d7c8992bdd9cddbb9611f4846c50fa1cc273ea06d64dcfc7edfed327f0cbd"
     },
     "sectionHeadings": [
@@ -80,6 +132,6 @@
     "summary": "A rebase or merge that stops on a conflict in the committed derived tree is resolved by hand today: take either side, run `compile` and `index`, stage the tree, and hope nothing else was conflicted or lying untracked in the working tree when the indexer read it. Every adopter that restacks pull requests has scripted that sequence, and spec 094's merge driver, which covers it inside git, documents that it can emit clean but stale shards because it runs before the merged tree is complete. This spec adds `spec-spine resolve-derived`, run after git has stopped, generalizing statecraft-cli's `scripts/resolve-shard-conflicts.sh`. It refuses when any path outside the derived root is still unmerged, or when the working tree holds anything the compile would read that is not staged; otherwise it regenerates both shard trees from the staged merge, stages exactly the derived root, and then checks what the merge did to authored text: no conflict marker staged, and the carried change's added and removed lines unchanged by the merge. It confirms freshness the way `check` does and reports in the family envelope. It never continues, commits or aborts the operation, and it writes nothing outside the derived root.\n",
     "title": "A stopped merge regenerates its derived tree, and refuses anything else that conflicts"
   },
-  "shardHash": "b1fe349d240187a70c1b6bef9d9fc6fea01c981732edd533cffb36547c1a16d9",
+  "shardHash": "f400abc584613e3ee9fe1c74c1213c4d5fb4c38248359ec21ac26bf38f1949b7",
   "specVersion": "1.10.0"
 }

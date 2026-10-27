@@ -1459,6 +1459,29 @@ fn operations() -> Vec<Operation> {
         .pinned_example(&["registry", "status-report"])
         .done(),
         op(
+            "resolve-derived",
+            "Settle a stopped merge's conflicts in the derived tree by regenerating it from the merged inputs, or refuse and say why (spec 206)",
+            &["206-a-stopped-merge-regenerates-its-derived-tree"],
+        )
+        .cli("resolve-derived", "verdict-envelope", &["--json"])
+        .reads(TREE_READ)
+        .writes(&["derived-ledger"])
+        .executes(&["git"])
+        .authority(&["ledger-rewrite"])
+        .pre("git-repository", &[4])
+        .finding(&["stale", "validation"])
+        .verdict()
+        .experimental()
+        .example(
+            "resolve-derived-nothing-conflicted",
+            Some("corpus"),
+            &["resolve-derived", "--json"],
+            0,
+            &["\"verb\": \"resolve-derived\"", "\"nothing-to-resolve\""],
+        )
+        .pinned_example(&["resolve-derived"])
+        .done(),
+        op(
             "scope.compare",
             "Compare two declared scopes for conflicting intentions. Neither resolved against the committed ledger: a pure function of the two documents",
             &["108-a-work-scope-is-declared"],

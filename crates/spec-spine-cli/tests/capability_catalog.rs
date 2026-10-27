@@ -261,6 +261,7 @@ fn module_operations() -> BTreeMap<&'static str, Vec<&'static str>> {
                 "registry.traceability",
             ],
         ),
+        ("cmd_resolve_derived.rs", vec!["resolve-derived"]),
         ("cmd_scope.rs", vec!["scope.compare", "scope.evaluate"]),
         (
             "cmd_verify.rs",
@@ -500,6 +501,7 @@ fn the_capabilities_document_carries_the_catalog() {
         "registry.show",
         "registry.status-report",
         "registry.traceability",
+        "resolve-derived",
         "scope.compare",
         "scope.evaluate",
         "verify",

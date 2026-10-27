@@ -357,6 +357,34 @@ impl DerivedWrites {
         self
     }
 
+    /// What [`apply`](Self::apply) would do, without doing it: every file it
+    /// would write, and every file already present that it would prune or
+    /// remove (spec 206 3.4 item 3). Sorted, deduplicated, rooted like the
+    /// run's own paths. Reads the synced directories' listings and writes
+    /// nothing.
+    pub fn planned(&self) -> (Vec<PathBuf>, Vec<PathBuf>) {
+        let mut written = BTreeSet::new();
+        let mut removed = BTreeSet::new();
+        for op in &self.ops {
+            match op {
+                Op::Sync { dir, files } => {
+                    removed.extend(prune_entries(dir, files));
+                    written.extend(files.iter().map(|(name, _)| dir.join(name)));
+                }
+                Op::Write { dir, name, .. } => {
+                    written.insert(dir.join(name));
+                }
+                Op::Remove { dir, name } => {
+                    let path = dir.join(name);
+                    if fs::symlink_metadata(&path).is_ok() {
+                        removed.insert(path);
+                    }
+                }
+            }
+        }
+        (written.into_iter().collect(), removed.into_iter().collect())
+    }
+
     /// Check the whole run, then perform it.
     pub fn apply(self) -> Result<(), Error> {
         self.preflight()?;

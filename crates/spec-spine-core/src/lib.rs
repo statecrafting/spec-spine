@@ -45,6 +45,7 @@ pub mod read;
 pub mod reference;
 pub mod relocation;
 pub mod render;
+pub mod resolve_derived;
 pub mod scaffold;
 pub mod scope;
 pub mod sections;

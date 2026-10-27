@@ -36,6 +36,7 @@ mod cmd_interface;
 mod cmd_lint;
 mod cmd_reference;
 mod cmd_registry;
+mod cmd_resolve_derived;
 mod cmd_scope;
 mod cmd_verify;
 mod out;
@@ -305,6 +306,17 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Settle a stopped merge's conflicts in the derived tree by regenerating it from the merged inputs, or refuse and say why (spec 206).
+    ///
+    /// Run after a merge, rebase or cherry-pick stops. It refuses while an
+    /// authored path is unmerged or the working tree holds anything not
+    /// staged, stages exactly the derived root, and never continues, commits
+    /// or aborts the operation.
+    ResolveDerived {
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
+        #[arg(long)]
+        json: bool,
+    },
     /// Rewrite the corpus under an authored compaction plan (spec 096).
     Compact {
         /// The authored plan: which specs leave and which spec answers for
@@ -550,6 +562,7 @@ fn main() -> ExitCode {
                 json: *json,
             },
         ),
+        Command::ResolveDerived { json } => cmd_resolve_derived::run(&repo, *json),
         Command::Attest {
             spec,
             with_coupling,
@@ -714,6 +727,7 @@ impl Command {
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
             Command::Delta { json: true, .. } => Some(verb::DELTA),
+            Command::ResolveDerived { json: true } => Some(cmd_resolve_derived::VERB),
             Command::Verify { json: true, .. } => Some(verb::VERIFY),
             Command::Attest { json: true, .. } => Some(verb::ATTEST),
             Command::VerifyAttestation { json: true, .. } => Some(verb::VERIFY_ATTESTATION),
