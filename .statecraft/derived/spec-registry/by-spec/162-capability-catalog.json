@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "034-machine-readable-verdicts",
       "074-a-governed-read-names-its-version",
@@ -283,5 +284,5 @@
     "title": "Every operation is described once, and the description is tested"
   },
   "shardHash": "b12d5114494e895fbda13240e61e90bfeeca660a181d29a662417a1e07354ddf",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

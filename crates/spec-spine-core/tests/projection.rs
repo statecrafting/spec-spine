@@ -44,6 +44,7 @@ const NOT_HOST_PATHS: &[(&str, &str)] = &[
     ("--declared-by", "a spec id"),
     ("--expect", "an operation digest pin"),
     ("--head", "a revision"),
+    ("--implementation", "an implementation state"),
     ("--key-id", "a key label, not a key"),
     ("--obligation", "an obligation reference"),
     ("--operation", "an operation name"),

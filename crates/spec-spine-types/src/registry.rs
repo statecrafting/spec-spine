@@ -174,6 +174,14 @@ pub struct SpecRecord {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub traceability: Vec<crate::TraceDeclaration>,
 
+    // --- declared acceptance (spec 207) ---
+    /// True when the spec's **own** `## Verification` section holds at least
+    /// one command, by the parse `verify` uses (spec 207 §3.3, spec 043
+    /// §3.2). Omitted when false. An amended block (spec 082) is resolved at
+    /// query time from `amendsVerification`, never compiled in here (207 D-2).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub declares_acceptance: bool,
+
     // --- overflow ---
     /// Declared keys carry any JSON value (spec 012); undeclared keys are
     /// scalars or string arrays.

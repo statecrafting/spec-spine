@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-20",
+    "declaresAcceptance": true,
     "dependsOn": [
       "001-compile-registry",
       "015-short-id-resolution",
@@ -99,5 +100,5 @@
     "title": "Compaction is a verb, not a session"
   },
   "shardHash": "23520aade0daf27b6c9c767e8e2e979240ad3c0d9a776ad34a261a6198c73e49",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

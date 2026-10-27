@@ -4,6 +4,7 @@
       "196-yaml-parsing-moves-off-unsafe-libyaml"
     ],
     "created": "2026-10-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "196-yaml-parsing-moves-off-unsafe-libyaml"
     ],
@@ -76,5 +77,5 @@
     "title": "The YAML reader takes serde-saphyr 2.0"
   },
   "shardHash": "af1a9816a1023cc46ffe7714256b3fe3d5649caf5b763a1c17450030a41ee4af",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

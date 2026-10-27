@@ -7,6 +7,7 @@
       "3.2"
     ],
     "created": "2026-09-24",
+    "declaresAcceptance": true,
     "dependsOn": [
       "063-planned-territory-is-declared-not-inferred",
       "080-an-unresolved-claim-is-not-stale"
@@ -123,5 +124,5 @@
     "title": "A planned claim ends at completion"
   },
   "shardHash": "02368fab9f23311e122fac393673dfdceefe2c4ee2b046bc1b83c754b25a7c7f",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

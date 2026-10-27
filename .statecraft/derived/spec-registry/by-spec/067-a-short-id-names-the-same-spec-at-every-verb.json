@@ -4,6 +4,7 @@
       "015-short-id-resolution"
     ],
     "created": "2026-09-11",
+    "declaresAcceptance": true,
     "dependsOn": [
       "002-registry-query",
       "004-codebase-index",
@@ -171,5 +172,5 @@
     "title": "A short id names the same spec at every verb"
   },
   "shardHash": "6702615fa31f23ca2eb0279ec565b5836477336ef27fae2fe58c4915e46a8bfa",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

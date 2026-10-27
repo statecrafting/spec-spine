@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "070-an-authority-snapshot-says-what-it-read",
       "084-an-acceptance-outlives-the-output-it-was-written-against"
@@ -292,5 +293,5 @@
     "title": "Obligations are declared constraints"
   },
   "shardHash": "8d3473fef30d4f59570d5090f2758cc5dae552396030edb2c39d3c5fe91bbc0a",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

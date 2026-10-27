@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-26",
+    "declaresAcceptance": true,
     "dependsOn": [
       "106-obligations-are-declared-constraints",
       "152-a-refusal-says-what-it-is-in-every-form"
@@ -252,5 +253,5 @@
     "title": "Select bounded content from one repository snapshot"
   },
   "shardHash": "a4216029f4cebe556f40e8042dff35cee9f3cf128a1c42e2799d8b3e2a868010",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

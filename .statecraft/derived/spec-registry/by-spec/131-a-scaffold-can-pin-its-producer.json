@@ -7,6 +7,7 @@
       "3.4"
     ],
     "created": "2026-09-24",
+    "declaresAcceptance": true,
     "dependsOn": [
       "055-a-version-pin-the-cli-can-check",
       "092-the-engine-ships-governance-not-an-environment",
@@ -106,5 +107,5 @@
     "title": "A scaffold can pin its producer"
   },
   "shardHash": "88326d481728f4d223556df9f46361c62bee96555f3c759f63743ad9456a69b2",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

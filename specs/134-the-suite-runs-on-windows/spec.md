@@ -145,6 +145,9 @@ costs nothing today and catches the next Windows regression.
 > Since 2026-10-20, `199-the-0-31-0-release-moves-the-pin` holds 195's block in turn, so this plan runs
 > from that spec's block (spec 199 3.4).
 
+> Since 2026-10-27, `208-the-0-32-0-release-moves-the-pin` holds 199's block in turn, so this plan runs
+> from that spec's block (spec 208 3.4).
+
 ```verify:cli
 # 3.1: the job exists under its own name and the gate requires it.
 grep -q 'name: test (windows)' .github/workflows/ci.yml

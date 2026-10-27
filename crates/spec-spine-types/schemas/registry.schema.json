@@ -162,6 +162,11 @@
             }
           }
         },
+        "declaresAcceptance": {
+          "type": "boolean",
+          "const": true,
+          "description": "The spec's own Verification section holds at least one command, by the parse verify uses (spec 207; first shipped in specVersion 1.11.0). Omitted when false; an amended block is resolved at query time."
+        },
         "traceability": {
           "type": "array",
           "description": "Declared obligation traceability (spec 169; first shipped in specVersion 1.10.0). Every spec reference is normalized to its full id. Omitted when empty.",

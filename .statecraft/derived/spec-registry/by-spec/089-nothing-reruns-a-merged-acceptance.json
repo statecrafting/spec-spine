@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-17",
+    "declaresAcceptance": true,
     "dependsOn": [
       "043-verify-declared-acceptance",
       "082-an-amended-acceptance-is-the-one-that-runs",
@@ -99,5 +100,5 @@
     "title": "Nothing reruns a merged acceptance"
   },
   "shardHash": "d3ba90c93c02f4f3f3d51b2b77a1bd0616719c04884e5271ccf2c1826518656b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -7,6 +7,7 @@
       "099-a-merged-acceptance-is-asked-again"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "099-a-merged-acceptance-is-asked-again",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 099"
   },
   "shardHash": "6438733ac5f0365fbd29b9db8678a0cdfea7f13644bbd2afc9aa5e9fbbf19fea",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

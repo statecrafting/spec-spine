@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "003-conformance-lint",
       "020-keypath-section-anchors",
@@ -86,5 +87,5 @@
     "title": "The defects heading has one spelling"
   },
   "shardHash": "e8f81e4d8ca151aed6c19c25476bbf237532604b3bfd4a0c6bc955ae727282ec",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

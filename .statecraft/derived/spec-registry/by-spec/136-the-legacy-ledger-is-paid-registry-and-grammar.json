@@ -25,6 +25,7 @@
       "026-references-provenance-derived-at"
     ],
     "created": "2026-09-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "043-verify-declared-acceptance",
       "082-an-amended-acceptance-is-the-one-that-runs",
@@ -82,5 +83,5 @@
     "title": "The legacy ledger is paid: registry and grammar"
   },
   "shardHash": "2bf099111271cc122c9685e6c303147e6b1b68da255a092c35784a925601917d",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

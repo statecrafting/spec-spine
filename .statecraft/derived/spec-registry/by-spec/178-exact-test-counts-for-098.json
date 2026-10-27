@@ -7,6 +7,7 @@
       "098-a-citation-the-renumber-could-not-see"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "098-a-citation-the-renumber-could-not-see",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 098"
   },
   "shardHash": "4b4e6f37b9883b4433dc566daf40dcaedc97019580f2a2c944b8e1d32c27fb59",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

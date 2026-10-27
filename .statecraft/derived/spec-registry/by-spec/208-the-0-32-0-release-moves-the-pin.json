@@ -1,0 +1,93 @@
+{
+  "record": {
+    "amends": [
+      "199-the-0-31-0-release-moves-the-pin"
+    ],
+    "amendsVerification": [
+      "199-the-0-31-0-release-moves-the-pin"
+    ],
+    "created": "2026-10-27",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "124-the-expansion-line-carries-its-own-version",
+      "156-statecraft-profile-10-governs-this-repository",
+      "199-the-0-31-0-release-moves-the-pin",
+      "207-the-registry-lists-what-verify-would-run"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": "npm/package.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "007-python-distribution",
+        "unit": {
+          "kind": "directory",
+          "path": "py/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "061-shipped-is-not-the-same-as-working",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/environment.json"
+        }
+      }
+    ],
+    "id": "208-the-0-32-0-release-moves-the-pin",
+    "implementation": "in-progress",
+    "kind": "tooling",
+    "sectionDigests": {
+      "1-purpose": "8015f23540ea3c569ef9ef867991aab1de470b233e131c65795ffcb9205a3423",
+      "2-territory": "24ca486ade7a5c18be99f7166af46d01f9c0e9d0535961d440893753d7d1e731",
+      "208-the-0-32-0-release-moves-the-package-version-the-pin-and-the-registry-schema-together": "1b7a4ca2d2bf19e47311cfdac2d532e4a7dd1dec45adee25b49a0b1577978b53",
+      "3-1-one-version-one-pin": "cf603dd9411704eba493d444ee4cd8d3997dd53a7011c014cf9a05e88fe34861",
+      "3-2-the-release-precedes-the-merge": "a5114e8769bf27b35aec089938edab8f05d198d2ab301de33ede6331d27e7b31",
+      "3-3-the-registry-schema-restamp": "35d98b6ecab23ddf5711678e7ee568a82e8a877a750bf0b721930efd625cf935",
+      "3-4-acceptance": "1d41c9fdab41ea8448f4d7eca537607b66811d99ce7d0db17a6697d52e7c29b9",
+      "3-behavior": "21519a79adeb8f125110c3301280e410ade67d89509280811956cd33057e3136",
+      "decisions": "75f1e7424951555cf0c8ebc0aabadb55e3047230d931fe2e264e9dabec4c6aef",
+      "verification": "2233b641fe4174a0902bae6627e1d6cdc9e6064ecbc880a15148d526b64bfb38"
+    },
+    "sectionHeadings": [
+      "208: The 0.32.0 release moves the package version, the pin and the registry schema together",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One version, one pin",
+      "3.2 The release precedes the merge",
+      "3.3 The registry schema restamp",
+      "3.4 Acceptance",
+      "Decisions",
+      "Verification"
+    ],
+    "specPath": "specs/208-the-0-32-0-release-moves-the-pin/spec.md",
+    "status": "draft",
+    "summary": "`main` moves from 0.31.0 to 0.32.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. Spec 207's registry schema 1.11.0 and its restamp ride the same change. As for 0.31.0 (spec 199 3.2), the release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
+    "title": "The 0.32.0 release moves the package version, the pin and the registry schema together"
+  },
+  "shardHash": "7604a8d630fec44cb3cb98be9ad3e48c192465472313912e94f7ff064c9d8d28",
+  "specVersion": "1.11.0"
+}

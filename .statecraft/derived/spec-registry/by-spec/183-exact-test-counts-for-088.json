@@ -7,6 +7,7 @@
       "088-the-template-teaches-the-whole-grammar"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "088-the-template-teaches-the-whole-grammar",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 088"
   },
   "shardHash": "395f191c19efed3a1a04320ece4799ef72b9125ce84ecb120ef6477bcc78b3db",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

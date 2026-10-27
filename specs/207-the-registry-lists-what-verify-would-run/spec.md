@@ -4,7 +4,7 @@ title: "The registry lists specs by implementation state and by whether verify w
 status: approved
 kind: "tooling"
 created: "2026-10-27"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -13,11 +13,29 @@ depends_on:
   - "082-an-amended-acceptance-is-the-one-that-runs"
   - "153-a-test-count-is-exact"
 establishes:
-  # The filters' end-to-end tests are a new file, planned (spec 063), so the
-  # draft blocks no other change. The `extends` edges onto the shared query,
-  # record and schema files are added by the build, after ratification, and
-  # are named in section 2.
-  - { kind: file, path: "crates/spec-spine-cli/tests/registry_list_filters.rs", planned: true }
+  # The filters' end-to-end tests. Planned (spec 063) while this was a draft;
+  # the build wrote the file and added the `extends` edges section 2 names.
+  - { kind: file, path: "crates/spec-spine-cli/tests/registry_list_filters.rs" }
+extends:
+  - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_registry.rs" }, nature: additive }
+  - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-core/src/query.rs" }, nature: additive }
+  - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-core/tests/query.rs" }, nature: corrective }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/registry.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry.schema.json" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry-spec-shard.schema.json" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/tests/conformance.rs" }, nature: additive }
+  - { spec: "043-verify-declared-acceptance", unit: { kind: file, path: "crates/spec-spine-core/src/verify.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "167-read-only-tool-projection", unit: { kind: file, path: "crates/spec-spine-core/tests/projection.rs" }, nature: corrective }
+  - { spec: "106-obligations-are-declared-constraints", unit: { kind: file, path: "crates/spec-spine-core/tests/obligations.rs" }, nature: corrective }
+  - { spec: "109-impact-and-conflict-are-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }, nature: corrective }
+  - { spec: "111-a-move-is-a-reviewed-mapping", unit: { kind: file, path: "crates/spec-spine-core/tests/moves.rs" }, nature: corrective }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
 summary: >
   `registry list` filters by lifecycle status only. Adopters that run every
   implemented spec's acceptance keep that set by hand, as a Makefile variable
@@ -188,6 +206,38 @@ depend on another spec's text and repaint it whenever that spec changes.
 **D-3 (2026-10-27): no `--exclude` list.** An adopter that deliberately
 leaves a spec out can subtract it in the consumer, where the reason can be
 written down; a flag would move that reason into a command line nobody reads.
+
+D-4 to D-7 were recorded during the build, after ratification. D-4 to D-6
+are choices the spec was silent on; D-7 records the owner's direction of
+2026-10-27.
+
+**D-4 (2026-10-27, build): the holder rule is shared, not restated.**
+`--has-acceptance` follows `amendsVerification` with the functions `verify`
+itself uses (`verify::holders_from` and `verify::follow_holders`), fed from
+the compiled records instead of spec text. The holder rule (a superseded or
+retired holder is skipped; the first live holder in id order wins) therefore
+has one definition. Rejected: a second walk in `query.rs`, which could drift
+from `verify`. A target the registry does not hold answers false. The CLI
+test also asserts the read agrees with `verify <id> --plan` for every fixture
+spec.
+
+**D-5 (2026-10-27, build): the `query_json` facade does not take the new
+filters.** Section 3 names `registry list`; the facade's `list` op keeps its
+request shape and answers as before. Rejected: adding request members this
+spec does not name. A later spec can add them additively.
+
+**D-6 (2026-10-27, build): the schema states the field as `const: true`.**
+The compiler omits the field when false (3.3), so the shard schemas accept
+only `true`, the one value the compiler writes. `--implementation` accepts the
+five tokens exactly: `n/a`, which the frontmatter grammar still reads as an
+alias, is a usage error like any other value (3.1).
+
+**D-7 (2026-10-27, owner): the field ships with the 0.32.0 pin move.** The
+managed gate judges the committed registry with the exactly pinned engine,
+and a 0.31.0 engine reports every shard of a 1.11.0 tree stale; the new field
+alone changes the bytes of most shards here. So this change is carried with
+spec 208, which moves the package version and the pin to 0.32.0, as spec 169
+rode spec 195.
 
 ## Verification
 

@@ -9,6 +9,7 @@
       "118-the-renumber-is-history-not-a-standing-rule"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "092-the-engine-ships-governance-not-an-environment",
       "118-the-renumber-is-history-not-a-standing-rule",
@@ -59,5 +60,5 @@
     "title": "Exact test counts for 092"
   },
   "shardHash": "de5a7ab4dfa4fa77e03a7f12f9eceba395732fe2e3f12e94415d14e38fcb0612",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

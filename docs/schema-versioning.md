@@ -10,7 +10,7 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.10.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.11.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`, `inputs.json`) | `schemaVersion` | `1.3.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
@@ -123,6 +123,14 @@ MINOR history:
   `obligation`, `relation`, `target`, `withdrawn`?), every spec reference
   normalized to its full id. Absent on every existing spec, so only
   `specVersion` restamps and no `shardHash` moves.
+- registry `1.11.0` (spec 207): additive `declaresAcceptance` on a record,
+  `true` when the spec's own `## Verification` section holds at least one
+  command by `verify`'s parse, omitted when false. An amended block is
+  resolved at query time (`registry list --has-acceptance`), never compiled
+  in. Unlike 1.4.0 to 1.10.0, the field is present on most existing specs, so
+  their shard bytes change beside `specVersion`; no `shardHash` moves (it is
+  over `spec.md`'s bytes). It moved with the 0.32.0 pin (spec 208), so a
+  0.31.0 reader reports a 1.11.0 tree stale.
 - delta report `0.2.0` (spec 142): additive. A twelfth class, `relocation`, for
   a `spec.md` body that only lost sections another spec proved it received
   unchanged, carried instead of `requirement` and not requiring prior policy;

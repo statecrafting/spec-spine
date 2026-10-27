@@ -119,6 +119,11 @@ move this spec to `implementation: complete` on that evidence and the
 
 ## Verification
 
+> **Superseded acceptance (2026-10-27).** This block no longer runs.
+> `208-the-0-32-0-release-moves-the-pin` declares this spec in `amends_verification` and carries the
+> complete block with the package version and the exact pin at 0.32.0
+> (spec 208 3.4). The commands below remain unchanged.
+
 ```verify:cli
 # ---- carried for 195-the-0-30-0-release-moves-the-pin (amends_verification), and through it 193, 191, 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.31.0 together (199 3.1) ----
 # ---- carried for 193-the-0-29-0-release-moves-the-pin (amends_verification), and through it 191, 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.30.0 together (195 3.1) ----

@@ -4,6 +4,7 @@
       "079-a-blocking-claim-is-not-a-stale-shard"
     ],
     "created": "2026-09-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "079-a-blocking-claim-is-not-a-stale-shard",
       "132-one-exit-contract-for-the-family"
@@ -105,5 +106,5 @@
     "title": "An unresolved claim is not called stale"
   },
   "shardHash": "43494f6662366373ba132aa981fed32964d7603b1a06dcd17d52f8b3209e38fb",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

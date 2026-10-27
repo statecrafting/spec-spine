@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "100-a-deleted-path-is-judged-where-it-lived"
     ],
@@ -286,5 +287,5 @@
     "title": "A move is a reviewed mapping"
   },
   "shardHash": "c5c77066dc755cc67f52908f3cfa809ae64ea9498cf8e6cc92810b84bbffd3f8",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

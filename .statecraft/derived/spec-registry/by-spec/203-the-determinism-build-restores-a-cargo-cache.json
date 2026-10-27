@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-10-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "156-statecraft-profile-10-governs-this-repository"
     ],
@@ -68,5 +69,5 @@
     "title": "The determinism build restores a cargo cache, measured"
   },
   "shardHash": "076a993a41cd5efa2530f1c59f0cb9a4545ba24c67b7e1e5a3e3a2925e2a5d1e",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

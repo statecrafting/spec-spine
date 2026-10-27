@@ -7,6 +7,7 @@
       "043-verify-declared-acceptance"
     ],
     "created": "2026-09-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "043-verify-declared-acceptance",
       "082-an-amended-acceptance-is-the-one-that-runs",
@@ -57,5 +58,5 @@
     "title": "A prose-only example stays prose-only"
   },
   "shardHash": "3a4154a35dcae01891bc87a1f654829c2fcb4cfff8ab8f468615846a9e8841bb",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

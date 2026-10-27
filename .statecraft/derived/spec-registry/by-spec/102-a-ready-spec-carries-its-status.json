@@ -7,6 +7,7 @@
       "087-the-answer-is-a-member-not-the-document"
     ],
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "035-registry-plan-ready-set",
       "101-readiness-is-scheduling-not-approval"
@@ -107,5 +108,5 @@
     "title": "A ready spec carries its status"
   },
   "shardHash": "d1362a1b102eebd0345c20514f0440c385cebf560004f05fdeb232d203d400a4",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

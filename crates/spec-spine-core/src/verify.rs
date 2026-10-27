@@ -73,7 +73,10 @@ fn resolve_acceptance_source(specs_dir: &Path, spec_id: &str) -> Result<Option<S
 }
 
 /// Follow the amended-acceptance chain from `spec_id` to its end.
-fn follow_holders(
+///
+/// Shared with `registry list --has-acceptance` (spec 207 §3.2), which follows
+/// the same chain over the registry's `amendsVerification` edges.
+pub(crate) fn follow_holders(
     holders: &std::collections::BTreeMap<String, String>,
     spec_id: &str,
 ) -> Option<String> {
@@ -111,19 +114,39 @@ fn acceptance_holders(
 
 /// [`acceptance_holders`] over a corpus already read as text, in id order.
 fn holders_of(sources: &BTreeMap<String, String>) -> BTreeMap<String, String> {
+    let parsed: Vec<(&str, spec_spine_types::Frontmatter)> = sources
+        .iter()
+        .filter_map(|(id, raw)| {
+            spec_spine_types::parse_frontmatter(raw)
+                .ok()
+                .map(|fm| (id.as_str(), fm))
+        })
+        .collect();
+    holders_from(
+        parsed
+            .iter()
+            .map(|(id, fm)| (*id, fm.status, fm.amends_verification.as_slice())),
+    )
+}
+
+/// The holder rule itself, over `(id, status, amends_verification)` entries
+/// given in id order: a `superseded` or `retired` holder is skipped (spec 082
+/// 3.2, D-5), and the first live holder in id order wins a fork. One rule for
+/// both readers: [`holders_of`] over spec text, and `registry list
+/// --has-acceptance` over the compiled records (spec 207 §3.2).
+pub(crate) fn holders_from<'a>(
+    entries: impl IntoIterator<Item = (&'a str, spec_spine_types::Status, &'a [String])>,
+) -> BTreeMap<String, String> {
     let mut out: BTreeMap<String, String> = BTreeMap::new();
-    for (id, raw) in sources {
-        let Ok(fm) = spec_spine_types::parse_frontmatter(raw) else {
-            continue;
-        };
+    for (id, status, amends_verification) in entries {
         if matches!(
-            fm.status,
+            status,
             spec_spine_types::Status::Superseded | spec_spine_types::Status::Retired
         ) {
             continue;
         }
-        for target in &fm.amends_verification {
-            out.entry(target.clone()).or_insert_with(|| id.clone());
+        for target in amends_verification {
+            out.entry(target.clone()).or_insert_with(|| id.to_string());
         }
     }
     out

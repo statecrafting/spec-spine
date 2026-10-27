@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "155-selected-content-accessor",
       "160-documentation-manifest-and-freshness",
@@ -320,5 +321,5 @@
     "title": "Generate one deterministic reference page per spec"
   },
   "shardHash": "416ee11a114a0d9fcbea458db94188d2a1d849428417b34ecbe42dc9bed9e1cf",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

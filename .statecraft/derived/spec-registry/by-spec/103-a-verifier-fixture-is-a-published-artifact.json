@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "021-ledger-seal",
       "068-a-verifier-checks-the-bytes-it-was-given"
@@ -91,5 +92,5 @@
     "title": "A verifier fixture is a published artifact"
   },
   "shardHash": "8e75087fbf0cb35b944f138999a9ae8cb2cf0dba2ce5654cbeee27d19796faef",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

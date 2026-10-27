@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "003-conformance-lint",
       "004-codebase-index",
@@ -126,5 +127,5 @@
     "title": "A claim no hash witnesses"
   },
   "shardHash": "4c26b5f13a3b2e120d86916351a93e613370525298f75f74e078124d472f5d20",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

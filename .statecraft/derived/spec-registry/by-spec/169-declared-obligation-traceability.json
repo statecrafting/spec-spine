@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-28",
+    "declaresAcceptance": true,
     "dependsOn": [
       "106-obligations-are-declared-constraints",
       "110-an-interface-reference-is-digest-pinned",
@@ -399,5 +400,5 @@
     "title": "Declare qualified obligation traceability"
   },
   "shardHash": "ddbda9ff4ad1e6d31054d0c60099bcd64f002159d332898c5ef65e0f709d16b9",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

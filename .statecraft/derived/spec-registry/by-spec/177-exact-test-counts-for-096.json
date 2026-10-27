@@ -7,6 +7,7 @@
       "096-compaction-is-a-verb-not-a-session"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "096-compaction-is-a-verb-not-a-session",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 096"
   },
   "shardHash": "bc8fd30146a649d7a0318b92ca52b565e46725264be6a7c298d411c47ddc7737",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

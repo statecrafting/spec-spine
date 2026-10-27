@@ -278,7 +278,7 @@ Read-only queries over the compiled registry. Every subcommand takes `--json`.
 
 | Subcommand | Answers |
 |---|---|
-| `registry list [--status S] [--ids-only]` | The corpus, optionally filtered by status. `--ids-only` prints bare ids, one per line (a JSON string array with `--json`). |
+| `registry list [--status S] [--implementation STATE] [--has-acceptance] [--ids-only]` | The corpus, optionally filtered by status. `--implementation` keeps one frontmatter `implementation` value (`pending`, `in-progress`, `complete`, `n-a` or `deferred`; anything else exits `3`). `--has-acceptance` keeps the specs for which `verify <id>` would run at least one command, an amended block resolved as `verify` resolves it (spec 207); with `--json`, a record kept through another spec's block names it in `acceptanceFrom`. The filters intersect, in id order. `--ids-only` prints bare ids, one per line (a JSON string array with `--json`). |
 | `registry show <ID>` | One spec. Accepts the short id (`016`). |
 | `registry status-report [--nonzero-only]` | Counts by status. `--nonzero-only` omits zero counts; the total still covers the corpus. |
 | `registry relationships <ID>` | A spec's relationship neighborhood: the typed edges in and out. |

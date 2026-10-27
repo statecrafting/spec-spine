@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "000-spec-spine-bootstrap",
       "047-effective-config-is-a-governed-read"
@@ -116,5 +117,5 @@
     "title": "A version pin the CLI can check"
   },
   "shardHash": "8efbb7ecb6330ca2472bff45c42151d1e472622113644de4535a13f70a1cf892",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

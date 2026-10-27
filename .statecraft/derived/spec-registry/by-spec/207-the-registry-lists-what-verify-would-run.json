@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-10-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "009-registry-query-projection-flags",
       "043-verify-declared-acceptance",
@@ -10,12 +11,166 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/registry_list_filters.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/registry_list_filters.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/conformance.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "043-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/verify.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "167-read-only-tool-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/projection.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/obligations.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "109-impact-and-conflict-are-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/impacts.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "111-a-move-is-a-reviewed-mapping",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/moves.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
       }
     ],
     "id": "207-the-registry-lists-what-verify-would-run",
-    "implementation": "pending",
+    "implementation": "complete",
     "intent": {
       "goal": "An adopter derives the set of specs whose acceptance it runs from the ledger, in one typed read, instead of maintaining it by hand.",
       "nonGoals": [
@@ -29,7 +184,7 @@
     "sectionDigests": {
       "1-purpose": "d74ccc1e5acc829cbd64df7d2bb841ec4e836fee7ba31901d2061f8fca70f498",
       "2-territory": "014ab89b61e0b915b178fcf81b96e033963ddef8816dc83887fe87f726420468",
-      "207-the-registry-lists-specs-by-implementation-state-and-by-whether-verify-would-run-anything": "87ce33e5dc45254a20ea5fe094e43e37c5f2192723e70a43919f2bea33ca2d04",
+      "207-the-registry-lists-specs-by-implementation-state-and-by-whether-verify-would-run-anything": "860e1fd05b937a6181a6b1d14fbec97a7fd8778d5117c62c769aa9c380a49f40",
       "3-1-implementation-state": "99fc0d156e428bdeafdf41d4185d6887490637e46688647c53e865837e870756",
       "3-2-has-acceptance": "c1aa295ba6411ae126c87f3074985f4ec91dc5cd545a1be4dce6b827d4a34e26",
       "3-3-the-record-field": "8332b2b0a4d410dc988c808f18fae511516e2de7290e44ed64ee0acd1631c079",
@@ -38,7 +193,7 @@
       "3-behavior": "0d6076dae2be10f771e51bb0084b131ffad2227d63a90d38282ef2f26229395d",
       "4-acceptance-criteria": "9b35672f346bfd0ae42aa97ef1c9afd16d73a538708fe615bfbb78f2b08eb2f9",
       "5-out-of-scope": "71ed13cdb7ab875482d602dda10dba1a7e43223c826e77e1b3fc35b6584c3f0b",
-      "6-resolved-decisions": "3fc9ad3684364866b2a8a46919cbf5f3c33e43acd69e6c6a6bd684d02e940aff",
+      "6-resolved-decisions": "93b3f636ecb0193defea85dfdd557e1f255c12b06f17bb18ec14635355d44c4f",
       "verification": "9c9550cf1b55d89000e4350ddd85f400ca506741bb3538b45be540b4be3d8a04"
     },
     "sectionHeadings": [
@@ -61,6 +216,6 @@
     "summary": "`registry list` filters by lifecycle status only. Adopters that run every implemented spec's acceptance keep that set by hand, as a Makefile variable and as CI partitions validated against it, and resolve conflicts in it whenever two closures race. One adopter's hand list, compared on 2026-10-27 with what its corpus says, includes one spec still in progress and omits one complete spec that declares acceptance. This spec adds two filters that compose with `--status` and with `--ids-only`: `--implementation <state>`, over the frontmatter value, and `--has-acceptance`, true when `spec-spine verify <id>` would run at least one command, resolved the way `verify` resolves an amended block. The record gains `declaresAcceptance`, computed at compile, so the answer comes from the committed ledger like every other registry read.\n",
     "title": "The registry lists specs by implementation state and by whether verify would run anything"
   },
-  "shardHash": "e63621429edacb508e80ad8ed2ba888f340074ec7ea9bca8874c37c707e5e3a2",
-  "specVersion": "1.10.0"
+  "shardHash": "26913ab4af9819ae1e968d7a35f3df4f28488b0032f64277e4a7d817d3852fbc",
+  "specVersion": "1.11.0"
 }

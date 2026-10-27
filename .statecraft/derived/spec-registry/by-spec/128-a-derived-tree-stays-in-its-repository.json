@@ -8,6 +8,7 @@
       "5"
     ],
     "created": "2026-09-23",
+    "declaresAcceptance": true,
     "dependsOn": [
       "036-declared-state-dir",
       "092-the-engine-ships-governance-not-an-environment",
@@ -109,5 +110,5 @@
     "title": "A derived tree stays in its repository"
   },
   "shardHash": "4c886a433b3a1af6e3943ded92d2b4e7e9d5d13cc154e3835600b4b607e989ee",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

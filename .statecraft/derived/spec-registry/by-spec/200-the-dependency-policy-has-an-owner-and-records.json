@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-10-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "135-the-toolchain-floor-and-dependencies-are-checked"
     ],
@@ -81,5 +82,5 @@
     "title": "The dependency policy has an owner, and its audit and vet records are committed"
   },
   "shardHash": "af37695da24928e85b2471ba64990e12837598a59f7ca819d8d9b88fa84a4886",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

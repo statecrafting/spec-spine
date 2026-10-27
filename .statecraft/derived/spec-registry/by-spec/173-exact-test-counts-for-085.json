@@ -7,6 +7,7 @@
       "085-a-version-pin-is-not-a-contract"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "085-a-version-pin-is-not-a-contract",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 085"
   },
   "shardHash": "523d6a7fc2321d3bcc72df4de8c256b553bdbea5b11214c0fbbccb44f842c8d1",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

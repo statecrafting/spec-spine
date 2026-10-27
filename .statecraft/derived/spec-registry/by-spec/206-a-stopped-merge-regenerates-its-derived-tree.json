@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-10-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "001-compile-registry",
       "004-codebase-index",
@@ -133,5 +134,5 @@
     "title": "A stopped merge regenerates its derived tree, and refuses anything else that conflicts"
   },
   "shardHash": "f400abc584613e3ee9fe1c74c1213c4d5fb4c38248359ec21ac26bf38f1949b7",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

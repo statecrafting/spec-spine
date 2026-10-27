@@ -7,6 +7,7 @@
       "154-the-pre-merge-sweep-is-a-skill-step"
     ],
     "created": "2026-10-05",
+    "declaresAcceptance": true,
     "dependsOn": [
       "154-the-pre-merge-sweep-is-a-skill-step",
       "156-statecraft-profile-10-governs-this-repository"
@@ -40,5 +41,5 @@
     "title": "The built-in ledger probe sweeps the candidate, not origin/main"
   },
   "shardHash": "85a12683f8b83b6387059b559164066e55982e8a697b60c7b1d190270cdd1272",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

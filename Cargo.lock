@@ -1116,7 +1116,7 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "spec-spine-cli"
-version = "0.31.0"
+version = "0.32.0"
 dependencies = [
  "clap",
  "ed25519-dalek",
@@ -1131,7 +1131,7 @@ dependencies = [
 
 [[package]]
 name = "spec-spine-core"
-version = "0.31.0"
+version = "0.32.0"
 dependencies = [
  "glob",
  "jsonschema",
@@ -1160,7 +1160,7 @@ dependencies = [
 
 [[package]]
 name = "spec-spine-types"
-version = "0.31.0"
+version = "0.32.0"
 dependencies = [
  "serde",
  "serde-saphyr",

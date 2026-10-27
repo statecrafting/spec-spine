@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "035-registry-plan-ready-set"
     ],
@@ -76,5 +77,5 @@
     "title": "Readiness is scheduling, not approval"
   },
   "shardHash": "112afb5950ed91f87619863d40c10d2d972035e84a49a3cad65ef034c013b98f",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

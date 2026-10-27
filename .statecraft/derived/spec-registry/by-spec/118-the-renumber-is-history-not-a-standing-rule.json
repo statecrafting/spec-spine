@@ -7,6 +7,7 @@
       "095-the-corpus-describes-what-exists"
     ],
     "created": "2026-09-22",
+    "declaresAcceptance": true,
     "dependsOn": [
       "082-an-amended-acceptance-is-the-one-that-runs",
       "095-the-corpus-describes-what-exists"
@@ -68,5 +69,5 @@
     "title": "The renumber is history, not a standing rule"
   },
   "shardHash": "072a88c79e6aed1b469150a44982f8414081bb462b7b5595c3a3f609a8231da3",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

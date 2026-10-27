@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "106-obligations-are-declared-constraints"
     ],
@@ -266,5 +267,5 @@
     "title": "Impact and conflict are declared"
   },
   "shardHash": "af9b40565696216e8d41911072b27296a9c138070cd3f9cc11535f247a89c67b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

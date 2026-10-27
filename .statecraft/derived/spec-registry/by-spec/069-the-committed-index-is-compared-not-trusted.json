@@ -4,6 +4,7 @@
       "022-index-sharding"
     ],
     "created": "2026-09-11",
+    "declaresAcceptance": true,
     "dependsOn": [
       "004-codebase-index",
       "005-coupling-gate",
@@ -107,5 +108,5 @@
     "title": "The committed index is compared, not trusted"
   },
   "shardHash": "adac832c9a2e075f222fb88c711b308898e30b02ca8fb4962ac4667a2c8d6270",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

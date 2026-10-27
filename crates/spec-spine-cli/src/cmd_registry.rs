@@ -6,12 +6,13 @@
 use std::path::Path;
 
 use clap::Subcommand;
+use spec_spine_core::query::acceptance_sources;
 use spec_spine_core::{
     ListFilter, MoveLookup, Plan, Versioning, flattened_moves, list, list_ids,
     load_committed_registry, lookup_move, plan, read_document, relationships, shard_content_hash,
     show, status_report,
 };
-use spec_spine_types::{Error, Status, TraceState, TraceabilityRequest};
+use spec_spine_types::{Error, Implementation, Status, TraceState, TraceabilityRequest};
 
 use crate::load_repo_config;
 
@@ -21,6 +22,14 @@ pub enum RegistryQuery {
     List {
         #[arg(long, value_name = "STATUS")]
         status: Option<String>,
+        /// Keep specs whose frontmatter `implementation` is this value:
+        /// pending, in-progress, complete, n-a or deferred (spec 207).
+        #[arg(long, value_name = "STATE")]
+        implementation: Option<String>,
+        /// Keep specs for which `verify <id>` would run at least one command,
+        /// an amended block resolved as `verify` resolves it (spec 207).
+        #[arg(long)]
+        has_acceptance: bool,
         #[arg(long)]
         json: bool,
         /// Print bare spec ids, one per line (a JSON string array with --json).
@@ -127,11 +136,18 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
     match query {
         RegistryQuery::List {
             status,
+            implementation,
+            has_acceptance,
             json,
             ids_only,
         } => {
             let filter = ListFilter {
                 status: status.as_deref().map(parse_status).transpose()?,
+                implementation: implementation
+                    .as_deref()
+                    .map(parse_implementation)
+                    .transpose()?,
+                has_acceptance: *has_acceptance,
             };
             if *ids_only {
                 // Spec 009 §3.1: ids and nothing else; an empty corpus prints
@@ -146,7 +162,22 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 }
             } else {
                 let specs = list(&registry, &filter);
-                if *json {
+                if *json && *has_acceptance {
+                    // Spec 207 §3.4: name the spec whose block was kept when
+                    // it is not the record's own, and only under the flag.
+                    let sources = acceptance_sources(&registry);
+                    let mut items = Vec::with_capacity(specs.len());
+                    for s in specs {
+                        let mut value =
+                            serde_json::to_value(s).map_err(|e| Error::Internal(e.to_string()))?;
+                        if let (Some(obj), Some(from)) = (value.as_object_mut(), sources.get(&s.id))
+                        {
+                            obj.insert("acceptanceFrom".to_string(), serde_json::json!(from));
+                        }
+                        items.push(value);
+                    }
+                    print_json(&items)?;
+                } else if *json {
                     print_json(&specs)?;
                 } else if specs.is_empty() {
                     outln!("(no specs)");
@@ -587,6 +618,22 @@ fn parse_status(s: &str) -> Result<Status, Error> {
         "retired" => Ok(Status::Retired),
         other => Err(Error::NotFound(format!(
             "unknown status '{other}' (expected draft|approved|superseded|retired)"
+        ))),
+    }
+}
+
+/// Spec 207 §3.1: the five frontmatter tokens, exactly. Anything else, the
+/// `n/a` alias the frontmatter grammar still reads included, is a usage error
+/// naming the five.
+fn parse_implementation(s: &str) -> Result<Implementation, Error> {
+    match s {
+        "pending" => Ok(Implementation::Pending),
+        "in-progress" => Ok(Implementation::InProgress),
+        "complete" => Ok(Implementation::Complete),
+        "n-a" => Ok(Implementation::Na),
+        "deferred" => Ok(Implementation::Deferred),
+        other => Err(Error::Usage(format!(
+            "unknown implementation '{other}' (expected pending|in-progress|complete|n-a|deferred)"
         ))),
     }
 }

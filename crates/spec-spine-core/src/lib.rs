@@ -312,6 +312,7 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         Op::List => {
             let filter = ListFilter {
                 status: request.status,
+                ..ListFilter::default()
             };
             if request.ids_only {
                 read_document(&query::list_ids(&registry, &filter), Versioning::Stamp)?

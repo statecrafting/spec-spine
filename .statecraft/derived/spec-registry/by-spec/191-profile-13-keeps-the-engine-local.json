@@ -9,6 +9,7 @@
       "190-the-gate-requires-the-queue-sweep"
     ],
     "created": "2026-10-02",
+    "declaresAcceptance": true,
     "dependsOn": [
       "190-the-gate-requires-the-queue-sweep"
     ],
@@ -99,11 +100,11 @@
     "kind": "tooling",
     "sectionDigests": {
       "1-purpose": "3ace3970e460be811d7f673000a188136d0c968adf3dc26225a3385203595d7e",
-      "191-profile-13-keeps-the-exact-engine-local": "22a235181170980614085f03321df176dafa4ce34b2a1c0849c1318a6ccda8af",
+      "191-profile-13-keeps-the-exact-engine-local": "a9fe5ec8d6fd82a24d32c319434d333255a1c4e454d011d8667a3f03435acc5a",
       "2-territory": "cad41669842119a6109df280315a0f2ba245bfd33641942c200a8dd07aa2c7ab",
       "3-behavior": "5e5e4bf35eabd04ca282bfe2e76bc2cdf4b0b3ab540a8dc2354e6d19817ec9dc",
       "4-acceptance-amendment": "751513351b3eabf64846ad4aca78aa55ddaff873a23a3a3db267b4fa6091f205",
-      "verification": "c4a2d5ff1f6e8dae4a520aa6575fd24f83cf451ba5a9d196d8a9d492fdc6fa5e"
+      "verification": "041f7422921a5a9611ec12478115e90837d6284650bb9b1aba54f646e1c6ce27"
     },
     "sectionHeadings": [
       "191: Profile 13 keeps the exact engine local",
@@ -118,6 +119,6 @@
     "summary": "Adopts Statecraft revision 13 without narrowing the engine-specific checks or retiring the repository-owned merge-queue acceptance sweep.\n",
     "title": "Profile 13 keeps the exact engine local"
   },
-  "shardHash": "4a67b1af894c557c1d02427053b624b4c7f4eaea2eeef2536cd220428ba6e70e",
-  "specVersion": "1.10.0"
+  "shardHash": "e62ed4c7cf28c58a125e6e59e5d4d0df6125501cd69323bda38fe2ca06378461",
+  "specVersion": "1.11.0"
 }

@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-10-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "019-release-supply-chain-artifacts"
     ],
@@ -65,5 +66,5 @@
     "title": "OpenSSF Scorecard reports on main"
   },
   "shardHash": "3945fa3f992d20117359e798492d0de09d9bb3829c4872180246ffa43b8ace66",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "001-compile-registry"
     ],
@@ -100,5 +101,5 @@
     "title": "Bindings are designed, not shipped"
   },
   "shardHash": "fe0fb884917e004ff1959fd45bd5dbfa3eff23c44e3e127e8a6745d1a4b468ea",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

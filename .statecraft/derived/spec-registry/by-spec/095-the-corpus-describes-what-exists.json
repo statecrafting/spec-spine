@@ -4,6 +4,7 @@
       "089-nothing-reruns-a-merged-acceptance"
     ],
     "created": "2026-09-20",
+    "declaresAcceptance": true,
     "dependsOn": [
       "037-amendment-authoring",
       "092-the-engine-ships-governance-not-an-environment",
@@ -84,5 +85,5 @@
     "title": "The corpus describes what exists"
   },
   "shardHash": "31ff40b861e28555db48f055624c7948a66ac07afc49240607d127847598646e",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

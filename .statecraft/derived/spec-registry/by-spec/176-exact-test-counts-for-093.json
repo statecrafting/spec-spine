@@ -7,6 +7,7 @@
       "093-the-harness-this-repository-runs"
     ],
     "created": "2026-09-29",
+    "declaresAcceptance": true,
     "dependsOn": [
       "093-the-harness-this-repository-runs",
       "151-carried-acceptance-tests-what-it-names"
@@ -46,5 +47,5 @@
     "title": "Exact test counts for 093"
   },
   "shardHash": "d2ed83f87e5afcf0c8d9317259bf0cb93fe7b327a7c2b7f50a3705848508abe8",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

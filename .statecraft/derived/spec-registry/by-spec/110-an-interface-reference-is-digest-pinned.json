@@ -1,6 +1,7 @@
 {
   "record": {
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "070-an-authority-snapshot-says-what-it-read",
       "106-obligations-are-declared-constraints"
@@ -282,5 +283,5 @@
     "title": "An interface reference is digest-pinned"
   },
   "shardHash": "0736331a16269f49934d5be8e3300804fdb255b781f8192dd7efebf672750813",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

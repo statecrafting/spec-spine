@@ -4,6 +4,7 @@
       "089-nothing-reruns-a-merged-acceptance"
     ],
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "043-verify-declared-acceptance",
       "089-nothing-reruns-a-merged-acceptance",
@@ -95,5 +96,5 @@
     "title": "A merged acceptance is asked again"
   },
   "shardHash": "cd6b61e84df551c14eaba8e88ab4d99d707235b26f3ec8fc12831aedb38ffecb",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

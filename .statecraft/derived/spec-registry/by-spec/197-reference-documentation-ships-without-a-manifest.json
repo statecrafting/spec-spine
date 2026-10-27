@@ -4,6 +4,7 @@
       "166-deterministic-reference-documentation"
     ],
     "created": "2026-10-19",
+    "declaresAcceptance": true,
     "dependsOn": [
       "166-deterministic-reference-documentation"
     ],
@@ -62,5 +63,5 @@
     "title": "Reference documentation ships without a manifest, on the evidence it has"
   },
   "shardHash": "81a463a5f16891d28e6003fcb184dd79e7bf6baef699d0e6c0fab6ec477dee7a",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

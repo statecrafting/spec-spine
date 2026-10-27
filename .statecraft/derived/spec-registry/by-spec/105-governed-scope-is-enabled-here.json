@@ -7,6 +7,7 @@
       "078-governed-scope-is-declared-not-inferred"
     ],
     "created": "2026-09-21",
+    "declaresAcceptance": true,
     "dependsOn": [
       "078-governed-scope-is-declared-not-inferred",
       "100-a-deleted-path-is-judged-where-it-lived"
@@ -101,5 +102,5 @@
     "title": "Governed scope is enabled here"
   },
   "shardHash": "e4feca16954dfdcb6ac49a75c8abd35fff39d002f3b280f8edf1cc32bf8ce291",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }
