@@ -29,7 +29,7 @@
     "sectionDigests": {
       "1-purpose": "d74ccc1e5acc829cbd64df7d2bb841ec4e836fee7ba31901d2061f8fca70f498",
       "2-territory": "014ab89b61e0b915b178fcf81b96e033963ddef8816dc83887fe87f726420468",
-      "207-the-registry-lists-specs-by-implementation-state-and-by-whether-verify-would-run-anything": "cc3282850596199b67c37695e3302a8b9163e28ecfe726c2d2f77a76ead9df23",
+      "207-the-registry-lists-specs-by-implementation-state-and-by-whether-verify-would-run-anything": "87ce33e5dc45254a20ea5fe094e43e37c5f2192723e70a43919f2bea33ca2d04",
       "3-1-implementation-state": "99fc0d156e428bdeafdf41d4185d6887490637e46688647c53e865837e870756",
       "3-2-has-acceptance": "c1aa295ba6411ae126c87f3074985f4ec91dc5cd545a1be4dce6b827d4a34e26",
       "3-3-the-record-field": "8332b2b0a4d410dc988c808f18fae511516e2de7290e44ed64ee0acd1631c079",
@@ -38,7 +38,7 @@
       "3-behavior": "0d6076dae2be10f771e51bb0084b131ffad2227d63a90d38282ef2f26229395d",
       "4-acceptance-criteria": "9b35672f346bfd0ae42aa97ef1c9afd16d73a538708fe615bfbb78f2b08eb2f9",
       "5-out-of-scope": "71ed13cdb7ab875482d602dda10dba1a7e43223c826e77e1b3fc35b6584c3f0b",
-      "6-resolved-decisions": "7aa81bd04a0a33760ccc869057800f95b88b59a78e230c623603568a57f6688d",
+      "6-resolved-decisions": "3fc9ad3684364866b2a8a46919cbf5f3c33e43acd69e6c6a6bd684d02e940aff",
       "verification": "9c9550cf1b55d89000e4350ddd85f400ca506741bb3538b45be540b4be3d8a04"
     },
     "sectionHeadings": [
@@ -57,10 +57,10 @@
       "Verification"
     ],
     "specPath": "specs/207-the-registry-lists-what-verify-would-run/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`registry list` filters by lifecycle status only. Adopters that run every implemented spec's acceptance keep that set by hand, as a Makefile variable and as CI partitions validated against it, and resolve conflicts in it whenever two closures race. One adopter's hand list, compared on 2026-10-27 with what its corpus says, includes one spec still in progress and omits one complete spec that declares acceptance. This spec adds two filters that compose with `--status` and with `--ids-only`: `--implementation <state>`, over the frontmatter value, and `--has-acceptance`, true when `spec-spine verify <id>` would run at least one command, resolved the way `verify` resolves an amended block. The record gains `declaresAcceptance`, computed at compile, so the answer comes from the committed ledger like every other registry read.\n",
     "title": "The registry lists specs by implementation state and by whether verify would run anything"
   },
-  "shardHash": "da0cad35b638f70dfa18db6f6cb6346a5621b918cacf06da82de9406738d15ae",
+  "shardHash": "e63621429edacb508e80ad8ed2ba888f340074ec7ea9bca8874c37c707e5e3a2",
   "specVersion": "1.10.0"
 }

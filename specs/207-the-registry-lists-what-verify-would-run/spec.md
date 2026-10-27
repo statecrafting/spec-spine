@@ -1,7 +1,7 @@
 ---
 id: "207-the-registry-lists-what-verify-would-run"
 title: "The registry lists specs by implementation state and by whether verify would run anything"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-10-27"
 implementation: pending
@@ -169,6 +169,10 @@ for the same ledger, apart from the record field under `--json`.
   restate differently.
 
 ## 6. Resolved decisions
+
+**2026-10-27: ratified by the owner.** The owner confirmed every decision
+below as written and directed ratification in this pull request; the owner
+exception approved on its run is the ratification of record.
 
 **D-1 (2026-10-27): the field is compiled, not computed at query time.**
 Reading spec bodies inside `registry list` would make one answer mix the

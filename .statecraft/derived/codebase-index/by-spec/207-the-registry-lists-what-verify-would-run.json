@@ -19,8 +19,8 @@
       }
     ],
     "specId": "207-the-registry-lists-what-verify-would-run",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "da0cad35b638f70dfa18db6f6cb6346a5621b918cacf06da82de9406738d15ae"
+  "shardHash": "e63621429edacb508e80ad8ed2ba888f340074ec7ea9bca8874c37c707e5e3a2"
 }
