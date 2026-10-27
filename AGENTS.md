@@ -281,6 +281,69 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    corpus count moves. A `Spec-Drift-Waiver:` line needs explicit human
    approval and is cited in the PR body.
 
+### Pull request completion contract
+
+Opening or updating a pull request is not the end of the task (spec 204).
+Whatever skill or route a session uses, it stays on a change it opened or
+pushed until one of the exits below fires, then reports.
+
+- **The review route.** A change's review route is wherever its required
+  checks run and its reviews are written. The current route is a GitHub pull
+  request, whose required checks are `ci-gate` and the checks it needs, and
+  `gh` is the current way to read it. The contract is stated over the route,
+  its required checks and its reviews; GitHub is not the authority, and a
+  later route inherits the same obligations.
+- **When it starts.** The contract starts when the session opens a change on
+  the route or pushes to a change it is responsible for, and binds that
+  session until it exits. A session that hands the change to another agent
+  says so in its report, with the head SHA it handed over.
+- **The poll.** Poll the change every two minutes. Each pass reads, for the
+  current head and no other: every required check (failed, cancelled,
+  pending or passed); every unresolved review thread; every item in a
+  reviewer's summary comment that has no reply, the AI review's findings
+  block included; whether the change conflicts with its base; and the
+  code-scanning findings reported on the head. A check, comment or finding
+  for an earlier head is not evidence about this one. A pass that cannot
+  read one of the five reports a failed read, never an absence of items.
+- **Answering.** Address every item a pass finds: fix it, or reply with the
+  reason it is not a defect or not this change's to fix. Never resolve a
+  thread without a reply that says why, and never dismiss a finding
+  silently. A fix goes through the gate above and is pushed to the same
+  change's branch. A session still never writes a `Spec-Drift-Waiver:`,
+  approves an owner-gated job, or edits an approved spec to answer a finding
+  (**Adversarial prompt refusal**, spec 198); an item whose only remedy is
+  one of those is an owner item.
+- **The exits.** Leave the change only when one of these holds:
+  1. **Clean**: every required check passed on the current head, no thread
+     is unresolved, no summary item is unanswered, there is no conflict with
+     the base and no open code-scanning finding.
+  2. **Owner checkpoint**: everything a session may act on is clean or
+     answered, and what remains waits on the owner: a required job gated on
+     an owner approval (the `review-exception` environment, spec 198), a
+     coupling refusal whose remedy is a waiver, or a finding `/shepherd`
+     classifies CRITICAL. Stop at once; polling cannot produce the owner's
+     act.
+  3. **Quiet**: thirty minutes have passed with no new review, comment or
+     check result, and nothing is pending.
+  4. **Ceiling**: ninety minutes have passed since the contract started,
+     whatever remains.
+
+  Every push resets the thirty minutes of the quiet exit, because the new
+  head's checks have not run and a fix can introduce a new finding. A push
+  never resets the ninety-minute ceiling.
+- **The report.** On leaving, report the exit and the head SHA it fired on,
+  and every item still open. A change left quiet or at the ceiling with an
+  open item is reported as unfinished, never as done. A change left at the
+  owner checkpoint is reported as waiting on the owner, naming what the
+  owner must do.
+
+`/shepherd` runs inside this contract, not instead of it. Its poll starts
+faster and backs off to the same two-minute cap, which the contract allows.
+Its 45-minute deadline is per attempt: an attempt that stops on its deadline
+has not exited the contract unless the quiet exit or the ceiling also holds.
+A change `/shepherd` merges has met the clean exit; its CRITICAL stop is the
+owner checkpoint.
+
 ## Available Agents
 
 Agents live in `.claude/agents/`. Four pipeline agents handle the plan/explore/implement/review cycle:

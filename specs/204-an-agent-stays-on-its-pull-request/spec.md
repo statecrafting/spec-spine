@@ -4,7 +4,7 @@ title: "An agent stays on its pull request until it is clean, at an owner checkp
 status: approved
 kind: "process"
 created: "2026-10-21"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -194,6 +194,17 @@ not run; the ceiling bounds the session's total wait.
 **D-3 (2026-10-21): the subsection lives under "Working the backlog".**
 That section already sequences ship, shepherd and ratify; the contract is
 the rule for the time between ship and merge.
+
+**D-4 (2026-10-27): the subsection closes with section 4's relation to
+`/shepherd`.** Section 2 names 3.1 to 3.6 as what the subsection states; it
+is silent on section 4. The build adds one closing paragraph restating it
+(`/shepherd` runs inside the contract, its per-attempt deadline is not an
+exit, its merge is the clean exit and its CRITICAL stop the owner
+checkpoint), because a session reading `AGENTS.md` alone would otherwise
+take the skill's 45-minute deadline as the end of its obligation. The
+paragraph changes no skill (section 6). Rejected: leaving section 4 in the
+spec only, which keeps the one conflict a reader is most likely to hit out
+of the document they actually read.
 
 ## Verification
 
