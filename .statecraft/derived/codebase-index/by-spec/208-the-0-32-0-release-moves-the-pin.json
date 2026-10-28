@@ -99,8 +99,8 @@
       }
     ],
     "specId": "208-the-0-32-0-release-moves-the-pin",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "7604a8d630fec44cb3cb98be9ad3e48c192465472313912e94f7ff064c9d8d28"
+  "shardHash": "2c34c153bcb6d762fc8d30ac7aea2e863a68e3badac8e772524c013419fc3ef4"
 }

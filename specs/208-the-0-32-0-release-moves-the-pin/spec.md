@@ -1,8 +1,8 @@
 ---
 id: "208-the-0-32-0-release-moves-the-pin"
 title: "The 0.32.0 release moves the package version, the pin and the registry schema together"
-status: draft
-implementation: in-progress
+status: approved
+implementation: complete
 kind: tooling
 created: "2026-10-27"
 summary: >
@@ -114,6 +114,11 @@ carrying spec 207's registry schema 1.11.0, built on 207's branch in one
 change, as spec 169 rode spec 195. The owner approved its publication on
 2026-10-27: tagged at this change's head once its pull request is open, after
 the packaged-producer check and the release sweep pass on that head.
+
+**D-2 (2026-10-27, owner).** 0.32.0 is published: tag `v0.32.0` names
+`7d649eb2`, the head of #521, which merged. The owner's rulings of 2026-10-27
+move this spec to `implementation: complete` on that evidence and the
+`verify 208` run recorded in the pull request, and ratify it.
 
 ## Verification
 
