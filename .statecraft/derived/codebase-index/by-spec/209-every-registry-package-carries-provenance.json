@@ -46,8 +46,8 @@
       }
     ],
     "specId": "209-every-registry-package-carries-provenance",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "2e9c0948649a8d358f4b686a86dc7b0f644e6fb87990355b54861c4648cfc1bd"
+  "shardHash": "1edcf686a6f8bb8527c5db1074c4227645118b95a52d68dcfb28e1bf43e5aa44"
 }
