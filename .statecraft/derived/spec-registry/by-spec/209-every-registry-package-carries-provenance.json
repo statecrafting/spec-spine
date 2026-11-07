@@ -1,0 +1,79 @@
+{
+  "record": {
+    "amends": [
+      "201-a-release-proves-itself-after-it-publishes"
+    ],
+    "amendsSections": [
+      "4"
+    ],
+    "created": "2026-11-07",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "006-distribution",
+      "201-a-release-proves-itself-after-it-publishes"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/release.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": "docs/releasing.md"
+        }
+      }
+    ],
+    "id": "209-every-registry-package-carries-provenance",
+    "implementation": "complete",
+    "intent": {
+      "goal": "Every npm package a spec-spine release publishes carries a verifiable SLSA provenance attestation, and no registry upload depends on a long-lived token when trusted publishing works.",
+      "nonGoals": [
+        "Republishing or deprecating versions already on npm without provenance (0.32.0 and earlier stay as published)",
+        "Changing the PyPI channel, which already publishes through trusted publishing with PEP 740 attestations",
+        "A badge or attestation for crates.io, which records none"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "4afda83b33d13ed27b23150f158d419ff1bec065d50d650125bf7d6bfe5031aa",
+      "2-territory": "6d1035fae62e5f075425988779a7e97c8bc8133dfb933a49da71648539f50206",
+      "209-every-npm-package-carries-provenance-and-npm-and-crates-io-publish-through-trusted-publishing-first": "09f8fae228e65f5a93bb53546d880bcdc109bd11f9aaeb0d41bb5bf6db81ef0a",
+      "3-1-npm-trusted-publishing-first-provenance-always": "0dcff2b78c28b918e2444467317ed35c6a9a78207a60ae92c6cc91d55988e8c0",
+      "3-2-npm-present-means-attested": "196bf57743b9df81384d620851e8b3e5526f3468082693eaad91ed4e6c2a0003",
+      "3-3-crates-io-trusted-publishing-first": "828a616b2b4ccbfd53359482c95ac3ad03d1a80484ad3639c6551672e58a53d2",
+      "3-4-pinned-like-the-rest": "04c9941234e08615a601990ae0e1eba716b45240cb66d1333f84a37d90a37f34",
+      "3-behavior": "22daf715c4a1d59344b1cf2225ae3c77ce2546d0bd16bd5b4b0511d09a6ae0d2",
+      "4-out-of-scope": "1ef258cad46805d8f14e8a44171178114617f528ddab1c60061ec9155b72f2bb",
+      "5-resolved-decisions": "fedde704a21c1ac20277b6593c4b5a77132d348d8d70a3ed2499c80c93fb36ef",
+      "verification": "5f9278911a07fe78882ce409f84a84b584cbf02e3450dadb242fcc2c3f57e544"
+    },
+    "sectionHeadings": [
+      "209: Every npm package carries provenance, and npm and crates.io publish through trusted publishing first",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 npm: trusted publishing first, provenance always",
+      "3.2 npm: present means attested",
+      "3.3 crates.io: trusted publishing first",
+      "3.4 Pinned like the rest",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/209-every-registry-package-carries-provenance/spec.md",
+    "status": "draft",
+    "summary": "Spec 201 put the registry channels out of scope on the claim that \"npm publishes with provenance\". It does not: `publish-npm` publishes with a long-lived `NPM_TOKEN`, without `--provenance` and without an OIDC token, and `spec-spine@0.32.0` carries registry signatures but no attestation. This spec makes npm provenance required on every package the release publishes, moves npm and crates.io to trusted publishing (OIDC) with the stored token kept only as a fallback, and makes a version that is already public without provenance fail the run instead of being skipped.\n",
+    "title": "Every npm package carries provenance, and npm and crates.io publish through trusted publishing first"
+  },
+  "shardHash": "2e9c0948649a8d358f4b686a86dc7b0f644e6fb87990355b54861c4648cfc1bd",
+  "specVersion": "1.11.0"
+}

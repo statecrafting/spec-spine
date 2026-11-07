@@ -13,9 +13,10 @@ name: release
 # publish-crates, publish-npm, and publish-pypi are idempotent: each skips any
 # version already live (crates.io / npm / PyPI), so re-running a tag is safe.
 # publish-npm and publish-pypi assemble their packages/wheels from the SAME build
-# archives (no second Rust build); publish-npm is gated on NPM_TOKEN and
-# publish-pypi on vars.PYPI_TRUSTED_PUBLISHING: absent the one-time setup each
-# is a clean no-op. Each archive ships a per-target CycloneDX SBOM and a SLSA
+# archives (no second Rust build). publish-crates and publish-npm use trusted
+# publishing first, their stored token only as the fallback, and every npm
+# package is published with provenance (spec 209); publish-pypi is gated on
+# vars.PYPI_TRUSTED_PUBLISHING and absent that setup is a clean no-op. Each archive ships a per-target CycloneDX SBOM and a SLSA
 # build-provenance attestation (spec 019), whose Sigstore bundle is attached as
 # `<archive>.intoto.jsonl`; a build that cannot sign fails before any publish,
 # and verify-release re-checks the published release after publish (spec 201).
@@ -251,11 +252,22 @@ jobs:
     name: publish to crates.io
     needs: build
     runs-on: ubuntu-latest
+    # Spec 209 3.3: crates.io trusted publishing scoped to this Environment,
+    # with CARGO_REGISTRY_TOKEN only as the fallback when the exchange fails.
+    environment: crates-publish
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Exchange the OIDC token for a crates.io publishing token (spec 209 3.3)
+        id: auth
+        continue-on-error: true
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
       - name: Publish types, core, cli (tolerate versions already on crates.io)
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token || secrets.CARGO_REGISTRY_TOKEN }}
+          VIA: ${{ steps.auth.outputs.token && 'trusted publishing' || 'the CARGO_REGISTRY_TOKEN fallback' }}
         run: |
           # No -e: we inspect cargo's exit so an already-published version is a
           # skip, not a failure (re-running a tag is then idempotent). cargo
@@ -263,6 +275,11 @@ jobs:
           # so the next dependent crate's verify build finds it. No crates.io API
           # call here: that endpoint needs a User-Agent and is easy to get wrong.
           set -uo pipefail
+          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "::error title=no crates.io credential::trusted publishing failed and CARGO_REGISTRY_TOKEN is not set (spec 209 3.3)"
+            exit 1
+          fi
+          echo "::notice title=crates.io authentication::publishing through ${VIA}"
           for crate in spec-spine-types spec-spine-core spec-spine-cli; do
             echo "::group::publish $crate"
             if out="$(cargo publish -p "$crate" --locked 2>&1)"; then
@@ -282,42 +299,59 @@ jobs:
     name: publish to npm
     needs: build
     runs-on: ubuntu-latest
+    # Spec 209 3.1: npm trusted publishing scoped to this Environment; the
+    # id-token also signs every package's provenance on either auth path.
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Gate on NPM_TOKEN: absent the secret, the whole job is a clean no-op (a
-      # skip, never a red X), the same posture as the crates.io token. The first
-      # publish, the NPM_TOKEN, and the one-time `@spec-spine` org creation are a
-      # human's job (see docs/releasing.md).
-      - name: Check for NPM_TOKEN
-        id: gate
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 20
+          package-manager-cache: false
+
+      # Trusted publishing needs npm 11.5.1 or later; Node 20 bundles npm 10.
+      # Pinned by content: the tarball's SHA-512 must equal the registry's
+      # integrity for npm 11.21.0 before it is installed (spec 209 3.1.2).
+      - name: Install the pinned npm for trusted publishing
+        env:
+          NPM_INTEGRITY: sha512-Zov8KhamNneiLdELtj5YALtNmJW4L4fCLTzjfpzXG2w6MSHcf0UxgdlK5uloCuksWT+7mGUU7wi79cO6RqivPg==
+        run: |
+          set -eu
+          curl -fsSL -o "$RUNNER_TEMP/npm-11.21.0.tgz" https://registry.npmjs.org/npm/-/npm-11.21.0.tgz
+          got="sha512-$(openssl dgst -sha512 -binary "$RUNNER_TEMP/npm-11.21.0.tgz" | base64 -w0)"
+          test "$got" = "$NPM_INTEGRITY" || { echo "::error::npm tarball integrity $got is not $NPM_INTEGRITY"; exit 1; }
+          npm install -g --ignore-scripts "$RUNNER_TEMP/npm-11.21.0.tgz"
+          test "$(npm --version)" = 11.21.0
+
+      # Spec 209 3.1.4: npm tries trusted publishing first and falls back to
+      # this token only when npm refuses the exchange (npm/cli#9969). npm
+      # expands ${NPM_TOKEN} itself; the file never holds the value.
+      - name: Configure the fallback token, if present
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          set -eu
           if [ -n "${NPM_TOKEN:-}" ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
+            # shellcheck disable=SC2016 # npm, not the shell, expands it
+            printf '%s\n' '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > "$RUNNER_TEMP/.npmrc"
+            echo "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/.npmrc" >> "$GITHUB_ENV"
           else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=npm publish skipped::NPM_TOKEN secret not set; skipping npm publish"
+            echo "::notice title=no fallback token::npm trusted publishing only"
           fi
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.gate.outputs.present == 'true'
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org
 
       # The npm platform packages bundle the prebuilt binaries directly, so they
       # are assembled from the build job's archives (no second Rust build).
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        if: steps.gate.outputs.present == 'true'
         with:
           path: dist/archives
           pattern: archive-*
           merge-multiple: true
 
       - name: Assemble platform packages from the release archives
-        if: steps.gate.outputs.present == 'true'
         working-directory: npm
         run: |
           set -euo pipefail
@@ -330,27 +364,43 @@ jobs:
             --version "$VERSION" --archives ../dist/archives --out dist/packages --write-main
           ls -la dist/packages/@spec-spine
 
-      - name: Publish (idempotent; skip versions already on npm)
-        if: steps.gate.outputs.present == 'true'
+      - name: Publish with provenance (idempotent; present means attested)
         working-directory: npm
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          # No -e: we inspect each publish so an already-published version is a
-          # skip, not a failure (re-running a tag is then idempotent). `npm view`
-          # is the precheck: it 404s (non-zero) for an unpublished version.
+          # Spec 209 3.2. No -e: each step is inspected. `npm view` 404s
+          # (non-zero) for an unpublished version.
           set -uo pipefail
+          attested() {
+            npm view "$1" dist.attestations.provenance.predicateType 2>/dev/null \
+              | grep -q '^https://slsa.dev/provenance/'
+          }
           publish_if_absent() {
-            local dir="$1" name version
+            local dir="$1" name version id
             name="$(node -p "require('./${dir}/package.json').name")"
             version="$(node -p "require('./${dir}/package.json').version")"
-            echo "::group::publish ${name}@${version}"
-            if npm view "${name}@${version}" version >/dev/null 2>&1; then
-              echo ">> ${name}@${version} already on npm, skipping"
+            id="${name}@${version}"
+            echo "::group::publish ${id}"
+            if npm view "${id}" version >/dev/null 2>&1; then
+              if attested "${id}"; then
+                echo ">> ${id} already on npm with provenance, skipping"
+              else
+                echo "::error title=present without provenance::${id} is on npm without a provenance attestation; nothing is republished (spec 209 3.2)"
+                exit 1
+              fi
             else
               # --access public: scoped packages default to restricted.
-              npm publish "${dir}" --access public
-              echo ">> published ${name}@${version}"
+              npm publish "${dir}" --provenance --access public || exit 1
+              for _ in $(seq 1 30); do
+                attested "${id}" && break
+                sleep 10
+              done
+              attested "${id}" || {
+                echo "::error title=no provenance::${id} is not visible with a provenance attestation"
+                exit 1
+              }
+              echo ">> published ${id} with provenance"
             fi
             echo "::endgroup::"
           }
@@ -378,7 +428,7 @@ jobs:
 
       # Gate on a repository variable, not a secret: Trusted Publishing has no
       # token to detect. Absent/false => clean skip (a notice, never a red X),
-      # the same posture as publish-npm's NPM_TOKEN gate. A human flips this on
+      # the posture publish-npm had before spec 209. A human flips this on
       # after the one-time PyPI project + Trusted Publisher setup (docs/releasing.md).
       - name: Check Trusted Publishing is enabled
         id: gate
