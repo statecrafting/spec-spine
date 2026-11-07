@@ -221,24 +221,35 @@ offline. The `npm/scripts/generate-platform-packages.js` generator assembles the
 platform packages from the archives at publish time; binaries and generated
 packages are never committed.
 
-The job is **idempotent** (`npm view` precheck skips versions already live) and
-**gated on the `NPM_TOKEN` secret** (absent the token it is a clean no-op, the
-same posture as the crates.io token). **First-time human setup (once):**
+The job publishes every package with **npm provenance** (`--provenance`) and is
+**idempotent**: a version already live is skipped only when it carries a
+provenance attestation; one without it fails the run and is never republished
+(spec 209). It authenticates through **npm trusted publishing** (OIDC) first
+and falls back to the `NPM_TOKEN` secret only when npm refuses the exchange
+(npm/cli#9969); with neither it fails. **First-time human setup (once):**
 
 ```sh
-# 1. Create the @spec-spine org on npm (Settings → Add Organization), so the
+# 1. Create the @spec-spine org on npm (Settings -> Add Organization), so the
 #    scoped platform packages @spec-spine/cli-* can be published.
-# 2. Create an automation access token (npmjs.com → Access Tokens → Granular/
-#    Automation; bypasses 2FA for CI) with publish rights to `spec-spine` and the
-#    @spec-spine scope.
-# 3. Add it as the repo secret NPM_TOKEN (Settings → Secrets → Actions).
+# 2. For spec-spine and each @spec-spine/cli-* package: Settings -> Trusted
+#    Publisher -> GitHub Actions: statecrafting/spec-spine, workflow
+#    release.yml, environment npm-publish.
+# 3. Fallback while npm/cli#9969 is open: a granular access token with publish
+#    rights to spec-spine and the @spec-spine scope, as the secret NPM_TOKEN.
 ```
 
-Once `NPM_TOKEN` is set, every `v*` tag publishes npm alongside crates.io and the
+crates.io follows the same rule: `publish-crates` runs in the `crates-publish`
+Environment and exchanges its OIDC token through
+`rust-lang/crates-io-auth-action` (configure a trusted publisher for each crate
+naming `release.yml` and `crates-publish`), with `CARGO_REGISTRY_TOKEN` as the
+fallback.
+
+Every `v*` tag publishes npm alongside crates.io and the
 GitHub Release. Verify a release with:
 
 ```sh
 npm view spec-spine@<version> version          # main package live
+npm view spec-spine@<version> dist.attestations.provenance.predicateType  # SLSA provenance
 npm view @spec-spine/cli-darwin-arm64@<version> version
 npx spec-spine@<version> --version             # end-to-end smoke
 ```

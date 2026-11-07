@@ -76,7 +76,7 @@
       "contentHash": "291d91dce47f23eac16b34a2392eb5e2d74467da0254340ea9832910f0a20537"
     },
     ".github/workflows/release.yml": {
-      "contentHash": "cce00c351d070d721e73744d73fb1c825ff518535c628c183682621b44159aab"
+      "contentHash": "089bcddcd88539c1d867169a5453aa64154d9920498b510708980ec21e8a4ec0"
     },
     ".github/workflows/scorecard.yml": {
       "contentHash": "45d59ae9eea98dfbf226d94499cf7d9efd4f01679d81e68cb221953a7751322f"
@@ -181,7 +181,7 @@
       "contentHash": "68654c2933b9c34bc01673f53205f93028da4f789597e5675791662076118192"
     },
     "docs/releasing.md": {
-      "contentHash": "0768bd90dc47d23be38bf9c8986a0e9c2c93c3be8f18545609ae99e395fb422d"
+      "contentHash": "916f8056f150946dccb03f86557cb82a2dc9757c2b8bc3ecc466f7219027bc5b"
     },
     "docs/schema-versioning.md": {
       "contentHash": "f2e970d4a12a5a78b375f2c24d858e1cad9c013a35ff3b0462a1af882892b313"
