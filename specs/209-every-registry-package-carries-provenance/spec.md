@@ -1,7 +1,7 @@
 ---
 id: "209-every-registry-package-carries-provenance"
 title: "Every npm package carries provenance, and npm and crates.io publish through trusted publishing first"
-status: draft
+status: approved
 implementation: complete
 kind: tooling
 created: "2026-11-07"
@@ -116,6 +116,11 @@ comment, as the rest of `release.yml` is.
   3.2 already refuses an unattested npm version at publication.
 
 ## 5. Resolved decisions
+
+**2026-11-07: ratified by the owner.** This pull request flips the spec
+from `draft` to `approved`. Ratification takes effect with the owner's
+approval of this pull request; the owner exception approved on its run is
+the ratification of record (spec 198).
 
 **2026-11-07: owner direction.** The owner directed that npm provenance be
 standardized across every package statecrafting releases (spec-spine, rustev
