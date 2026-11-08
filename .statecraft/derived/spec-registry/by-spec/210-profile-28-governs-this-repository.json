@@ -1,14 +1,10 @@
 {
   "record": {
     "amends": [
-      "191-profile-13-keeps-the-engine-local",
-      "208-the-0-32-0-release-moves-the-pin"
+      "191-profile-13-keeps-the-engine-local"
     ],
     "amendsSections": [
       "3"
-    ],
-    "amendsVerification": [
-      "208-the-0-32-0-release-moves-the-pin"
     ],
     "created": "2026-11-07",
     "declaresAcceptance": true,
@@ -119,17 +115,17 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "99e50a9b5d2939de0b9b4d561972afd67eb0694cc9ff82aac0a41d4b654410b3",
-      "2-territory": "0e356229296d480fb0763af9253a4633baaf24edb98fd95c12a5765206a89975",
-      "210-profile-28-governs-this-repository-and-the-merge-queue-is-declared": "2606702b8b4ce9c9bd212cbce9b961b16731f7dab01a05d84e29c227b5fe4d16",
+      "2-territory": "963a8daf9774d8801845608fd50e61a18f8518e6deb7540341e33a5e9f76f1a8",
+      "210-profile-28-governs-this-repository-and-the-merge-queue-is-declared": "7ea768cee8bf3975d6d37800064bef5149693a1c45ab6968654a2e0541d3f490",
       "3-1-revision-28-is-the-recorded-profile": "9e5cfdfd9d42719efa5c94fc9dfd95abdfafb55a71ac11525aed44c5bfde0eeb",
       "3-2-the-aggregate-requires-twelve-jobs-amends-191-3": "5702eb861be075c6008862cb094729e8863f7a8645d5149117cd6eb5da6ccc22",
       "3-3-the-merge-queue-is-declared": "d9ade80cacdaa6548fe3c2b6e5b16ec38daa0e76dfd9707a47d644beae60029b",
       "3-4-the-repository-workflows-pass-the-workflow-lint": "0cfd8af37d7a08f02985b9bc01c89dca28e66a29791b5041c9293c4a92cb7853",
-      "3-5-acceptance": "0de011efadfc0a4621cbcc68e3002b61fe67f016cf4a3e86a9fa276779a3484b",
-      "3-behavior": "a07aad403f613daa2ae5079b32ade951f1e5025986f37f09eee29bd4ef056fd4",
+      "3-5-acceptance": "dbc968815d487ed90dd83cb778d361bf66b7299c0a51082fc23714e62b381ed6",
+      "3-behavior": "b0d65daf067ef577cc61c2d471690bc540f2e2a47a6aac68efa0362960f851e9",
       "4-out-of-scope": "ebbb707f4ca3dc324c084a474d3e4c602202d59554c65789273b6db801663786",
-      "decisions": "ef65cfc87da73c13586bf6b56fe472074674fee9e5c7719e9427e793c7205242",
-      "verification": "d8f8b1dc0dd230f8284041a3daa5ac46e48bda56343ca7bdc2a687b9934c9dd7"
+      "decisions": "0c51669e193611a53eb01c20cfa286597cc1ab7dc05b8d8068a7d66a5d4f8937",
+      "verification": "6b04f3f17335303e3cd6bbd88494c89b0856644211c2df8e172ea0fb1e82c8e9"
     },
     "sectionHeadings": [
       "210: Profile 28 governs this repository, and the merge queue is declared",
@@ -150,6 +146,6 @@
     "summary": "The repository runs Statecraft's github-actions-rust profile at revision 13. Revision 28 adds five required jobs (preflight, supply-chain, workflow-lint, sg-scan, secret-scan), a policy-isolation guard, a reviewer guide, a remote desired-state record and a merge-queue rule for post-merge pushes. This spec adopts it in three pull requests: a preparation under revision 13 that declares the queue, gives every extra job the post_merge input and clears the workflow lint; a change that hashes the files the render adds; and the render itself. Spec 191's aggregate of seven jobs and its 15-minute review become twelve jobs and 20 minutes.\n",
     "title": "Profile 28 governs this repository, and the merge queue is declared"
   },
-  "shardHash": "6c8a0db176cf7bdc72a05b876127f6398b0b59499d65feabd484b23e6393d2db",
+  "shardHash": "dd1b8b5ff014b3e0e8ac3e38964a738653b91b82132131fe423997dc9080d7f0",
   "specVersion": "1.11.0"
 }

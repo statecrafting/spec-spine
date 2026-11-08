@@ -103,9 +103,6 @@ and shards only. The engine source and schemas are those tagged at
 > Since 2026-10-27, `208-the-0-32-0-release-moves-the-pin` holds 199's block in turn, so this plan runs
 > from that spec's block (spec 208 3.4).
 
-> Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
-> from that spec's block (spec 210 3.5).
-
 ```verify:cli
 # ---- carried for 191-profile-13-keeps-the-engine-local (amends_verification), and through it 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.29.0 together (193 3.1) ----
 # ---- carried for 187-exact-test-counts-for-156 (amends_verification), and through it 156, 091, 094, 124, 134, 135; the ci-gate needs line names affected-acceptance (190 3.2) ----

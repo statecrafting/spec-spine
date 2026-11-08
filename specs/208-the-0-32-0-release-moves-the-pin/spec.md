@@ -122,11 +122,6 @@ move this spec to `implementation: complete` on that evidence and the
 
 ## Verification
 
-> **Superseded acceptance (2026-11-07).** This block no longer runs.
-> `210-profile-28-governs-this-repository` declares this spec in `amends_verification` and carries the
-> complete block with the profile at revision 28 and the `ci-gate` aggregate at twelve jobs
-> (spec 210 3.5). The commands below remain unchanged.
-
 ```verify:cli
 # ---- carried for 199-the-0-31-0-release-moves-the-pin (amends_verification), and through it 195, 193, 191, 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.32.0 together (208 3.1) ----
 # ---- carried for 195-the-0-30-0-release-moves-the-pin (amends_verification), and through it 193, 191, 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.31.0 together (199 3.1) ----
