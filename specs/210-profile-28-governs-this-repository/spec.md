@@ -29,7 +29,11 @@ establishes:
   # Written by the revision 28 render (3.1); claimed before they exist.
   - { kind: file, path: ".statecraft/REVIEW.md", planned: true }
   - { kind: file, path: ".statecraft/setup/github-actions-rust.remote.json", planned: true }
+  # 3.4: what the workflow lint accepts (pull request 2, with its hash).
+  - { kind: file, path: ".github/zizmor.yml" }
 extends:
+  # 2: the three files above enter [index] extra_hashed_inputs (L-008).
+  - { spec: "061-shipped-is-not-the-same-as-working", unit: { kind: file, path: "spec-spine.toml" }, nature: additive }
   # 3.3: the queue declaration in the recorded parameters.
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: additive }
   # 3.3: every extra required job declares the post_merge input.
@@ -127,7 +131,9 @@ zizmor 1.31.1, as revision 28 runs it (`zizmor --offline --format plain
   `release.yml` sets `persist-credentials: false`; no job in them pushes, and
   the acceptance sweep's `git fetch` reads a public repository;
 - `acceptance.yml` passes event and step values to its scripts through
-  `env:`, never by template expansion into a `run:` script;
+  `env:`, never by template expansion into a `run:` script, and refuses a
+  dispatch `only` input outside the spec-id characters `[0-9a-z,-]`, so it
+  cannot write a second step output;
 - `.github/zizmor.yml` accepts two findings in `release.yml`, each with its
   reason: the integrity-checked npm tarball install (spec 209 3.1.2), and
   `softprops/action-gh-release`, whose replacement is a release-path change
@@ -200,4 +206,5 @@ sh -c 'for f in acceptance determinism release; do n=$(grep -c "uses: actions/ch
 test -f .github/zizmor.yml
 grep -q '^  adhoc-packages:' .github/zizmor.yml
 grep -q '^  superfluous-actions:' .github/zizmor.yml
+grep -qF '*[!0-9a-z,-]*)' .github/workflows/acceptance.yml
 ```

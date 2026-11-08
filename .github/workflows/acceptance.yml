@@ -80,6 +80,10 @@ jobs:
             echo "only=$ids" >> "$GITHUB_OUTPUT"
             echo "scope: the specs owning a path in $before..$HEAD_SHA"
           else
+            # A spec-id list only: a newline here would write a second output.
+            case "$ONLY" in
+              *[!0-9a-z,-]*) echo "::error::only must be comma-separated spec ids ([0-9a-z,-])"; exit 1 ;;
+            esac
             echo "only=$ONLY" >> "$GITHUB_OUTPUT"
             echo "scope: ${ONLY:-the whole corpus}"
           fi

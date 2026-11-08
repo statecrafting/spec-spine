@@ -61,7 +61,7 @@
       "contentHash": "eb528990bd00e0c8f1866080661ee8d5d5cc7e2b6c72da84d3793cd111e79636"
     },
     ".github/workflows/acceptance.yml": {
-      "contentHash": "2bc4a77cf2a20026bbfd098ffca35db57e7b22b7e623dd5adaf6a06a679f04c8"
+      "contentHash": "cb09cee1ea6665a44d02b8bdbde3826b91810747f93930767b294bb9003281d9"
     },
     ".github/workflows/affected-acceptance.yml": {
       "contentHash": "f7991c54ce90fb6c33dd00f99d7bfd3f020cae175f633d440031f27bc673c904"
@@ -89,6 +89,9 @@
     },
     ".github/workflows/statecraft-ci.yml": {
       "contentHash": "17443b5ea79cf8e95eb528fc477e26581dcc40f4667afd8116760e502b76a5b1"
+    },
+    ".github/zizmor.yml": {
+      "contentHash": "ec6a4ef3f2eb951bf7abff17fa8e8f7cc012ca692d6696cffffcf35f8e2092eb"
     },
     ".statecraft/AGENTS.md": {
       "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
@@ -241,7 +244,7 @@
       "contentHash": "6646f8e04a534675c0e450deb5892aef4049852e6b53832fc47750e03e43d179"
     },
     "spec-spine.toml": {
-      "contentHash": "765a287ac67925f103e368acce868ddf4305529b7132739381596c445d7fa63a"
+      "contentHash": "7ed06cb90cad65d9b9be9cbbe5b227799b78341ec1aaa387cda5ab6baf3a458c"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"
