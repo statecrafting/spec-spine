@@ -96,15 +96,20 @@ fn run_review_with_script(script: &Path, case: ReviewCase<'_>) -> Output {
     let head = git(&project, &["rev-parse", "HEAD"]);
 
     write_executable(&bin.join("npm"), "#!/bin/sh\nexit 0\n");
+    // Profile revision 20 reads the reviewer's `--output-format stream-json`
+    // events: the verdict is the final `result` event's text, and the model
+    // comes from an `assistant` event (spec 210 D-5).
     write_executable(
         &bin.join("claude"),
-        "#!/bin/sh\n\
-         if [ \"${FIXTURE_VALID_REVIEW:-false}\" = true ]; then\n\
-           printf '```json\\n{\"head\":\"%s\",\"verdict\":\"no-findings\",\"findings\":[]}\\n```\\n' \"$HEAD_SHA\"\n\
-         else\n\
-           printf '%s\\n' \"${FIXTURE_DIAGNOSTIC:-}\" >&2\n\
-         fi\n\
-         exit \"${FIXTURE_REVIEWER_EXIT:-0}\"\n",
+        r#"#!/bin/sh
+if [ "${FIXTURE_VALID_REVIEW:-false}" = true ]; then
+  printf '%s\n' '{"type":"assistant","message":{"model":"claude-fixture"}}'
+  printf '{"type":"result","result":"```json\\n{\\"head\\":\\"%s\\",\\"verdict\\":\\"no-findings\\",\\"findings\\":[]}\\n```\\n","modelUsage":{"claude-fixture":{}}}\n' "$HEAD_SHA"
+else
+  printf '%s\n' "${FIXTURE_DIAGNOSTIC:-}" >&2
+fi
+exit "${FIXTURE_REVIEWER_EXIT:-0}"
+"#,
     );
     write_executable(
         &bin.join("gh"),
@@ -177,7 +182,8 @@ fn managed_workflow_calls_the_base_review_script_without_secret_inheritance() {
         .to_json()
         .unwrap();
     let review = &workflow["jobs"]["review"];
-    assert_eq!(review["timeout-minutes"].as_u64(), Some(15));
+    // Profile revision 20 allows the review 20 minutes (spec 210 3.2).
+    assert_eq!(review["timeout-minutes"].as_u64(), Some(20));
     // Every string the job carries, unescaped, one per line.
     fn strings(v: &serde_json::Value, out: &mut String) {
         match v {
