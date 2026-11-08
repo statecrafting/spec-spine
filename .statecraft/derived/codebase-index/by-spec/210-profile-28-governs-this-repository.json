@@ -287,8 +287,8 @@
       }
     ],
     "specId": "210-profile-28-governs-this-repository",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "4f6190fe29e1bc265f75b5cba4a56832a6538f009aa91dd461f1f7516ef91a11"
+  "shardHash": "d06a8f4221f55809349f44797da878cd312d878ba97210330773935da2013bb7"
 }

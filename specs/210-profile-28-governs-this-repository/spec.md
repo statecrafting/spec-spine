@@ -1,7 +1,7 @@
 ---
 id: "210-profile-28-governs-this-repository"
 title: "Profile 28 governs this repository, and the merge queue is declared"
-status: draft
+status: approved
 implementation: complete
 kind: tooling
 created: "2026-11-07"
@@ -162,6 +162,13 @@ chain it holds (D-6).
 - The owner's remote settings, which this repository's files do not change.
 
 ## Decisions
+
+**2026-11-08: ratified by the owner.** This pull request flips the spec
+from `draft` to `approved`. Ratification takes effect with the owner's
+approval of this pull request; the owner exception approved on its run is
+the ratification of record (spec 198). The owner also directed that the
+first push after #530, which revision 28 blocks once by design, is cleared
+as the profile directs.
 
 **D-1 (2026-11-07, owner).** Skip revision 27 for 28; sequence the move as
 a preparation under revision 13, then the render; take the profile's bytes
