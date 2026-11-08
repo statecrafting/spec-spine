@@ -61,7 +61,7 @@
       "contentHash": "eb528990bd00e0c8f1866080661ee8d5d5cc7e2b6c72da84d3793cd111e79636"
     },
     ".github/workflows/acceptance.yml": {
-      "contentHash": "2bc4a77cf2a20026bbfd098ffca35db57e7b22b7e623dd5adaf6a06a679f04c8"
+      "contentHash": "cb09cee1ea6665a44d02b8bdbde3826b91810747f93930767b294bb9003281d9"
     },
     ".github/workflows/affected-acceptance.yml": {
       "contentHash": "f7991c54ce90fb6c33dd00f99d7bfd3f020cae175f633d440031f27bc673c904"

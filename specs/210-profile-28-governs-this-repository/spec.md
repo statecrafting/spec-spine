@@ -131,7 +131,9 @@ zizmor 1.31.1, as revision 28 runs it (`zizmor --offline --format plain
   `release.yml` sets `persist-credentials: false`; no job in them pushes, and
   the acceptance sweep's `git fetch` reads a public repository;
 - `acceptance.yml` passes event and step values to its scripts through
-  `env:`, never by template expansion into a `run:` script;
+  `env:`, never by template expansion into a `run:` script, and refuses a
+  dispatch `only` input outside the spec-id characters `[0-9a-z,-]`, so it
+  cannot write a second step output;
 - `.github/zizmor.yml` accepts two findings in `release.yml`, each with its
   reason: the integrity-checked npm tarball install (spec 209 3.1.2), and
   `softprops/action-gh-release`, whose replacement is a release-path change
@@ -204,4 +206,5 @@ sh -c 'for f in acceptance determinism release; do n=$(grep -c "uses: actions/ch
 test -f .github/zizmor.yml
 grep -q '^  adhoc-packages:' .github/zizmor.yml
 grep -q '^  superfluous-actions:' .github/zizmor.yml
+grep -qF '*[!0-9a-z,-]*)' .github/workflows/acceptance.yml
 ```
