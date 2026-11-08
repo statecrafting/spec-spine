@@ -61,10 +61,10 @@
       "contentHash": "eb528990bd00e0c8f1866080661ee8d5d5cc7e2b6c72da84d3793cd111e79636"
     },
     ".github/workflows/acceptance.yml": {
-      "contentHash": "8a52036fc35e90e7af606a7992f697495d6e6d9eefa260797980c100ff800932"
+      "contentHash": "2bc4a77cf2a20026bbfd098ffca35db57e7b22b7e623dd5adaf6a06a679f04c8"
     },
     ".github/workflows/affected-acceptance.yml": {
-      "contentHash": "108625b013bd12ed147d31c0a663da86acc1a538339887cda7aefbb9ab68f5d9"
+      "contentHash": "f7991c54ce90fb6c33dd00f99d7bfd3f020cae175f633d440031f27bc673c904"
     },
     ".github/workflows/ai-pr-review.yml": {
       "contentHash": "f82ae18771bb50d10f0e20dbaa20f6591793ad9f20bf279cca13d52dba2fe634"
@@ -73,16 +73,16 @@
       "contentHash": "76eeffad38ae8546599d8fe6740fa5e3e67b20c6acd0cd4ce8828bf7dcc50187"
     },
     ".github/workflows/determinism.yml": {
-      "contentHash": "291d91dce47f23eac16b34a2392eb5e2d74467da0254340ea9832910f0a20537"
+      "contentHash": "d8039da8259f968b17c8db5f1c993ed54e87e3d9b7e59a0381de84d0d389fa8f"
     },
     ".github/workflows/release.yml": {
-      "contentHash": "089bcddcd88539c1d867169a5453aa64154d9920498b510708980ec21e8a4ec0"
+      "contentHash": "e6410606819f198f42d5c9582f279d77e886cf41ef902a2dbcc16db995a15697"
     },
     ".github/workflows/scorecard.yml": {
       "contentHash": "45d59ae9eea98dfbf226d94499cf7d9efd4f01679d81e68cb221953a7751322f"
     },
     ".github/workflows/spec-spine-required.yml": {
-      "contentHash": "b343e3153230b1fa2deb980b634cc5b6597889c7af347846784701ac7e309a10"
+      "contentHash": "976b9e71ab3d42aee2793e977f7a161b8952e64ad1e0783e4925cd95ba3788e1"
     },
     ".github/workflows/statecraft-ai-review.yml": {
       "contentHash": "5b651e4befe7feb638671f5b31c7cd6cd03ada5c799e88693d7d1d09d9e1fd5f"
@@ -94,7 +94,7 @@
       "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
     },
     ".statecraft/environment.json": {
-      "contentHash": "00f805f7db27fdb5178f7db10e24e0aecb4b76301eb987df9e187cb320896bf7"
+      "contentHash": "ce3732fd01ba6abbf176ce7ae9f318087afddb0d940b11986f6403adf9c75738"
     },
     ".statecraft/setup/github-actions-rust.json": {
       "contentHash": "3156689240db231f0b17f6d930606d07f047711cbbafb98f08b65c8fb3d1679e"

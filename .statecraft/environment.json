@@ -199,6 +199,12 @@
         "governance.require_default_base": true,
         "governance.require_ratified": false,
         "governance.require_signed_commits": true,
+        "remote.merge_queue": {
+          "all_entries_must_pass": true,
+          "build_concurrency": 5,
+          "merge_method": "squash",
+          "required": true
+        },
         "review.code_owners": [
           "@bartekus"
         ],

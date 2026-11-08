@@ -54,6 +54,9 @@ jobs:
       attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Spec 210 3.4: no job here pushes, so the token is not left in .git/config.
+          persist-credentials: false
       - name: Add target (no-op if native)
         run: rustup target add ${{ matrix.triple }}
       - name: Build release binary
@@ -260,6 +263,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Spec 210 3.4: no job here pushes, so the token is not left in .git/config.
+          persist-credentials: false
       - name: Exchange the OIDC token for a crates.io publishing token (spec 209 3.3)
         id: auth
         continue-on-error: true
@@ -307,6 +313,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Spec 210 3.4: no job here pushes, so the token is not left in .git/config.
+          persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -425,6 +434,9 @@ jobs:
       url: https://pypi.org/p/spec-spine
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Spec 210 3.4: no job here pushes, so the token is not left in .git/config.
+          persist-credentials: false
 
       # Gate on a repository variable, not a secret: Trusted Publishing has no
       # token to detect. Absent/false => clean skip (a notice, never a red X),

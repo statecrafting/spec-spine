@@ -1,0 +1,16 @@
+# zizmor's findings that this repository accepts, each with its reason (spec
+# 210 3.4). Statecraft's workflow-lint job runs `zizmor --offline` over
+# .github/workflows, which reads this file. The managed workflows carry their
+# own inline ignores and are not listed here.
+rules:
+  adhoc-packages:
+    ignore:
+      # publish-npm installs the pinned npm 11.21.0 from a tarball whose
+      # sha512 integrity is checked first (spec 209 3.1.2); trusted
+      # publishing needs npm 11.5.1 or later, newer than setup-node's.
+      - release.yml
+  superfluous-actions:
+    ignore:
+      # The GitHub Release step keeps softprops/action-gh-release (spec 006);
+      # moving it to the runner's gh CLI is a release-path change of its own.
+      - release.yml
