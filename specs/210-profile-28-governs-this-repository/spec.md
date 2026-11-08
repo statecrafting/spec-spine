@@ -1,7 +1,7 @@
 ---
 id: "210-profile-28-governs-this-repository"
 title: "Profile 28 governs this repository, and the merge queue is declared"
-status: draft
+status: approved
 implementation: complete
 kind: tooling
 created: "2026-11-07"
@@ -162,6 +162,13 @@ chain it holds (D-6).
 - The owner's remote settings, which this repository's files do not change.
 
 ## Decisions
+
+**2026-11-08: ratification.** This pull request flips the spec from
+`draft` to `approved`. The flip takes effect only through the owner's
+approval of the `review-exception` environment on this pull request's run,
+which the gate enforces and which is the ratification of record (spec 198).
+This entry records that mechanism; it is not itself evidence of the
+approval.
 
 **D-1 (2026-11-07, owner).** Skip revision 27 for 28; sequence the move as
 a preparation under revision 13, then the render; take the profile's bytes

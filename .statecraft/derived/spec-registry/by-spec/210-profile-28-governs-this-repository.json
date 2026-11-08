@@ -146,7 +146,7 @@
     "sectionDigests": {
       "1-purpose": "99e50a9b5d2939de0b9b4d561972afd67eb0694cc9ff82aac0a41d4b654410b3",
       "2-territory": "963a8daf9774d8801845608fd50e61a18f8518e6deb7540341e33a5e9f76f1a8",
-      "210-profile-28-governs-this-repository-and-the-merge-queue-is-declared": "ad0f2baf5228c6e24ddff65ceb3dd39d91b152031090def90c5e5c8207580799",
+      "210-profile-28-governs-this-repository-and-the-merge-queue-is-declared": "2569440efebf8457524ab67e3302f7192ce7db43978d4200457bba62d1206126",
       "3-1-revision-28-is-the-recorded-profile": "9e5cfdfd9d42719efa5c94fc9dfd95abdfafb55a71ac11525aed44c5bfde0eeb",
       "3-2-the-aggregate-requires-twelve-jobs-amends-191-3": "5702eb861be075c6008862cb094729e8863f7a8645d5149117cd6eb5da6ccc22",
       "3-3-the-merge-queue-is-declared": "d9ade80cacdaa6548fe3c2b6e5b16ec38daa0e76dfd9707a47d644beae60029b",
@@ -154,7 +154,7 @@
       "3-5-acceptance": "dbc968815d487ed90dd83cb778d361bf66b7299c0a51082fc23714e62b381ed6",
       "3-behavior": "e1503160819d9c23b859808f2e5f28b25b21156afb502f228f3ff4c028ad9e2a",
       "4-out-of-scope": "ebbb707f4ca3dc324c084a474d3e4c602202d59554c65789273b6db801663786",
-      "decisions": "0c51669e193611a53eb01c20cfa286597cc1ab7dc05b8d8068a7d66a5d4f8937",
+      "decisions": "a420474d883b50df2f9079fe576ac8a3e3073cb704317ec1a9523a4006f20bf7",
       "verification": "f3bee597aff266e318d4655fc677f805f91b623f1c5d6aa85f11f724da61f33b"
     },
     "sectionHeadings": [
@@ -172,10 +172,10 @@
       "Verification"
     ],
     "specPath": "specs/210-profile-28-governs-this-repository/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The repository runs Statecraft's github-actions-rust profile at revision 13. Revision 28 adds five required jobs (preflight, supply-chain, workflow-lint, sg-scan, secret-scan), a policy-isolation guard, a reviewer guide, a remote desired-state record and a merge-queue rule for post-merge pushes. This spec adopts it in three pull requests: a preparation under revision 13 that declares the queue, gives every extra job the post_merge input and clears the workflow lint; a change that hashes the files the render adds; and the render itself. Spec 191's aggregate of seven jobs and its 15-minute review become twelve jobs and 20 minutes.\n",
     "title": "Profile 28 governs this repository, and the merge queue is declared"
   },
-  "shardHash": "4f6190fe29e1bc265f75b5cba4a56832a6538f009aa91dd461f1f7516ef91a11",
+  "shardHash": "069edc441be377a33d2229e4edbf283b08e921f083bd935bded7c1742e9f1bc0",
   "specVersion": "1.11.0"
 }
