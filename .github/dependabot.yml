@@ -5,10 +5,15 @@ version: 2
 # every action, first-party included, to a full commit SHA (a `# vX.Y.Z` comment
 # records the release it resolves to); Dependabot proposes SHA bumps for review
 # so the pins do not silently rot. The Statecraft-managed workflows
-# (statecraft-ci.yml, statecraft-ai-review.yml) are pinned by their profile.
+# (statecraft-ci.yml, statecraft-ai-review.yml) are pinned by their profile:
+# their pins move with a profile revision, so Dependabot leaves them alone. A
+# bump there would make the next `init plan` report the file as customized.
 updates:
   - package-ecosystem: github-actions
     directory: "/"
+    exclude-paths:
+      - ".github/workflows/statecraft-ci.yml"
+      - ".github/workflows/statecraft-ai-review.yml"
     schedule:
       interval: weekly
     groups:
