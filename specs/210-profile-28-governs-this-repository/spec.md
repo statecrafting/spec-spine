@@ -163,12 +163,12 @@ chain it holds (D-6).
 
 ## Decisions
 
-**2026-11-08: ratified by the owner.** This pull request flips the spec
-from `draft` to `approved`. Ratification takes effect with the owner's
-approval of this pull request; the owner exception approved on its run is
-the ratification of record (spec 198). The owner also directed that the
-first push after #530, which revision 28 blocks once by design, is cleared
-as the profile directs.
+**2026-11-08: ratification.** This pull request flips the spec from
+`draft` to `approved`. The flip takes effect only through the owner's
+approval of the `review-exception` environment on this pull request's run,
+which the gate enforces and which is the ratification of record (spec 198).
+This entry records that mechanism; it is not itself evidence of the
+approval.
 
 **D-1 (2026-11-07, owner).** Skip revision 27 for 28; sequence the move as
 a preparation under revision 13, then the render; take the profile's bytes
