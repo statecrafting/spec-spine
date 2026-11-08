@@ -24,9 +24,21 @@
         "kind": "file",
         "path": ".statecraft/setup/github-actions-rust.remote.json",
         "planned": true
+      },
+      {
+        "kind": "file",
+        "path": ".github/zizmor.yml"
       }
     ],
     "extends": [
+      {
+        "nature": "additive",
+        "spec": "061-shipped-is-not-the-same-as-working",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
       {
         "nature": "additive",
         "spec": "156-statecraft-profile-10-governs-this-repository",
@@ -146,6 +158,6 @@
     "summary": "The repository runs Statecraft's github-actions-rust profile at revision 13. Revision 28 adds five required jobs (preflight, supply-chain, workflow-lint, sg-scan, secret-scan), a policy-isolation guard, a reviewer guide, a remote desired-state record and a merge-queue rule for post-merge pushes. This spec adopts it in three pull requests: a preparation under revision 13 that declares the queue, gives every extra job the post_merge input and clears the workflow lint; a change that hashes the files the render adds; and the render itself. Spec 191's aggregate of seven jobs and its 15-minute review become twelve jobs and 20 minutes.\n",
     "title": "Profile 28 governs this repository, and the merge queue is declared"
   },
-  "shardHash": "dd1b8b5ff014b3e0e8ac3e38964a738653b91b82132131fe423997dc9080d7f0",
+  "shardHash": "26417d7f677baf126812aa0c2ce3c050fe7784a6cb42277c39b40eb8e1c41b1c",
   "specVersion": "1.11.0"
 }

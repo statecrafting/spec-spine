@@ -29,7 +29,11 @@ establishes:
   # Written by the revision 28 render (3.1); claimed before they exist.
   - { kind: file, path: ".statecraft/REVIEW.md", planned: true }
   - { kind: file, path: ".statecraft/setup/github-actions-rust.remote.json", planned: true }
+  # 3.4: what the workflow lint accepts (pull request 2, with its hash).
+  - { kind: file, path: ".github/zizmor.yml" }
 extends:
+  # 2: the three files above enter [index] extra_hashed_inputs (L-008).
+  - { spec: "061-shipped-is-not-the-same-as-working", unit: { kind: file, path: "spec-spine.toml" }, nature: additive }
   # 3.3: the queue declaration in the recorded parameters.
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: additive }
   # 3.3: every extra required job declares the post_merge input.

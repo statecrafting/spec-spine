@@ -83,6 +83,11 @@ extra_hashed_inputs = [
   ".statecraft/AGENTS.md",
   ".statecraft/environment.json",
   ".statecraft/setup/github-actions-rust.json",
+  # Spec 210: revision 28 renders the reviewer guide and the remote
+  # desired-state record, and workflow-lint reads the zizmor configuration.
+  ".statecraft/REVIEW.md",
+  ".statecraft/setup/github-actions-rust.remote.json",
+  ".github/zizmor.yml",
   "CLAUDE.md",
   ".claude/settings.json",
   ".githooks/*.sh",

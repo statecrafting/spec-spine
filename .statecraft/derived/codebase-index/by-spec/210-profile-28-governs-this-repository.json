@@ -39,6 +39,10 @@
         "source": "spec-edge"
       },
       {
+        "path": ".github/zizmor.yml",
+        "source": "spec-edge"
+      },
+      {
         "path": ".statecraft/environment.json",
         "source": "spec-edge"
       },
@@ -49,9 +53,26 @@
       {
         "path": "scripts/statecraft/",
         "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".github/zizmor.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/zizmor.yml"
+        }
+      },
       {
         "locations": [],
         "ownership": true,
@@ -199,11 +220,24 @@
           "kind": "file",
           "path": "scripts/statecraft/"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
       }
     ],
     "specId": "210-profile-28-governs-this-repository",
     "specStatus": "draft"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "dd1b8b5ff014b3e0e8ac3e38964a738653b91b82132131fe423997dc9080d7f0"
+  "shardHash": "26417d7f677baf126812aa0c2ce3c050fe7784a6cb42277c39b40eb8e1c41b1c"
 }
