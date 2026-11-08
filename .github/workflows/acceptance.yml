@@ -50,6 +50,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Spec 210 3.4: no job here pushes, so the token is not left in .git/config.
+          persist-credentials: false
           # The sweep tests ancestry against the trusted ref and checks out the
           # revision into a worktree; both need the history, not a shallow tip.
           fetch-depth: 0
@@ -59,20 +61,27 @@ jobs:
 
       - name: Compute the scope
         id: scope
+        # Spec 210 3.4: event values reach the script through the environment,
+        # never by template expansion into its text (zizmor template-injection).
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_BEFORE: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          ONLY: ${{ github.event.inputs.only }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "push" ]; then
-            before='${{ github.event.before }}'
+          if [ "$EVENT_NAME" = "push" ]; then
+            before="$EVENT_BEFORE"
             case "$before" in
               ''|0000000000000000000000000000000000000000) before=$(git rev-parse HEAD~1) ;;
             esac
-            ids=$(scripts/acceptance-scope.sh --base "$before" --head "${{ github.sha }}" \
+            ids=$(scripts/acceptance-scope.sh --base "$before" --head "$HEAD_SHA" \
                     --bin "$PWD/target/release/spec-spine" | paste -sd, -)
             echo "only=$ids" >> "$GITHUB_OUTPUT"
-            echo "scope: the specs owning a path in $before..${{ github.sha }}"
+            echo "scope: the specs owning a path in $before..$HEAD_SHA"
           else
-            echo "only=${{ github.event.inputs.only }}" >> "$GITHUB_OUTPUT"
-            echo "scope: ${{ github.event.inputs.only || 'the whole corpus' }}"
+            echo "only=$ONLY" >> "$GITHUB_OUTPUT"
+            echo "scope: ${ONLY:-the whole corpus}"
           fi
 
       - name: Nothing to sweep
@@ -87,6 +96,10 @@ jobs:
         # is where a block's `./target/release/spec-spine` resolves. Handing it
         # the binary built above left that path empty, so a scoped run of specs
         # whose blocks do not build first failed every one at exit 127.
+        env:
+          SCOPE_ONLY: ${{ steps.scope.outputs.only }}
+          HEAD_SHA: ${{ github.sha }}
+          SWEEP_OUT: ${{ runner.temp }}/sweep
         run: |
           set -uo pipefail
           # The sweep refuses a revision that is not an ancestor of the trusted
@@ -95,12 +108,12 @@ jobs:
           # behind, and fetch it so the name resolves.
           git fetch --no-tags --quiet origin +refs/heads/main:refs/remotes/origin/main
           rc=0
-          if [ -n "${{ steps.scope.outputs.only }}" ]; then
-            scripts/verify-sweep.sh --release --rev "${{ github.sha }}" --trusted-ref origin/main \
-              --out "${{ runner.temp }}/sweep" --only "${{ steps.scope.outputs.only }}" || rc=$?
+          if [ -n "$SCOPE_ONLY" ]; then
+            scripts/verify-sweep.sh --release --rev "$HEAD_SHA" --trusted-ref origin/main \
+              --out "$SWEEP_OUT" --only "$SCOPE_ONLY" || rc=$?
           else
-            scripts/verify-sweep.sh --release --rev "${{ github.sha }}" --trusted-ref origin/main \
-              --out "${{ runner.temp }}/sweep" || rc=$?
+            scripts/verify-sweep.sh --release --rev "$HEAD_SHA" --trusted-ref origin/main \
+              --out "$SWEEP_OUT" || rc=$?
           fi
           echo "sweep exit: $rc"
           echo "rc=$rc" >> "$GITHUB_OUTPUT"

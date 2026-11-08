@@ -23,6 +23,12 @@ name: determinism
 # merge_group trigger). `workflow_dispatch` keeps it runnable on its own.
 on:
   workflow_call:
+    inputs:
+      post_merge:
+        description: "True on a post-merge push to the default branch (profile revision 24); the queue already judged this commit."
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
 
 permissions:
@@ -45,6 +51,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Spec 210 3.4: no job here pushes, so the token is not left in .git/config.
+          persist-credentials: false
       - name: Show toolchain
         run: rustc --version && cargo --version
       # Spec 203: restore the cargo registry and target from the last save for

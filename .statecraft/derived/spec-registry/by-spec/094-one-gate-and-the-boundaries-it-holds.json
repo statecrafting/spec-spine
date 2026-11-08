@@ -33,7 +33,7 @@
     "owner": "The spec-spine Authors",
     "risk": "high",
     "sectionDigests": {
-      "094-one-gate-and-the-boundaries-it-holds": "6f4c4f0ae153e274df711f7008be1656fd71f56d6c304e38256e54a921a84062",
+      "094-one-gate-and-the-boundaries-it-holds": "fdc52601a2c45c4ed7e7aa0b4cb5382717be852c48215eaf56d17cc7c8a53c4d",
       "1-1-one-chain-five-documents-and-a-copy-in-each": "2904e0d5a41f0bc430812f254bd5ed97ba51aaa29d06b2d885e287e6cda79440",
       "1-2-three-boundaries-one-definition": "e70627bcb26c92002f331348dc6757d585621cab0d8abfe76b79c726c3449f38",
       "1-3-the-five-this-replaces": "9e6afcb4793695ddfd46d72a7fac1c3cc6f29f4a3386a715e4d567eaa41ad090",
@@ -53,7 +53,7 @@
       "6-what-the-five-said-that-is-not-carried-here": "88197dbcfe4c4a4889a8b93faefeaaa080361a5bd7299a94610287e2bff76319",
       "7-out-of-scope": "b3bd48c2276c0ce8db3dfe4d5c92707cef6c8dc87b5b61850a7cd36cfbad5ca2",
       "8-resolved-decisions": "ba3169e26555f2122f94ec49b3ea1f5af90ef87ac148a9aff63464088cbe8c29",
-      "verification": "3e712c7c60b7b001b284c3cb240e9ade5a2e3499984fde1d0583c51130023dd6"
+      "verification": "fb7dd6389e7f16ecc15815e952ac86bf2d8088dec8265ef90c6027737c92bde3"
     },
     "sectionHeadings": [
       "094: One gate, and the boundaries it holds",
@@ -83,6 +83,6 @@
     "summary": "The governed loop has one definition and three boundaries where it is enforced: the commit, the pull request, and the merge. Five specs described that, each written against a copy the repository distributed. 020 put the merge driver in `.githooks/`; 064 wrote the composite gate as `kit/Makefile` and the workflow as `kit/govern.yml`; 089 fixed the guard that conflated a skip with a failure; 090 added the commit-boundary hook; 114 gave the target its controls and made the workflow call it instead of restating it. Spec 092 removed the copies and moved the gate to the repository root. This spec is the gate, in one place: the target and its controls, the two CI legs that call it, the commit-boundary hook that refuses without repairing, and the merge driver that resolves a same-shard conflict by regenerating rather than by leaving markers.\n",
     "title": "One gate, and the boundaries it holds"
   },
-  "shardHash": "cf74824407b54ae4836697b334ba006dc0659169e1d9f4141ecd0403e07397ea",
+  "shardHash": "7a1479c0bc1370b23091775c5d56b3c74e419d648ce156d6a61a9cc488a24639",
   "specVersion": "1.11.0"
 }

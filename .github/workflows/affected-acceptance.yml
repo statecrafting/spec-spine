@@ -23,6 +23,12 @@ name: affected-acceptance
 
 on:
   workflow_call:
+    inputs:
+      post_merge:
+        description: "True on a post-merge push to the default branch (profile revision 24); the queue already judged this commit."
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
