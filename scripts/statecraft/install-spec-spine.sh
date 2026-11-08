@@ -1,5 +1,5 @@
 #!/bin/sh
-# Rendered by Statecraft from profile github-actions-rust revision 13.
+# Rendered by Statecraft from profile github-actions-rust revision 28.
 # A managed file: `statecraft doctor` names an edit to it. Installs the exact
 # spec-spine release this repository pins into .bin, and refuses a
 # range or an absent pin rather than resolving one.
@@ -22,20 +22,28 @@ leave() {
 }
 trap 'rc=$?; cleanup; if [ "$rc" -ne 0 ]; then echo "install-spec-spine.sh: a command failed (exit $rc); reported as failed (4)" >&2; exit 4; fi' EXIT
 
-pin=$(awk '
-  /^[[:space:]]*\[/ { section = $0; gsub(/[[:space:]]/, "", section); next }
-  section == "[meta]" && /^[[:space:]]*required_version[[:space:]]*=/ { print; exit }
-' spec-spine.toml 2>/dev/null | sed 's/^[^=]*=[[:space:]]*"\(.*\)"[[:space:]]*$/\1/')
-
-case "$pin" in
-  =[0-9]*.[0-9]*.[0-9]*) version="${pin#=}" ;;
-  "")
-    echo "install-spec-spine.sh: spec-spine.toml [meta] carries no required_version; this profile requires an exact pin (=X.Y.Z)" >&2
-    leave 2 ;;
-  *)
-    echo "install-spec-spine.sh: required_version \"$pin\" is not an exact pin (=X.Y.Z); this profile refuses a range" >&2
-    leave 2 ;;
-esac
+# Read the supported explicit table and plain value, with table/value comments
+# and either newline convention. A canonical identity is checked as a whole.
+if ! pin=$(awk '
+  { sub(/\r$/, ""); line = $0 }
+  /^[[:space:]]*\[/ {
+    sub(/#.*/, "", line); gsub(/[[:space:]]/, "", line)
+    meta = line == "[meta]"; next
+  }
+  meta && /^[[:space:]]*required_version[[:space:]]*=/ {
+    if (++seen != 1) exit 2
+    sub(/^[[:space:]]*required_version[[:space:]]*=[[:space:]]*/, "", line)
+    if (line !~ /^"=[0-9.]+"[[:space:]]*(#.*)?$/) exit 2
+    sub(/^"/, "", line); sub(/".*$/, "", line)
+    if (line !~ /^=(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/) exit 2
+    pin = line
+  }
+  END { if (seen != 1 || pin == "") exit 2; print pin }
+' spec-spine.toml 2>/dev/null); then
+  echo "install-spec-spine.sh: [meta].required_version needs one canonical exact pin (=X.Y.Z) in a plain double-quoted value" >&2
+  leave 2
+fi
+version="${pin#=}"
 
 bin=.bin/spec-spine
 if [ -x "$bin" ] && [ "$("$bin" --version 2>/dev/null)" = "spec-spine $version" ]; then
@@ -66,7 +74,7 @@ fi
 temporary=
 rm -rf "$scratch"
 scratch=
-if ! "$bin" --version; then
-  echo "install-spec-spine.sh: the installed $bin does not answer --version" >&2
+if [ "$("$bin" --version 2>/dev/null)" != "spec-spine $version" ]; then
+  echo "install-spec-spine.sh: the installed $bin does not report the exact requested version" >&2
   leave 4
 fi

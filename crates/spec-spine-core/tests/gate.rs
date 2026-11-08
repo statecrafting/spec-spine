@@ -944,12 +944,22 @@ fn both_workflow_legs_invoke_the_one_gate_definition() {
 
 /// §3.4: and no step restates a verb that definition already runs. The header
 /// comment is not a step, and a verb named in one is not an invocation.
+///
+/// A verb counts only on a line that is not a comment and that invokes
+/// spec-spine. Profile revision 22's supply-chain job runs `cargo deny
+/// --locked check all`, and revision 18 explains its preflight in a comment
+/// ("Every check here ..."); neither is a spec-spine verb (spec 210 D-5).
 #[test]
 fn no_workflow_step_restates_a_verb_the_one_gate_definition_runs() {
     let wf = read(".github/workflows/statecraft-ci.yml");
+    let invocations: Vec<&str> = wf
+        .lines()
+        .filter(|line| !line.trim_start().starts_with('#'))
+        .filter(|line| line.contains("spec-spine"))
+        .collect();
     let restated: Vec<_> = [" check ", " lint ", " index coverage ", " couple --base "]
         .into_iter()
-        .filter(|command| wf.contains(command))
+        .filter(|command| invocations.iter().any(|line| line.contains(command)))
         .collect();
     assert!(
         restated.is_empty(),

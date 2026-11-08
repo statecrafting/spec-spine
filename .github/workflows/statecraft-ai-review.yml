@@ -1,5 +1,5 @@
-# Rendered by Statecraft from profile github-actions-rust revision 13
-# (identity 6167a12e110b30ec27d37909344c7de0178ba477d5ad1ab91a0053430a89e17b). A managed file and a member of this
+# Rendered by Statecraft from profile github-actions-rust revision 28
+# (identity ddb55e6ee7c1478b1c88463a3f2fa7a53b3f20aad492a7dfcae29cbbd4d21178). A managed file and a member of this
 # repository's authority set. Called by statecraft-ci.yml only; it declares
 # the two credentials it may use by name (revision 8: the API key when set,
 # else the OAuth token) and is never given `secrets: inherit`.
@@ -19,6 +19,9 @@ on:
       release_candidate:
         description: whether the head ref matches the release branch pattern
         value: ${{ jobs.review.outputs.release_candidate }}
+      answered:
+        description: true when every finding is low and other and answered by a review note for this head (spec 068)
+        value: ${{ jobs.review.outputs.answered }}
 
 permissions:
   contents: read
@@ -27,15 +30,17 @@ jobs:
   review:
     name: review
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: write
+      checks: write
     outputs:
       result: ${{ steps.review.outputs.result }}
       release_candidate: ${{ steps.review.outputs.release_candidate }}
+      answered: ${{ steps.answered.outputs.answered }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -62,7 +67,8 @@ jobs:
           EXCLUDE: '.statecraft/derived'
           RELEASE_PATTERN: 'release/*'
           CLAUDE_CLI_VERSION: '2.1.116'
-          PROFILE_IDENTITY: '6167a12e110b30ec27d37909344c7de0178ba477d5ad1ab91a0053430a89e17b'
+          PROFILE_IDENTITY: 'ddb55e6ee7c1478b1c88463a3f2fa7a53b3f20aad492a7dfcae29cbbd4d21178'
+          REUSE_RECORDED: ${{ github.event.action == 'edited' }}
         run: |
           script="${RUNNER_TEMP}/statecraft-ai-review.sh"
           # Revision 12: only a readable base without the script is the
@@ -80,8 +86,42 @@ jobs:
           bash "$script"
       - name: Upload the evidence record
         if: steps.review.outputs.evidence != ''
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: statecraft-ai-review-${{ github.event.pull_request.head.sha }}
           path: ${{ steps.review.outputs.evidence }}
           if-no-files-found: error
+      - name: Publish the verdict check run
+        if: steps.review.outputs.evidence != '' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          EVIDENCE_DIR: ${{ steps.review.outputs.evidence }}
+        run: |
+          script="${RUNNER_TEMP}/statecraft-ai-review.sh"
+          if ! grep -qxF '# statecraft-ai-review: publish-check' "$script"; then
+            echo "ai-review.sh at the base predates revision 21: no check run is published for this head (the upgrade)"
+            exit 0
+          fi
+          bash "$script" publish-check
+      # Revision 26 (spec 068): whether every finding is low and other and
+      # answered by a review note for this head, read from the pull request's
+      # body now. A base script without the mode answers nothing.
+      - name: Read the review notes
+        id: answered
+        if: steps.review.outputs.result == 'findings'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVIDENCE_DIR: ${{ steps.review.outputs.evidence }}
+        run: |
+          script="${RUNNER_TEMP}/statecraft-ai-review.sh"
+          if ! grep -qxF '# statecraft-ai-review: answered' "$script"; then
+            echo "ai-review.sh at the base predates revision 26: no review note is read for this head"
+            exit 0
+          fi
+          bash "$script" answered

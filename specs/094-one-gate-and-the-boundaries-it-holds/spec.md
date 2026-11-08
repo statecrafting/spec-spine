@@ -377,6 +377,9 @@ exist and none reports a `supersededBy`.
 > Since 2026-10-27, `208-the-0-32-0-release-moves-the-pin` holds 199's block in turn, so this plan runs
 > from that spec's block (spec 208 3.4).
 
+> Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
+> from that spec's block (spec 210 3.5).
+
 ```verify:cli
 cargo build --release --locked
 # 2: the territory, and that this spec owns it.

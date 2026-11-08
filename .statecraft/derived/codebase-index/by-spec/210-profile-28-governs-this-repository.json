@@ -1,7 +1,8 @@
 {
   "mapping": {
     "amends": [
-      "191-profile-13-keeps-the-engine-local"
+      "191-profile-13-keeps-the-engine-local",
+      "208-the-0-32-0-release-moves-the-pin"
     ],
     "dependsOn": [
       "157-the-affected-sweep-runs-in-the-merge-queue",
@@ -43,11 +44,27 @@
         "source": "spec-edge"
       },
       {
+        "path": ".statecraft/REVIEW.md",
+        "source": "spec-edge"
+      },
+      {
         "path": ".statecraft/environment.json",
         "source": "spec-edge"
       },
       {
         "path": ".statecraft/setup/github-actions-rust.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".statecraft/setup/github-actions-rust.remote.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/ai_review_policy.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
         "source": "spec-edge"
       },
       {
@@ -74,7 +91,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": ".statecraft/REVIEW.md"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -83,7 +104,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": ".statecraft/setup/github-actions-rust.remote.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -211,6 +236,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/ai_review_policy.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "scripts/statecraft/"
           }
         ],
@@ -239,5 +290,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "8318fe9c180d58cc40eb7dc694490e259c35e31ef299aeefa43e32285efc6a89"
+  "shardHash": "4f6190fe29e1bc265f75b5cba4a56832a6538f009aa91dd461f1f7516ef91a11"
 }

@@ -1,0 +1,78 @@
+{
+  "codeOwnerReview": {
+    "owners": [
+      "@bartekus"
+    ],
+    "paths": [
+      "/.github/workflows/statecraft-ai-review.yml",
+      "/.github/workflows/statecraft-ci.yml",
+      "/.statecraft/REVIEW.md",
+      "/.statecraft/setup/github-actions-rust.json",
+      "/.statecraft/setup/github-actions-rust.remote.json",
+      "/Makefile",
+      "/scripts/statecraft/ai-review.sh",
+      "/scripts/statecraft/ci-gate.sh",
+      "/scripts/statecraft/gate.sh",
+      "/scripts/statecraft/guard-policy-files.sh",
+      "/scripts/statecraft/install-spec-spine.sh",
+      "/scripts/statecraft/verify-action-pins.sh"
+    ],
+    "required": true
+  },
+  "defaultBranch": "main",
+  "extraRequiredJobs": {
+    "aggregate": "ci-gate",
+    "jobs": [
+      {
+        "job": "determinism",
+        "workflow": ".github/workflows/determinism.yml"
+      },
+      {
+        "job": "spec-spine-required",
+        "workflow": ".github/workflows/spec-spine-required.yml"
+      },
+      {
+        "job": "affected-acceptance",
+        "workflow": ".github/workflows/affected-acceptance.yml"
+      }
+    ]
+  },
+  "mergeQueue": {
+    "allEntriesMustPass": true,
+    "buildConcurrency": 5,
+    "mergeMethod": "squash",
+    "required": true
+  },
+  "profile": {
+    "id": "github-actions-rust",
+    "identity": "ddb55e6ee7c1478b1c88463a3f2fa7a53b3f20aad492a7dfcae29cbbd4d21178",
+    "revision": 28
+  },
+  "requiredChecks": [
+    {
+      "appId": 15368,
+      "name": "ci-gate"
+    }
+  ],
+  "reviewException": {
+    "environment": "statecraft-review-exception",
+    "preventSelfReview": true
+  },
+  "schema": "statecraft/remote-desired-state/1",
+  "secrets": [
+    {
+      "anyOf": [
+        "ANTHROPIC_API_KEY",
+        "CLAUDE_CODE_OAUTH_TOKEN"
+      ],
+      "visibility": [
+        "repository",
+        "organization"
+      ]
+    }
+  ],
+  "workflowToken": {
+    "canApprovePullRequestReviews": false,
+    "defaultPermissions": "read"
+  }
+}

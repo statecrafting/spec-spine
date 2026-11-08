@@ -1,5 +1,5 @@
-# Rendered by Statecraft from profile github-actions-rust revision 13
-# (identity 6167a12e110b30ec27d37909344c7de0178ba477d5ad1ab91a0053430a89e17b). A managed file and a member of this
+# Rendered by Statecraft from profile github-actions-rust revision 28
+# (identity ddb55e6ee7c1478b1c88463a3f2fa7a53b3f20aad492a7dfcae29cbbd4d21178). A managed file and a member of this
 # repository's authority set: an edit here changes the gate that judges every
 # pull request, and `statecraft doctor` names it. The policy the aggregate gate
 # enforces is .statecraft/setup/github-actions-rust.json, read at the base.
@@ -7,7 +7,7 @@ name: statecraft-ci
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
   push:
     branches: [main]
   # Revision 3: a required merge queue judges each queued entry here. The
@@ -15,12 +15,42 @@ on:
   # entry's pull request.
   merge_group:
 
+# Revision 18 (specs 058 and 059): a newer push to a pull request cancels the
+# work of that pull request's older run, job by job. Every job but
+# review-exception and ci-gate has a concurrency group of its pull request and
+# job; the two left out can wait on the owner exception, and a run waiting on
+# an Environment is never cancelled by a group, so a group it held would leave
+# the newer run pending behind it. A push to the default branch and a
+# merge-queue entry get groups of their own run, so neither is ever cancelled.
+#
+# Revision 24 (spec 067): where the policy records a required merge queue
+# (remote.merge_queue), a push to the default branch is a post-merge push:
+# the queue already judged that exact commit. Every job that judges is skipped
+# on it; code runs only its cache steps, building only to fill a missed key;
+# a declared extra job is called with the input post_merge true, so it can
+# skip its own expensive steps; and ci-gate admits the skips by the
+# post-merge rule only when the commit passed ci-gate in the merge queue.
+#
+# Revision 25 (spec 069): where the setup parameter ci.code.free_disk is
+# true, the code job removes the runner's unused preinstalled toolchains
+# before it builds, and reports the free space before and after.
+#
+# Revision 26 (spec 068): a finding carries a severity, a category and an id.
+# A pull request whose findings are all low and other, each answered by a
+# `Review note (<sha8>): <id>` line of its body for that head, needs no owner
+# exception. An edited pull request runs again and keeps the review recorded
+# for its head, so the ids its notes name are the ones read.
+
 permissions:
   contents: read
 
 jobs:
   governance:
     name: governance
+    if: github.event_name != 'push'
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-governance
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     # `pull-requests: read` is for the merge-queue steps, which read the
     # queued pull request's changed files, title and body. Nothing here
@@ -32,7 +62,7 @@ jobs:
       authority_change: ${{ steps.authority.outputs.authority_change }}
       ratification: ${{ steps.authority.outputs.ratification }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -82,7 +112,7 @@ jobs:
           elif ! jq -e '.authority_rule' "${work}/policy.json" > /dev/null; then
             echo "the base's policy predates revision 5: ci-gate reports an authority change and does not block it"
           else
-            { jq -r '.files[].path, (.parameters.authored_content // empty)' "${work}/policy.json"; echo "$policy"; } | sort -u > "${work}/set"
+            { jq -r '.files[].path, (.parameters.authored_content // empty), (.parameters.code.script // empty)' "${work}/policy.json"; echo "$policy"; } | sort -u > "${work}/set"
             git diff --name-only "${BASE_SHA}...${HEAD_SHA}" | sort -u > "${work}/changed"
             { comm -12 "${work}/set" "${work}/changed"; grep '^scripts/statecraft/' "${work}/changed" || true; grep '^\.github/workflows/' "${work}/changed" || true; } | sort -u > "${work}/touched"
             if [ -s "${work}/touched" ]; then
@@ -138,7 +168,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
         run: sh "${STATECRAFT_GATE:?}" governance
-      # Revision 4, rule 3: the title and body become the merge commit's
+      # Revision 4, rule 3: the title and body become the landed commit's
       # message (governance.authored_content_text).
       - name: Authored-content rules (title and body)
         if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
@@ -181,13 +211,109 @@ jobs:
           HEAD_SHA: ${{ github.event.merge_group.head_sha }}
           GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
         run: sh "${STATECRAFT_GATE:?}" couple-group
+      # Revision 22 (spec 044 section 3.3): a pull request that changes a
+      # dependency or policy file and anything else must be split. The guard
+      # is read at the base, as the gate is; the candidate's copy runs only
+      # when the base carries none (the adoption).
+      - name: Policy isolation
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          guard="${RUNNER_TEMP}/statecraft/guard-policy-files.sh"
+          if git show "${BASE_SHA}:scripts/statecraft/guard-policy-files.sh" > "$guard" 2>/dev/null; then
+            echo "guard-policy-files.sh: read at the base ${BASE_SHA}"
+          else
+            cp scripts/statecraft/guard-policy-files.sh "$guard"
+            echo "guard-policy-files.sh: the base carries none; the candidate's copy runs (adoption)"
+          fi
+          sh "$guard" "$BASE_SHA" "$HEAD_SHA"
 
-  code:
-    name: code
+  # Revision 18: the cheap checks that would fail an expensive job anyway,
+  # run first: a pull request's base, the committed artifacts' freshness and,
+  # for a Rust code selection, formatting. The code job and every declared
+  # extra job need it, so a stacked pull request skips them unless it carries
+  # the label statecraft:stacked-ci, an explicit request for full validation.
+  # Every check here also runs in governance or code; preflight only orders
+  # them, and a base gate.sh without the verb (the adoption) judges nothing.
+  preflight:
+    name: preflight
+    if: github.event_name != 'push'
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-preflight
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       # The whole history, so the base commit the gate is read at is present.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Revision 5, rule 1: a candidate never judges itself with its own gate.
+      # gate.sh and install-spec-spine.sh are read at the base, as ci-gate.sh
+      # is; the candidate's copies run only when the base carries none (the
+      # adoption), and the step says which ran. A base commit that cannot be
+      # read stops the job rather than falling back.
+      - name: Read the gate at the base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          dir="${RUNNER_TEMP}/statecraft"
+          mkdir -p "$dir"
+          case "$BASE_SHA" in 0000000000000000000000000000000000000000) BASE_SHA="" ;; esac
+          if [ -n "$BASE_SHA" ] && ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "cannot read the base commit ${BASE_SHA}; the gate is never taken from the candidate in its place" >&2
+            exit 2
+          fi
+          for f in gate.sh install-spec-spine.sh; do
+            if [ -n "$BASE_SHA" ] && git show "${BASE_SHA}:scripts/statecraft/${f}" > "${dir}/${f}" 2>/dev/null; then
+              echo "${f}: read at the base ${BASE_SHA}"
+            else
+              cp "scripts/statecraft/${f}" "${dir}/${f}"
+              echo "${f}: the base carries none; the candidate's copy runs (adoption)"
+            fi
+          done
+          echo "STATECRAFT_GATE=${dir}/gate.sh" >> "$GITHUB_ENV"
+          echo "STATECRAFT_INSTALL=${dir}/install-spec-spine.sh" >> "$GITHUB_ENV"
+      - name: Read the spec-spine pin
+        id: pin
+        run: sh "${STATECRAFT_GATE:?}" pin >> "$GITHUB_OUTPUT"
+      - name: Cache spec-spine
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .bin/spec-spine
+          key: spec-spine-${{ steps.pin.outputs.version }}-${{ runner.os }}-${{ runner.arch }}
+      - name: Install the pinned spec-spine
+        run: sh "${STATECRAFT_INSTALL:?}"
+      - name: Preflight
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          STACKED_CI: ${{ contains(github.event.pull_request.labels.*.name, 'statecraft:stacked-ci') }}
+        run: |
+          if ! grep -q '^  preflight)' "${STATECRAFT_GATE:?}"; then
+            echo "the base's gate.sh predates revision 18 (the adoption): preflight judges nothing; governance and code still judge everything"
+            exit 0
+          fi
+          sh "${STATECRAFT_GATE:?}" preflight
+
+  code:
+    name: code
+    needs: [preflight]
+    if: ${{ !cancelled() && (needs.preflight.result == 'success' || github.event_name == 'push') }}
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-code
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    # Revision 18: a fresh runner never reuses incremental state, and line
+    # tables keep file:line in panics; both shrink the cache and the link.
+    env:
+      CARGO_INCREMENTAL: "0"
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
+    steps:
+      # The whole history, so the base commit the gate is read at is present.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -228,9 +354,13 @@ jobs:
       - name: Install the pinned spec-spine
         run: sh "${STATECRAFT_INSTALL:?}"
       # The two inputs that invalidate a build; a source edit hits the cache
-      # and recompiles only this workspace's crates.
-      - name: Cache cargo registry, git and target
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # and recompiles only this workspace's crates. Revision 18: restored on
+      # every event, saved only by a push to the default branch, because a
+      # pull request's cache is readable by no other pull request and its
+      # saves evicted the default branch's entry.
+      - name: Restore cargo registry, git and target
+        id: cargo-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry
@@ -239,16 +369,222 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
           restore-keys: |
             cargo-${{ runner.os }}-
+          lookup-only: ${{ github.event_name == 'push' }}
       - name: Build, test, clippy, fmt
+        if: github.event_name != 'push' || steps.cargo-cache.outputs.cache-hit != 'true'
         run: sh "${STATECRAFT_GATE:?}" code
+      # Revision 19 (spec 060): Cargo fingerprints a path dependency by its
+      # sources' modification times, which a fresh checkout resets, so the
+      # workspace's own artifacts are rebuilt in every run. Only the
+      # dependencies are worth their space under the repository's limit.
+      - name: Drop the workspace's own artifacts (default branch only)
+        if: github.event_name == 'push' && steps.cargo-cache.outputs.cache-hit != 'true'
+        run: cargo metadata --format-version 1 --no-deps | jq -r '.packages[].name' | sed 's/^/-p /' | xargs -r cargo clean
+      - name: Save cargo registry, git and target (default branch only)
+        if: github.event_name == 'push' && steps.cargo-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
+
+  # Revision 22 (spec 044 section 3.2): where the code's dependencies come
+  # from. Each tool is a release archive at an exact version, refused unless
+  # its SHA-256 equals the digest recorded here; upgrading one is a profile
+  # revision. deny.toml is mandatory: without it the deny step fails, it
+  # never records not-configured. The audit and vet steps run when their
+  # policy file is committed and otherwise record not-configured and pass.
+  supply-chain:
+    name: supply-chain
+    if: github.event_name != 'push'
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-supply-chain
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # A candidate's cargo configuration could redirect the registry or the
+      # sources the checks below judge; they read the lockfile's packages.
+      - name: Remove the candidate's cargo configuration
+        run: rm -f .cargo/config.toml .cargo/config
+      - name: Install the pinned supply-chain tools
+        run: |
+          dir="${RUNNER_TEMP}/statecraft-tools"
+          mkdir -p "$dir"
+          fetch() {
+            curl --proto '=https' --tlsv1.2 -fsSL --retry 3 -o "$dir/$1" "$2"
+            echo "$3  $dir/$1" | sha256sum -c -
+          }
+          fetch cargo-deny.tar.gz https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz 9f12ed4c49936e09b48bf862b595cde2fe64fcbd9d74dfacac6131ca824c8d5f
+          fetch cargo-audit.tgz https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv0.22.2/cargo-audit-x86_64-unknown-linux-musl-v0.22.2.tgz 7fb9497f8594b389e5fce5ef9b92db08432996895b2e0c5a0167a69ed445c428
+          fetch cargo-vet.tar.xz https://github.com/mozilla/cargo-vet/releases/download/v0.10.3/cargo-vet-x86_64-unknown-linux-gnu.tar.xz e83878b80913fbe43629c28768e14ab51f4e86a4ba8f9dd08cc25b8dbc503c19
+          tar -xzf "$dir/cargo-deny.tar.gz" -C "$dir" --strip-components=1 cargo-deny-0.20.2-x86_64-unknown-linux-musl/cargo-deny
+          tar -xzf "$dir/cargo-audit.tgz" -C "$dir" --strip-components=1 cargo-audit-x86_64-unknown-linux-musl-v0.22.2/cargo-audit
+          tar -xJf "$dir/cargo-vet.tar.xz" -C "$dir" --strip-components=1 cargo-vet-x86_64-unknown-linux-gnu/cargo-vet
+          echo "$dir" >> "$GITHUB_PATH"
+      - name: cargo deny (deny.toml)
+        run: |
+          if [ ! -f deny.toml ]; then
+            echo "deny.toml is absent: revision 22 requires a committed dependency policy, and this check never passes without one" >&2
+            exit 2
+          fi
+          cargo deny --locked check all
+          echo "- cargo-deny 0.20.2: checked against deny.toml" >> "$GITHUB_STEP_SUMMARY"
+      - name: cargo audit (.cargo/audit.toml)
+        run: |
+          if [ ! -f .cargo/audit.toml ]; then
+            echo "- cargo-audit 0.22.2: not-configured (.cargo/audit.toml is absent)" >> "$GITHUB_STEP_SUMMARY"
+            echo "cargo audit: not-configured (.cargo/audit.toml is absent)"
+            exit 0
+          fi
+          cargo audit --deny unmaintained --deny unsound
+          echo "- cargo-audit 0.22.2: checked against .cargo/audit.toml" >> "$GITHUB_STEP_SUMMARY"
+      - name: cargo vet (supply-chain/config.toml)
+        run: |
+          if [ ! -f supply-chain/config.toml ]; then
+            echo "- cargo-vet 0.10.3: not-configured (supply-chain/config.toml is absent)" >> "$GITHUB_STEP_SUMMARY"
+            echo "cargo vet: not-configured (supply-chain/config.toml is absent)"
+            exit 0
+          fi
+          cargo vet --locked
+          echo "- cargo-vet 0.10.3: checked against supply-chain/" >> "$GITHUB_STEP_SUMMARY"
+
+  # Revision 22 (spec 044 section 3.4): the workflows themselves. zizmor at an
+  # exact version, offline, then the pin check, read at the base as the gate
+  # is (the candidate's copy runs only when the base carries none).
+  workflow-lint:
+    name: workflow-lint
+    if: github.event_name != 'push'
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-workflow-lint
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install zizmor 1.31.1
+        run: |
+          dir="${RUNNER_TEMP}/statecraft-tools"
+          mkdir -p "$dir"
+          curl --proto '=https' --tlsv1.2 -fsSL --retry 3 -o "$dir/zizmor.tar.gz" https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz
+          echo "d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99  $dir/zizmor.tar.gz" | sha256sum -c -
+          tar -xzf "$dir/zizmor.tar.gz" -C "$dir" zizmor
+          echo "$dir" >> "$GITHUB_PATH"
+      - name: zizmor
+        run: zizmor --offline --format plain .github/workflows
+      - name: Every action pinned by digest
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          script="${RUNNER_TEMP}/statecraft-verify-action-pins.sh"
+          case "$BASE_SHA" in 0000000000000000000000000000000000000000) BASE_SHA="" ;; esac
+          if [ -n "$BASE_SHA" ] && ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "cannot read the base commit ${BASE_SHA}; the pin check is never taken from the candidate in its place" >&2
+            exit 2
+          fi
+          if [ -n "$BASE_SHA" ] && git show "${BASE_SHA}:scripts/statecraft/verify-action-pins.sh" > "$script" 2>/dev/null; then
+            echo "verify-action-pins.sh: read at the base ${BASE_SHA}"
+          else
+            cp scripts/statecraft/verify-action-pins.sh "$script"
+            echo "verify-action-pins.sh: the base carries none; the candidate's copy runs (adoption)"
+          fi
+          sh "$script" .github/workflows
+
+  # Revision 22 (spec 044 section 3.5): the project's own structural rules,
+  # when it commits an sgconfig.yml; the profile ships none.
+  sg-scan:
+    name: sg-scan
+    if: github.event_name != 'push'
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-sg-scan
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: ast-grep scan (sgconfig.yml)
+        run: |
+          if [ ! -f sgconfig.yml ]; then
+            echo "- ast-grep 0.51.0: not-configured (sgconfig.yml is absent)" >> "$GITHUB_STEP_SUMMARY"
+            echo "ast-grep: not-configured (sgconfig.yml is absent)"
+            exit 0
+          fi
+          dir="${RUNNER_TEMP}/statecraft-tools"
+          mkdir -p "$dir"
+          curl --proto '=https' --tlsv1.2 -fsSL --retry 3 -o "$dir/ast-grep.zip" https://github.com/ast-grep/ast-grep/releases/download/0.51.0/app-x86_64-unknown-linux-gnu.zip
+          echo "a7eead5552d3a8daad70f5d50d935da44bd0c138e946b5b0a96b1d38169fa639  $dir/ast-grep.zip" | sha256sum -c -
+          unzip -q -o "$dir/ast-grep.zip" ast-grep -d "$dir"
+          "$dir/ast-grep" scan
+          echo "- ast-grep 0.51.0: scanned with sgconfig.yml" >> "$GITHUB_STEP_SUMMARY"
+
+  # Revision 22 (spec 044 section 3.6): committed secrets, by gitleaks from
+  # its digest-verified release archive. A pull request's commits since the
+  # merge base, a queue entry's, or a push's range; a finding names the rule
+  # and location and never the matched value. An allowlist is the project's
+  # committed gitleaks configuration; the profile adds none.
+  secret-scan:
+    name: secret-scan
+    if: github.event_name != 'push'
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-secret-scan
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks 8.30.1
+        run: |
+          dir="${RUNNER_TEMP}/statecraft-tools"
+          mkdir -p "$dir"
+          curl --proto '=https' --tlsv1.2 -fsSL --retry 3 -o "$dir/gitleaks.tar.gz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $dir/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$dir/gitleaks.tar.gz" -C "$dir" gitleaks
+          echo "$dir" >> "$GITHUB_PATH"
+      - name: gitleaks
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+        run: |
+          case "$BASE_SHA" in 0000000000000000000000000000000000000000) BASE_SHA="" ;; esac
+          if [ -z "$BASE_SHA" ]; then
+            # A push that created the branch has no before: every commit it carries.
+            range="$HEAD_SHA"
+          elif [ "$EVENT_NAME" = pull_request ]; then
+            if ! merge_base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"; then
+              echo "no merge base between ${BASE_SHA} and ${HEAD_SHA}; the scan cannot choose its commits" >&2
+              exit 2
+            fi
+            range="${merge_base}..${HEAD_SHA}"
+          else
+            range="${BASE_SHA}..${HEAD_SHA}"
+          fi
+          echo "scanning ${range}"
+          gitleaks git --no-banner --no-color --redact --verbose --log-opts="${range}" .
 
   ai-review:
     name: ai-review
     if: github.event_name == 'pull_request'
-    uses: ./.github/workflows/statecraft-ai-review.yml
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-ai-review
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    # zizmor recommends `$/` for a call in the same repository; `./` is the
+    # form every runner and the pin check read (revision 22).
+    uses: ./.github/workflows/statecraft-ai-review.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
       pull-requests: write
+      checks: write
     # Revision 8: both credentials, by name; the review prefers the API key.
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -263,8 +599,9 @@ jobs:
     # The owner exception (S-1): a release candidate whose review was skipped,
     # (revision 2, R2-1) any pull request whose review returned findings, and
     # (revision 5, rule 2) any pull request that changes the authority set,
-    # and (revision 12) any pull request that ratifies a spec.
-    if: always() && github.event_name == 'pull_request' && (needs.governance.outputs.authority_change == 'true' || needs.governance.outputs.ratification == 'true' || (needs.ai-review.outputs.release_candidate == 'true' && startsWith(needs.ai-review.outputs.result, 'skipped:')) || needs.ai-review.outputs.result == 'findings')
+    # and (revision 12) any pull request that ratifies a spec. Revision 26
+    # (spec 068): findings that are all low and answered need none.
+    if: always() && github.event_name == 'pull_request' && (needs.governance.outputs.authority_change == 'true' || needs.governance.outputs.ratification == 'true' || (needs.ai-review.outputs.release_candidate == 'true' && startsWith(needs.ai-review.outputs.result, 'skipped:')) || (needs.ai-review.outputs.result == 'findings' && needs.ai-review.outputs.answered != 'true'))
     runs-on: ubuntu-latest
     environment: statecraft-review-exception
     steps:
@@ -277,15 +614,36 @@ jobs:
 
   determinism:
     name: determinism
-    uses: ./.github/workflows/determinism.yml
+    needs: [preflight]
+    if: ${{ !cancelled() && (needs.preflight.result == 'success' || github.event_name == 'push') }}
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-determinism
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/determinism.yml # zizmor: ignore[self-repository]
+    with:
+      post_merge: ${{ github.event_name == 'push' }}
 
   spec-spine-required:
     name: spec-spine-required
-    uses: ./.github/workflows/spec-spine-required.yml
+    needs: [preflight]
+    if: ${{ !cancelled() && (needs.preflight.result == 'success' || github.event_name == 'push') }}
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-spec-spine-required
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/spec-spine-required.yml # zizmor: ignore[self-repository]
+    with:
+      post_merge: ${{ github.event_name == 'push' }}
 
   affected-acceptance:
     name: affected-acceptance
-    uses: ./.github/workflows/affected-acceptance.yml
+    needs: [preflight]
+    if: ${{ !cancelled() && (needs.preflight.result == 'success' || github.event_name == 'push') }}
+    concurrency:
+      group: statecraft-ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-affected-acceptance
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/affected-acceptance.yml # zizmor: ignore[self-repository]
+    with:
+      post_merge: ${{ github.event_name == 'push' }}
 
   # Revision 7: every job the project declares in ci.extra_required_jobs is a
   # call of its own reusable workflow, needed here and required by the policy
@@ -293,7 +651,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [governance, code, ai-review, review-exception, determinism, spec-spine-required, affected-acceptance]
+    needs: [governance, preflight, code, supply-chain, workflow-lint, sg-scan, secret-scan, ai-review, review-exception, determinism, spec-spine-required, affected-acceptance]
     runs-on: ubuntu-latest
     # Read-only: on merge_group the gate reads the recorded review (the
     # entry's pull request, its runs, their jobs and the evidence artifact).
@@ -302,7 +660,7 @@ jobs:
       actions: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false

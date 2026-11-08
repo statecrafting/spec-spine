@@ -1,5 +1,5 @@
 #!/bin/sh
-# Rendered by Statecraft from profile github-actions-rust revision 13.
+# Rendered by Statecraft from profile github-actions-rust revision 28.
 # The one definition of this repository's gate: `make gate` and `make code`
 # run it locally, and CI runs the same script, so the two cannot drift. Only
 # the repository-local .bin/spec-spine is used; a spec-spine elsewhere
@@ -38,6 +38,7 @@ SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 DEFAULT_BRANCH='main'
 ENFORCE_COVERAGE=true
 AUTHORED_CONTENT='scripts/check-authored-content.sh'
+CODE_SCRIPT=''
 AUTHORED_CONTENT_TEXT=true
 GATE_EACH_COMMIT=true
 REQUIRE_SIGNED_COMMITS=true
@@ -46,7 +47,7 @@ FAIL_ON_UNRESOLVED=true
 REQUIRE_RATIFIED=false
 
 usage() {
-  echo "usage: gate.sh governance|code|couple|couple-group|base|text|commits|pin" >&2
+  echo "usage: gate.sh governance|preflight|code|couple|couple-group|base|text|commits|pin" >&2
   leave 3
 }
 
@@ -193,6 +194,86 @@ authored_content() {
   AC="$(pwd)/$AUTHORED_CONTENT"
 }
 
+# An external code script is authority, just like the authored-content
+# checker. Read its executable blob at the trusted base; a candidate cannot
+# replace its own checks. First adoption uses the candidate and says so.
+external_code() {
+  STATECRAFT_PROJECT_ROOT=$(git rev-parse --show-toplevel) || leave 2
+  export STATECRAFT_PROJECT_ROOT
+  cd "$STATECRAFT_PROJECT_ROOT" || leave 4
+  code_path="$CODE_SCRIPT"
+  code_temp=false
+  if [ -n "$BASE_SHA" ]; then
+    git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null || leave 2
+    base_policy_path=".statecraft/setup/github-actions-rust.json"
+    base_external=false
+    if [ -n "$(git ls-tree "$BASE_SHA" -- "$base_policy_path")" ]; then
+      base_policy=$(git show "$BASE_SHA:$base_policy_path") || leave 2
+      base_kind=$(printf '%s' "$base_policy" | jq -er '
+        if .parameters.code == null or .parameters.code.kind == "rust" then "rust"
+        elif .parameters.code.kind == "external" and
+             (.parameters.code.script | type == "string" and length > 0) then "external"
+        else error("invalid base code declaration") end
+      ') || { echo "external code: invalid trusted base policy" >&2; leave 2; }
+      if [ "$base_kind" = external ]; then
+        CODE_SCRIPT=$(printf '%s' "$base_policy" | jq -er '.parameters.code.script') || leave 2
+        base_external=true
+      fi
+    fi
+    entry=$(git ls-tree "$BASE_SHA" -- "$CODE_SCRIPT")
+    if [ -n "$entry" ]; then
+      case "$entry" in 100755\ *) ;; *) echo "external code script is not executable at the base" >&2; leave 2 ;; esac
+      code_path=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/statecraft-code.XXXXXX") || leave 4
+      code_temp=true
+      git show "$BASE_SHA:$CODE_SCRIPT" > "$code_path" || leave 4
+      chmod 755 "$code_path" || leave 4
+      echo "$CODE_SCRIPT: read at the base $BASE_SHA"
+    elif [ "$base_external" = true ]; then
+      echo "external code script declared by the trusted base is missing: $CODE_SCRIPT" >&2
+      leave 2
+    else
+      echo "$CODE_SCRIPT: the base declares no external code; the candidate runs (adoption)"
+    fi
+  fi
+  # Setup validates containment, but the working tree can change afterwards.
+  # Local and first-adoption bytes must still have no linked parent or leaf.
+  # A trusted Git blob deliberately runs from its private extraction path.
+  if [ "$code_temp" = false ]; then
+    case "$code_path" in ""|/*|*/|*//*)
+      echo "external code script is not a contained project path" >&2; leave 2 ;;
+    esac
+    code_remaining=$code_path
+    code_checked="$STATECRAFT_PROJECT_ROOT"
+    while :; do
+      code_component=${code_remaining%%/*}
+      case "$code_component" in ""|.|..)
+        echo "external code script is not a contained project path" >&2; leave 2 ;;
+      esac
+      code_checked="$code_checked/$code_component"
+      if [ -L "$code_checked" ]; then
+        echo "external code script contains a linked path component" >&2; leave 2
+      fi
+      case "$code_remaining" in
+        */*)
+          [ -d "$code_checked" ] || { echo "external code script parent is not a directory" >&2; leave 2; }
+          code_remaining=${code_remaining#*/} ;;
+        *) break ;;
+      esac
+    done
+  fi
+  if [ ! -f "$code_path" ] || [ -L "$code_path" ] || [ ! -x "$code_path" ]; then
+    echo "external code script absent or not a regular executable" >&2; leave 2
+  fi
+  case "$code_path" in /*) ;; *) code_path="$(pwd)/$code_path" ;; esac
+  if "$code_path"; then code_rc=0; else code_rc=$?; fi
+  if [ "$code_temp" = true ]; then rm -f "$code_path"; fi
+  [ "$code_rc" -eq 0 ] || leave 1
+}
+
+commit_code() {
+  if [ -n "$CODE_SCRIPT" ]; then external_code; else cargo fmt --all --check; fi
+}
+
 # The exact pin a spec-spine.toml states, read as install-spec-spine.sh reads
 # it; empty when there is none.
 pin_of() {
@@ -245,6 +326,22 @@ queue_pr() {
   printf '%s' "$1" | sed -n 's|.*/pr-\([0-9][0-9]*\)-[0-9a-f]*$|\1|p'
 }
 
+# A stacked pull request merges into another branch and is never judged
+# against the default branch (revision 4, rule 5). Shared by `base` and, from
+# revision 18, `preflight`.
+judge_base() {
+  if [ "$REQUIRE_DEFAULT_BASE" != true ]; then
+    echo "gate.sh: governance.require_default_base is false; the base is not judged"
+    return 0
+  fi
+  need_env BASE_REF
+  if [ "$BASE_REF" != "$DEFAULT_BRANCH" ]; then
+    echo "gate.sh: this pull request's base is '$BASE_REF', not the default branch $DEFAULT_BRANCH: open it off $DEFAULT_BRANCH, or merge the one below it first" >&2
+    leave 1
+  fi
+  echo "the base is the default branch $DEFAULT_BRANCH"
+}
+
 case "$MODE" in
   governance)
     need_spec_spine
@@ -274,7 +371,28 @@ case "$MODE" in
       echo "gate.sh: no authored-content script is declared (governance.authored_content), so none runs"
     fi
     ;;
+  preflight)
+    # Revision 18: what fails an expensive job anyway, judged before it
+    # starts. Each check here runs again in governance or code.
+    need_spec_spine
+    need_env EVENT_NAME
+    if [ "$EVENT_NAME" = pull_request ]; then
+      if [ "${STACKED_CI:-false}" = true ] && [ "$REQUIRE_DEFAULT_BASE" = true ] && [ "${BASE_REF:-}" != "$DEFAULT_BRANCH" ]; then
+        echo "statecraft:stacked-ci: the expensive jobs run on this stacked pull request by request; governance still refuses its base"
+      else
+        judge_base
+      fi
+    fi
+    spec_spine check --fail-on-warn
+    if [ -z "$CODE_SCRIPT" ] && [ -f Cargo.toml ] && command -v cargo > /dev/null 2>&1; then
+      cargo_verb fmt --all --check
+    else
+      echo "gate.sh: no Rust code selection here; formatting is judged by code"
+    fi
+    echo "preflight: ok"
+    ;;
   code)
+    if [ -n "$CODE_SCRIPT" ]; then external_code; exit 0; fi
     # A workspace with no member crates yet judges nothing and says so, the
     # guard the hand-written CI this profile replaced had: every
     # `cargo --workspace` verb refuses a virtual manifest with no members.
@@ -299,6 +417,9 @@ case "$MODE" in
     cargo_verb clippy --workspace --all-targets --locked -- -D warnings
     cargo_verb fmt --all --check
     ;;
+  commit-code)
+    commit_code
+    ;;
   pin)
     # For the CI caches: the pin as a step output.
     version=$(pin_of spec-spine.toml)
@@ -309,22 +430,11 @@ case "$MODE" in
     echo "version=$version"
     ;;
   base)
-    # A stacked pull request merges into another branch and is never judged
-    # against the default branch (revision 4, rule 5).
-    if [ "$REQUIRE_DEFAULT_BASE" != true ]; then
-      echo "gate.sh: governance.require_default_base is false; the base is not judged"
-      exit 0
-    fi
-    need_env BASE_REF
-    if [ "$BASE_REF" != "$DEFAULT_BRANCH" ]; then
-      echo "gate.sh: this pull request's base is '$BASE_REF', not the default branch $DEFAULT_BRANCH: open it off $DEFAULT_BRANCH, or merge the one below it first" >&2
-      leave 1
-    fi
-    echo "the base is the default branch $DEFAULT_BRANCH"
+    judge_base
     ;;
   text)
-    # The pull request's title and body, which become the merge commit's
-    # message: from the event on pull_request, through the API on
+    # The pull request's title and body, which become the message of the
+    # commit it lands as, under a merge or a squash: from the event on pull_request, through the API on
     # merge_group, whose event carries neither (revision 4, rule 3).
     if [ "$AUTHORED_CONTENT_TEXT" != true ]; then
       echo "gate.sh: governance.authored_content_text is false; the title and body are not judged"
@@ -355,8 +465,8 @@ case "$MODE" in
     ;;
   commits)
     # Every commit in the change's base..head, not only its head (revision 4,
-    # rules 3 and 4): under merge commits each one lands on the default
-    # branch. A step of the governance job, never a job of its own, so it
+    # rules 3 and 4): under a merge or a rebase each one lands on the default
+    # branch, and the profile does not assume the method. A step of the governance job, never a job of its own, so it
     # cannot be skipped into a green gate.
     if [ "$GATE_EACH_COMMIT" != true ] && [ "$REQUIRE_SIGNED_COMMITS" != true ] && [ "$AUTHORED_CONTENT_TEXT" != true ]; then
       echo "gate.sh: no per-commit check is enabled (governance.gate_each_commit, governance.require_signed_commits, governance.authored_content_text)"
@@ -428,7 +538,7 @@ case "$MODE" in
         if [ -n "$bin" ] && mkdir -p "$wt/.bin" && rm -f "$contained" \
           && cp "$bin" "$contained" && chmod 755 "$contained" \
           && [ -f "$contained" ] && [ ! -L "$contained" ] \
-          && (cd "$wt" && sh "$script" governance && cargo fmt --all --check) > "$log" 2>&1; then
+          && (cd "$wt" && sh "$script" governance && sh "$script" commit-code) > "$log" 2>&1; then
           echo "$short: the gate and the format check pass at its own tree"
         else
           echo "gate.sh: $short fails the gate or the format check at its own tree" >&2
