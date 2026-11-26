@@ -151,9 +151,6 @@ costs nothing today and catches the next Windows regression.
 > Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
 > from that spec's block (spec 210 3.5).
 
-> Since 2026-11-26, `211-profile-29-governs-this-repository` holds 210's block in turn, so this plan runs
-> from that spec's block (spec 211 3.2).
-
 ```verify:cli
 # 3.1: the job exists under its own name and the gate requires it.
 grep -q 'name: test (windows)' .github/workflows/ci.yml

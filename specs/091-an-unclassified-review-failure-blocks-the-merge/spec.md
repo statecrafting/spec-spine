@@ -778,9 +778,6 @@ case actually ran rather than being filtered out to zero tests.
 > Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
 > from that spec's block (spec 210 3.5).
 
-> Since 2026-11-26, `211-profile-29-governs-this-repository` holds 210's block in turn, so this plan runs
-> from that spec's block (spec 211 3.2).
-
 ```verify:cli
 test -f crates/spec-spine-core/tests/ai_review_policy.rs
 cargo test -p spec-spine-core --locked --test ai_review_policy

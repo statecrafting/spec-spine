@@ -397,9 +397,6 @@ correction belongs in Statecraft Profile 12, followed by a fresh exact render.
 > Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
 > from that spec's block (spec 210 3.5).
 
-> Since 2026-11-26, `211-profile-29-governs-this-repository` holds 210's block in turn, so this plan runs
-> from that spec's block (spec 211 3.2).
-
 ```verify:cli
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
 grep -q '"identity": "statecraft-setup:github-actions-rust@11"' .statecraft/environment.json

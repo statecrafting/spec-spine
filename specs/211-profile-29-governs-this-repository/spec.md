@@ -42,9 +42,10 @@ reads policy and other paths together.
 
 ## 2. Territory
 
-One pull request: the render by `init plan` and `init apply`, the carried
-acceptance of spec 210 (3.2), and the dated note in 210 and in each spec of
-its chain.
+One pull request: the render by `init plan` and `init apply` and the
+carried acceptance of spec 210 (3.2). No other spec's `spec.md` is edited:
+the `amends_verification` edge records that 210's block now runs from here,
+and `registry relationships` reports it.
 
 ## 3. Behavior
 

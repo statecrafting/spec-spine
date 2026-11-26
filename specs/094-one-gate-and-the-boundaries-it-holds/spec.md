@@ -380,9 +380,6 @@ exist and none reports a `supersededBy`.
 > Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
 > from that spec's block (spec 210 3.5).
 
-> Since 2026-11-26, `211-profile-29-governs-this-repository` holds 210's block in turn, so this plan runs
-> from that spec's block (spec 211 3.2).
-
 ```verify:cli
 cargo build --release --locked
 # 2: the territory, and that this spec owns it.

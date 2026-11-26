@@ -206,10 +206,6 @@ chain's labels move to pull request 3, the change that makes the block true.
 
 ## Verification
 
-> **Superseded acceptance (2026-11-26).** This block no longer runs.
-> `211-profile-29-governs-this-repository` declares this spec in `amends_verification` and carries the
-> complete block with the profile at revision 29 (spec 211 3.2). The commands below remain unchanged.
-
 ```verify:cli
 # ---- carried for 208-the-0-32-0-release-moves-the-pin (amends_verification), and through it 199, 195, 193, 191, 190, 187, 156, 091, 094, 124, 134, 135; the profile moves to revision 28 and the aggregate names its twelve jobs (210 3.5) ----
 # ---- carried for 199-the-0-31-0-release-moves-the-pin (amends_verification), and through it 195, 193, 191, 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.32.0 together (208 3.1) ----

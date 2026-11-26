@@ -122,9 +122,6 @@ gated off does (153 D-6).
 > Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
 > from that spec's block (spec 210 3.5).
 
-> Since 2026-11-26, `211-profile-29-governs-this-repository` holds 210's block in turn, so this plan runs
-> from that spec's block (spec 211 3.2).
-
 ```verify:cli
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.

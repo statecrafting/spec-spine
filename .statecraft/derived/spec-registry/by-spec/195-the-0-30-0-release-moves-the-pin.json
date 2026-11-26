@@ -60,14 +60,14 @@
     "kind": "tooling",
     "sectionDigests": {
       "1-purpose": "5cb20f6dd94b46a18a54fca7a36fb08e9f836d454c95b2853b3310110a52b273",
-      "195-the-0-30-0-release-moves-the-package-version-and-the-pin-together": "061fee5dd28c58eb78aeda890a4b4f167e7bdebff0c5a45855fe2857e1c4653f",
+      "195-the-0-30-0-release-moves-the-package-version-and-the-pin-together": "c72e66d72201f2821141a8e347f0a2e5e15f857b77f18316d191826fe3310c0e",
       "2-territory": "73057885781d771b95fd090af8963690298ac7e4b8d7a544b1e1955d3636c9f7",
       "3-1-one-version-one-pin": "ebf349382a598a8ed0aa3bd882fc6b2590b954fa858bcfe1adb63c364c675f57",
       "3-2-the-release-precedes-the-merge": "e48f9fa4e3749e252e4231678e923c0861210ff463d355f79ed9b45079c3fc72",
       "3-3-acceptance": "29140da9d7ac0ef88f5a27c10abd0034d009122a418559e89eb6f894eabf1f0b",
       "3-behavior": "efe63b30952731823239f3eb455eecd4123d1740d5a5522d4d567c701837fb12",
       "decisions": "8c46c10f514e0e5fdb96de6bc67ca5dfea544e605537877af8267d641eca3d05",
-      "verification": "ac91ba447869854b88eb559e83518281607bd5da6e179dba9133d4644c8b5eb8"
+      "verification": "bc86edd4d61acf8159e06dea02c75b577f90fe42909f290a4062e980f59d6fa3"
     },
     "sectionHeadings": [
       "195: The 0.30.0 release moves the package version and the pin together",
@@ -85,6 +85,6 @@
     "summary": "`main` moves from 0.29.0 to 0.30.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. As for 0.29.0 (spec 193 3.2), the release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
     "title": "The 0.30.0 release moves the package version and the pin together"
   },
-  "shardHash": "0f7612519965b5a154e924fc2a4ec7b76eb3f0709b829cf313f54aeeff2efec2",
+  "shardHash": "b6ff7d583f41b7080212bb3b6af08a60be08cb6658e232742a346a464c711400",
   "specVersion": "1.11.0"
 }

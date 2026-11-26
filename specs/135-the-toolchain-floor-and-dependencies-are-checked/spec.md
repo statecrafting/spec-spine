@@ -167,9 +167,6 @@ unused, so removing it closes both advisories and shrinks every dev build.
 > Since 2026-11-07, `210-profile-28-governs-this-repository` holds 208's block in turn, so this plan runs
 > from that spec's block (spec 210 3.5).
 
-> Since 2026-11-26, `211-profile-29-governs-this-repository` holds 210's block in turn, so this plan runs
-> from that spec's block (spec 211 3.2).
-
 ```verify:cli
 # 3.1 and 3.2: both jobs exist under their names and the gate requires them.
 grep -q 'name: build · test (rust-version)' .github/workflows/ci.yml
