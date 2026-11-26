@@ -46,13 +46,13 @@ reads policy and other paths together.
 ## 2. Territory
 
 One pull request: the render by `init plan` and `init apply` and the
-carried acceptance of spec 210 (3.2), and the "Superseded acceptance" note
-above 210's block. That note is the one edit to 210, and it is required:
+carried acceptance of spec 210 (3.2), the "Superseded acceptance" note above
+210's block, and the dated note in each spec of its chain (091, 094, 124,
+134, 135, 156, 187, 190, 191, 193, 195, 199, 208) that 211 now holds the
+block. Those notes are the only edits to other specs, and they are required:
 `every_superseded_verification_block_says_so_in_its_own_document` in
-`crates/spec-spine-core/tests/verify.rs` fails on a block an
-`amends_verification` edge supersedes unless its own document says so. No
-other spec is edited; the edge records the rest, and `registry
-relationships` reports it.
+`crates/spec-spine-core/tests/verify.rs` fails unless each superseded
+document names the spec that holds its acceptance.
 
 ## 3. Behavior
 
