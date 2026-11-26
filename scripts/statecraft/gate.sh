@@ -1,5 +1,5 @@
 #!/bin/sh
-# Rendered by Statecraft from profile github-actions-rust revision 28.
+# Rendered by Statecraft from profile github-actions-rust revision 29.
 # The one definition of this repository's gate: `make gate` and `make code`
 # run it locally, and CI runs the same script, so the two cannot drift. Only
 # the repository-local .bin/spec-spine is used; a spec-spine elsewhere

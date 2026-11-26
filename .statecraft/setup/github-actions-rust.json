@@ -92,58 +92,58 @@
   },
   "files": [
     {
-      "digest": "0f0d2276b0916d313549f7c5316f6d16ea8a60c1922e888740bab27db9efab01",
+      "digest": "e71ad799da0cc2895afa60dbfc487a4ff7d4b017dc8a18993cdaf6ed2151d459",
       "path": ".github/workflows/statecraft-ci.yml",
       "role": "workflow"
     },
     {
-      "digest": "08aedb7cc685b6f5f8aa0b0fb057ea9681b52bf68db99ba2a82fde78e62c0851",
+      "digest": "3ea55c9b196a8731e5922cba71f2f272cc011de838c682beed214dec02ae2aa3",
       "path": ".github/workflows/statecraft-ai-review.yml",
       "role": "workflow"
     },
     {
-      "digest": "3e99c53852d8d443d1e8843bdbdd6917bb9b5e5d8580d708253c50e5ac5d433a",
+      "digest": "6729a5e9f190c546f2d4d068ee4e3caa01bca0b4b44e3c697b4fb86824d8ad20",
       "path": "scripts/statecraft/install-spec-spine.sh",
       "role": "script"
     },
     {
-      "digest": "b66fed46b09f95ffe2642b9af329a4ceef47264025939b694cdf2431567b3856",
+      "digest": "c73af8e382a44da7d1bdf62cde3fba22c85b97adee2fb70c8a943aab550912de",
       "path": "scripts/statecraft/gate.sh",
       "role": "script"
     },
     {
-      "digest": "0f60d952c0a60aba5f953a157b037b45d27590528ae3e2a3360a99d0ebe21b4b",
+      "digest": "c4d31c92835518d3fc14fde23f0d444e3764a523f712419c7526c5d480fe0cc7",
       "path": "scripts/statecraft/ci-gate.sh",
       "role": "script"
     },
     {
-      "digest": "f7e8be720dbbd0c075eba472977cbe44cad9e25910062443aa9509fdaab12a53",
+      "digest": "e440ec148734bb8f57c1b16836d0c908ad609d20b1a7343c8922b1115abca16b",
       "path": "scripts/statecraft/ai-review.sh",
       "role": "script"
     },
     {
-      "digest": "9d1e607fc81eb70e7e260ea29c2532e9fad78f46d2da53bdd91a643b17ef735a",
+      "digest": "6f3daebdbd3c24ed808b6a5bf0ad08fd6fc465bd6f6703b6961101a25764f6ee",
       "path": "scripts/statecraft/guard-policy-files.sh",
       "role": "script"
     },
     {
-      "digest": "36ed744326c811ae7cf3248aa501fb84d83d57ca7d2f7f107c47d28daf6bb197",
+      "digest": "79de5eed4801afc3a872f0fa2fb78b2ff075332796a2d400894ea4a28e69ef81",
       "path": "scripts/statecraft/verify-action-pins.sh",
       "role": "script"
     },
     {
-      "digest": "107358b01aa79156f104487c669353b3f691a9578134a3ee23aaad9dd146ede1",
+      "digest": "483cd08159b2e9a2448c906ba8de2d743cb3bd14bcfb15e1197a935743b1a226",
       "path": ".statecraft/REVIEW.md",
       "role": "guide"
     },
     {
-      "digest": "f9adfebe351fd0d829157908f047a5250ceac5f710b1a7653af4e5747fe75ab2",
+      "digest": "1d20af0b6f5c098beaabe5e1e99302bd8a11cd7e29c28001935e7752dc037352",
       "path": ".statecraft/setup/github-actions-rust.remote.json",
       "role": "remote-state"
     }
   ],
   "id": "github-actions-rust",
-  "identity": "ddb55e6ee7c1478b1c88463a3f2fa7a53b3f20aad492a7dfcae29cbbd4d21178",
+  "identity": "9d5bb0e25975598a07bcb7ed7f0466a25dd725508cd050dbdbbec6f4950dcebe",
   "jobs": {
     "affected-acceptance": {
       "declared": "ci.extra_required_jobs",
@@ -330,6 +330,7 @@
     "revision 26: every finding of the AI review carries a severity (low, medium or high) and a category (correctness, security, authority, ratification or other), a missing or unknown one read as high, and an id, the first twelve hex digits of the sha256 of its path, line and summary; a pull request whose findings are all low and other, each answered by a `Review note (<sha8>): <id>` line of its body for that head, last edited by its author or by someone with write access, needs no owner exception, in the pull request and in the merge queue; statecraft-ci also runs on an edited pull request, and keeps the review recorded for that head, base and pull request rather than reviewing again (spec 068)",
     "revision 27: the policy-isolation guard gives a Cargo.toml or Cargo.lock a fourth class, version-only, when both revisions hold it and it is unchanged once every workspace package's version is masked (Cargo.toml's [package] or [workspace.package] version and the version of an inline table that also names a path; Cargo.lock's version of a [[package]] without a source); like generated paths it is ignored, so a release bump beside its changelog and re-blessed fixtures is one pull request, while any dependency, source or lockfile-format change keeps the file policy (spec 071)",
     "revision 28: the policy-isolation guard ignores spec-spine.toml as version-only when both revisions hold it, its only change is required_version, and the head pins the version its root Cargo.toml declares for the workspace (a repository that pins itself), and ignores a spec.md whose front matter names, quoted, a policy path the change also changes (the owning spec the coupling gate requires beside it); a consumer's pin move and every other path keep their class. The obligations no longer ask for branches up to date, and the gate's comments no longer assume merge commits (spec 072)",
+    "revision 29: the policy-isolation guard ignores, as new-crate, a Cargo.toml in a directory the merge base holds nothing in whose every table is one a crate needs (no workspace, patch, replace or profile table, no links key) and whose every dependency is a single line inheriting from the workspace or a path to a workspace crate, and a Cargo.lock whose header and every block with a source are unchanged after revision 27's mask, whose existing sourceless blocks differ at most in their dependency lists, and whose added blocks are sourceless and named by such a manifest; a new crate that adds no package lands in one pull request, and any registry or git package change keeps the file policy (spec 073)",
     "a repository that already runs these checks by hand keeps them by setting governance.enforce_coverage (index coverage --fail-on-untraced), governance.authored_content (the script's path; absent or not executable refuses), governance.authored_content_text (the title, the body and every commit message), governance.gate_each_commit (each commit's tree passes the gate and cargo fmt) and governance.require_signed_commits (each commit verified as signed by GitHub) (revision 4)"
   ],
   "review": {
@@ -363,5 +364,5 @@
     "tool": "claude-code",
     "tool_version": "2.1.116"
   },
-  "revision": 28
+  "revision": 29
 }

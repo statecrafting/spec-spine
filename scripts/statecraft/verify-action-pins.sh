@@ -1,5 +1,5 @@
 #!/bin/sh
-# Rendered by Statecraft from profile github-actions-rust revision 28.
+# Rendered by Statecraft from profile github-actions-rust revision 29.
 # The action pin check (spec 044 section 3.4): every `uses:` in a workflow
 # names code that cannot change under it. A step or job may use
 #
