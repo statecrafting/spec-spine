@@ -46,9 +46,13 @@ reads policy and other paths together.
 ## 2. Territory
 
 One pull request: the render by `init plan` and `init apply` and the
-carried acceptance of spec 210 (3.2). No other spec's `spec.md` is edited:
-the `amends_verification` edge records that 210's block now runs from here,
-and `registry relationships` reports it.
+carried acceptance of spec 210 (3.2), and the "Superseded acceptance" note
+above 210's block. That note is the one edit to 210, and it is required:
+`every_superseded_verification_block_says_so_in_its_own_document` in
+`crates/spec-spine-core/tests/verify.rs` fails on a block an
+`amends_verification` edge supersedes unless its own document says so. No
+other spec is edited; the edge records the rest, and `registry
+relationships` reports it.
 
 ## 3. Behavior
 

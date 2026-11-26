@@ -79,8 +79,8 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "73517065f6765ff973abae55656471e37f189a8e115f7759d86fa890f683a942",
-      "2-territory": "b3feb97352170d25c68838fca57cf14ceb90952ee10ede1e78be1cf09573c413",
-      "211-profile-29-governs-this-repository": "ae8dee936ae3704507c37a1052bfeea1838a55daed5dbef10bbf9022ace9fbcb",
+      "2-territory": "758bf6c85295e1b41c511e102604945c8f21f2cb7353d96f4eba9ae8dd7f0a7f",
+      "211-profile-29-governs-this-repository": "d55ad16311f5949d054c11dc0ff486945858eab9a06e781413c83c5ceb2d8e1b",
       "3-1-revision-29-is-the-recorded-profile": "1e239ee0c162475731fcd505d3ef510f55b1b701a73dd5c79ad707badc82491b",
       "3-2-acceptance": "c988074b2ce2b7f86e88e9ab11b55c8415b78177a36ad5ac9f615a01167b64fe",
       "3-behavior": "c0add9951d996a13a9b837ed726ee8038c60ae64656ea1b6d1417ba68c2df2ce",
@@ -104,6 +104,6 @@
     "summary": "The repository runs Statecraft's github-actions-rust profile at revision 28. Revision 29 (statecraft-cli spec 073) gives the policy-isolation guard a new-crate class, so a new workspace crate that adds no dependency lands in one pull request; any registry or git package change stays policy. This spec renders it and carries spec 210's acceptance with the profile at revision 29.\n",
     "title": "Profile 29 governs this repository"
   },
-  "shardHash": "e95d8c4e23127293ad3e0495ee76ad744ae3a39837cc7b88a65b0150d6ea724a",
+  "shardHash": "e57160765430b2b379427c0a6d0c55d07c004ac958c5a8580b90b2d04e5d9772",
   "specVersion": "1.11.0"
 }
