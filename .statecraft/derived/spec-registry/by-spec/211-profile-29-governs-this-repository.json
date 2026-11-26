@@ -46,6 +46,30 @@
           "kind": "file",
           "path": "scripts/statecraft/"
         }
+      },
+      {
+        "nature": "corrective",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/environment.json"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "210-profile-28-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/REVIEW.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "210-profile-28-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/setup/github-actions-rust.remote.json"
+        }
       }
     ],
     "id": "211-profile-29-governs-this-repository",
@@ -80,6 +104,6 @@
     "summary": "The repository runs Statecraft's github-actions-rust profile at revision 28. Revision 29 (statecraft-cli spec 073) gives the policy-isolation guard a new-crate class, so a new workspace crate that adds no dependency lands in one pull request; any registry or git package change stays policy. This spec renders it and carries spec 210's acceptance with the profile at revision 29.\n",
     "title": "Profile 29 governs this repository"
   },
-  "shardHash": "24b379b791eb38fd807f6899f8a07d2a0a77bd862b4b51a5617400e3eb0c43e2",
+  "shardHash": "e95d8c4e23127293ad3e0495ee76ad744ae3a39837cc7b88a65b0150d6ea724a",
   "specVersion": "1.11.0"
 }

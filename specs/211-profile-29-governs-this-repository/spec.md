@@ -27,6 +27,9 @@ extends:
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ci.yml", nature: corrective }
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ai-review.yml", nature: corrective }
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: "scripts/statecraft/", nature: corrective }
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: corrective }
+  - { spec: "210-profile-28-governs-this-repository", unit: { kind: file, path: ".statecraft/REVIEW.md" }, nature: corrective }
+  - { spec: "210-profile-28-governs-this-repository", unit: { kind: file, path: ".statecraft/setup/github-actions-rust.remote.json" }, nature: corrective }
 ---
 
 # 211: Profile 29 governs this repository
