@@ -1,5 +1,5 @@
 #!/bin/sh
-# Rendered by Statecraft from profile github-actions-rust revision 28.
+# Rendered by Statecraft from profile github-actions-rust revision 29.
 # The policy-isolation guard (spec 044 section 3.3): a pull request that
 # changes a dependency or supply-chain policy file and anything else must be
 # split, so a dependency change is never reviewed inside a feature.
@@ -31,6 +31,14 @@
 #              owns that file, which the coupling gate requires beside it.
 #              Ignored, so a policy change and its owning spec are one pull
 #              request;
+#   crate      (revision 29, spec 073) a Cargo.toml in a directory the merge
+#              base holds nothing in, whose every table is one a crate needs
+#              and whose every dependency inherits from the workspace or is a
+#              path to a workspace crate; and a Cargo.lock whose only change,
+#              after revision 27's mask, is such a crate's sourceless entry
+#              and the dependency lists that name it. A new crate that adds
+#              no package is one pull request; any registry or git package
+#              change keeps the file policy;
 #   other      every remaining path.
 #
 # Exit 0 when policy and other paths did not both change; 1 when they did,
@@ -61,11 +69,13 @@ set -eu
 # also bad usage here (spec 044 section 3.3), because every way the guard
 # cannot decide is one refusal. A command `set -e` stopped on is an operation
 # that broke, reported as 4; never 0.
+tmp=""
 leave() {
+  [ -z "$tmp" ] || rm -rf "$tmp"
   trap - EXIT
   exit "$1"
 }
-trap 'rc=$?; if [ "$rc" -ne 0 ]; then echo "guard-policy-files.sh: a command failed (exit $rc); reported as failed (4)" >&2; exit 4; fi' EXIT
+trap 'rc=$?; [ -z "$tmp" ] || rm -rf "$tmp"; if [ "$rc" -ne 0 ]; then echo "guard-policy-files.sh: a command failed (exit $rc); reported as failed (4)" >&2; exit 4; fi' EXIT
 
 undecided() {
   echo "guard-policy-files.sh: $1; the guard cannot decide, and fails closed" >&2
@@ -169,13 +179,216 @@ if printf '%s\n' "$changed" | grep -qx 'spec-spine.toml' \
   fi
 fi
 
+# Revision 29 (spec 073): a new workspace crate that adds no dependency. A
+# Cargo.toml is new-crate when the merge base holds nothing in its directory,
+# its every table is one a crate needs, and its every dependency line inherits
+# from the workspace or is a path to a workspace crate (section 3.1). A
+# Cargo.lock is new-crate when, after revision 27's mask, its header and every
+# block with a source are unchanged, no sourceless block is removed, each
+# existing sourceless block differs at most in its dependencies list, and each
+# added block is sourceless and named by a new-crate manifest (section 3.2).
+# Anything else keeps the file policy; the comparison is textual and never
+# runs cargo.
+check_manifest() {
+  # Prints "name <package>" and one "path <directory>" per path dependency;
+  # exits 1 when a table, a key or a dependency line is not admitted.
+  DIR="$1" awk '
+    function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
+    function bad() { rejected = 1; exit 1 }
+    function deptable(t) {
+      if (t == "[dependencies]" || t == "[dev-dependencies]" || t == "[build-dependencies]") return 1
+      return t ~ /^\[target\..+\.(dependencies|dev-dependencies|build-dependencies)\]$/
+    }
+    function resolve(rel,  n, i, seg, out, m, k) {
+      if (rel == "" || rel ~ /^\// || rel ~ /\\/) bad()
+      m = 0
+      n = split(ENVIRON["DIR"], seg, "/")
+      for (i = 1; i <= n; i++) if (seg[i] != "" && seg[i] != ".") out[++m] = seg[i]
+      n = split(rel, seg, "/")
+      for (i = 1; i <= n; i++) {
+        if (seg[i] == "" || seg[i] == ".") continue
+        if (seg[i] == "..") { if (m == 0) bad(); m--; continue }
+        out[++m] = seg[i]
+      }
+      if (m == 0) bad()
+      k = out[1]
+      for (i = 2; i <= m; i++) k = k "/" out[i]
+      return k
+    }
+    function dep(l,  name, inner, n, i, kv, key, val, keys, path) {
+      if (l ~ /^[A-Za-z0-9_-]+[ \t]*\.[ \t]*workspace[ \t]*=[ \t]*true$/) return
+      if (l !~ /^[A-Za-z0-9_-]+[ \t]*=[ \t]*\{.*\}$/) bad()
+      inner = l; sub(/^[^{]*\{/, "", inner); sub(/\}$/, "", inner)
+      if (inner ~ /[{}]/) bad()
+      # A features array is the one value that may hold a comma.
+      while (match(inner, /\[[^][]*\]/)) {
+        if (substr(inner, RSTART + 1, RLENGTH - 2) !~ /^[ \t]*("[^"]*"[ \t]*,[ \t]*)*("[^"]*"[ \t]*,?[ \t]*)?$/) bad()
+        inner = substr(inner, 1, RSTART - 1) "@array" substr(inner, RSTART + RLENGTH)
+      }
+      if (inner ~ /[][]/) bad()
+      n = split(inner, kv, ",")
+      for (key in keys) delete keys[key]
+      for (i = 1; i <= n; i++) {
+        if (trim(kv[i]) == "" && i == n) continue
+        if (index(kv[i], "=") == 0) bad()
+        key = trim(substr(kv[i], 1, index(kv[i], "=") - 1))
+        val = trim(substr(kv[i], index(kv[i], "=") + 1))
+        if (key in keys) bad()
+        if (key == "workspace") { if (val != "true") bad() }
+        else if (key == "features") { if (val != "@array") bad() }
+        else if (key == "optional" || key == "default-features") { if (val != "true" && val != "false") bad() }
+        else if (key == "path" || key == "version" || key == "package") { if (val !~ /^"[^"]*"$/) bad() }
+        else bad()
+        keys[key] = val
+      }
+      if ("workspace" in keys) {
+        if (("path" in keys) || ("version" in keys) || ("package" in keys)) bad()
+        return
+      }
+      if (!("path" in keys)) bad()
+      path = keys["path"]; path = substr(path, 2, length(path) - 2)
+      paths[++np] = resolve(path)
+    }
+    {
+      l = trim($0)
+      if (l == "" || l ~ /^#/) next
+      if (l ~ /^\[/) {
+        t = l; sub(/#.*/, "", t); gsub(/[ \t]/, "", t)
+        if (t == "[package]" || t == "[package.metadata]" || t ~ /^\[package\.metadata\.[^][]+\]$/ ||
+            t == "[lib]" || t == "[[bin]]" || t == "[[test]]" || t == "[[bench]]" || t == "[[example]]" ||
+            t == "[features]" || t == "[lints]" || t == "[badges]" || deptable(t)) { table = t; next }
+        bad()
+      }
+      if (table == "") bad()
+      if (deptable(table)) { dep(l); next }
+      if (table == "[package]") {
+        if (l ~ /^links[ \t]*[.=]/) bad()
+        if (l ~ /^name[ \t]*=[ \t]*"[^"]*"$/ && pkg == "") { pkg = l; sub(/^[^"]*"/, "", pkg); sub(/"$/, "", pkg) }
+      }
+    }
+    END {
+      if (rejected) exit 1
+      if (pkg == "") exit 1
+      print "name " pkg
+      for (i = 1; i <= np; i++) print "path " paths[i]
+    }
+  '
+}
+lock_blocks() {
+  # The masked lockfile as records: one "header" record, then one per
+  # [[package]] block, each prefixed by its kind (sourced or local) and name.
+  # A dependencies list is moved to a record of its own, so a local block
+  # can be compared without it.
+  mask_versions "$1" | awk '
+    function esc(s) { gsub(/\\/, "\\\\", s); gsub(/\t/, "\\t", s); return s "\\n" }
+    function flush() {
+      if (!inpkg) return
+      # A sourced block keeps its dependencies; a local one is compared
+      # without them.
+      printf "%s\t%s\t%s\n", (src ? "sourced" : "local"), name, (src ? body deplist : body)
+      inpkg = 0; body = ""; deplist = ""; name = ""; src = 0
+    }
+    BEGIN { header = "" }
+    /^\[\[package\]\][ \t]*$/ { flush(); inpkg = 1; next }
+    /^\[/ { flush(); other = 1 }
+    {
+      if (!inpkg) { header = header esc($0); next }
+      if (deps) { if ($0 ~ /^\][ \t]*$/) deps = 0; deplist = deplist esc($0); next }
+      if ($0 ~ /^dependencies[ \t]*=[ \t]*\[/) { if ($0 !~ /\][ \t]*$/) deps = 1; deplist = deplist esc($0); next }
+      if ($0 ~ /^[ \t]*$/) next
+      if ($0 ~ /^source[ \t]*=/) src = 1
+      if ($0 ~ /^name[ \t]*=[ \t]*"[^"]*"[ \t]*$/) { name = $0; sub(/^[^"]*"/, "", name); sub(/".*$/, "", name) }
+      body = body esc($0)
+    }
+    END { flush(); printf "header\t\t%s\n", header }
+  '
+}
+new_crate=""
+new_names=""
+candidates=$(printf '%s\n' "$changed" | while IFS= read -r p; do
+  case "$p" in
+    (\"* | Cargo.toml) continue ;;
+    (*/Cargo.toml) ;;
+    (*) continue ;;
+  esac
+  git cat-file -e "$merge_base:$p" 2> /dev/null && continue
+  git cat-file -e "$head:$p" 2> /dev/null || continue
+  d=${p%/Cargo.toml}
+  [ -z "$(git ls-tree -r --name-only "$merge_base" -- "$d/")" ] || continue
+  printf '%s\n' "$p"
+done)
+if [ -n "$candidates" ]; then
+  while IFS= read -r p; do
+    out=$(git show "$head:$p" | check_manifest "${p%/Cargo.toml}") || continue
+    ok=1
+    deps=$(printf '%s\n' "$out" | sed -n 's/^path //p')
+    while IFS= read -r d; do
+      [ -n "$d" ] || continue
+      t="$d/Cargo.toml"
+      if printf '%s\n' "$candidates" | grep -qxF "$t"; then continue; fi
+      was=$(git rev-parse --verify --quiet "$merge_base:$t") || { ok=0; break; }
+      now=$(git rev-parse --verify --quiet "$head:$t") || { ok=0; break; }
+      [ "$was" = "$now" ] || { ok=0; break; }
+    done <<DEPS
+$deps
+DEPS
+    [ "$ok" = 1 ] || continue
+    new_crate=$(printf '%s\n%s' "$new_crate" "$p")
+    new_names=$(printf '%s\n%s' "$new_names" "$(printf '%s\n' "$out" | sed -n 's/^name //p')")
+  done <<CANDIDATES
+$candidates
+CANDIDATES
+fi
+locks=$(printf '%s\n' "$changed" | VERSION_ONLY="$version_only" awk '
+  BEGIN { k = split(ENVIRON["VERSION_ONLY"], v, "\n"); for (i = 1; i <= k; i++) if (v[i] != "") vo[v[i]] = 1 }
+  /^"/ || ($0 in vo) { next }
+  $0 == "Cargo.lock" || /\/Cargo\.lock$/ { print }
+')
+while IFS= read -r p; do
+  [ -n "$p" ] || continue
+  git cat-file -e "$merge_base:$p" 2> /dev/null || continue
+  git cat-file -e "$head:$p" 2> /dev/null || continue
+  [ -n "$tmp" ] || tmp=$(mktemp -d)
+  git show "$merge_base:$p" | lock_blocks "$p" > "$tmp/was"
+  git show "$head:$p" | lock_blocks "$p" > "$tmp/now"
+  if NAMES="$new_names" awk -F '\t' '
+      BEGIN { k = split(ENVIRON["NAMES"], v, "\n"); for (i = 1; i <= k; i++) if (v[i] != "") fresh[v[i]] = 1 }
+      FNR == NR {
+        if ($1 == "header") wh = $3
+        else if ($1 == "sourced") ws[$3]++
+        else { if ($2 in wl) dup = 1; wl[$2] = $3 }
+        next
+      }
+      {
+        if ($1 == "header") nh = $3
+        else if ($1 == "sourced") ns[$3]++
+        else { if ($2 in nl) dup = 1; nl[$2] = $3 }
+      }
+      END {
+        if (dup || wh != nh) exit 1
+        for (b in ws) if (ns[b] != ws[b]) exit 1
+        for (b in ns) if (ns[b] != ws[b]) exit 1
+        for (n in wl) if (!(n in nl) || nl[n] != wl[n]) exit 1
+        for (n in nl) if (!(n in wl) && !(n in fresh)) exit 1
+        exit 0
+      }
+    ' "$tmp/was" "$tmp/now"; then
+    new_crate=$(printf '%s\n%s' "$new_crate" "$p")
+  fi
+done <<LOCKS
+$locks
+LOCKS
+
 # Revision 28 (spec 072): the owning spec. A changed spec.md is ignored when
 # its front matter (the lines between its opening --- and the next) names,
 # in double or single quotes, a policy path this change changes and does not
-# ignore as version-only. The match is exact text; a claim written any other
+# ignore as version-only or, since revision 29, as new-crate. The match is exact text; a claim written any other
 # way leaves the spec.md other, which fails closed into the split.
-policy_paths=$(printf '%s\n' "$changed" | VERSION_ONLY="$version_only" awk '
-  BEGIN { k = split(ENVIRON["VERSION_ONLY"], v, "\n"); for (i = 1; i <= k; i++) if (v[i] != "") vo[v[i]] = 1 }
+policy_paths=$(printf '%s\n' "$changed" | VERSION_ONLY="$version_only" NEW_CRATE="$new_crate" awk '
+  BEGIN {
+    k = split(ENVIRON["VERSION_ONLY"], v, "\n"); for (i = 1; i <= k; i++) if (v[i] != "") vo[v[i]] = 1
+    k = split(ENVIRON["NEW_CRATE"], v, "\n"); for (i = 1; i <= k; i++) if (v[i] != "") vo[v[i]] = 1
+  }
   NF == 0 || /^"/ || ($0 in vo) { next }
   { n = split($0, part, "/"); name = part[n] }
   $0 == "deny.toml" || $0 == ".cargo/audit.toml" || /^supply-chain\// || name == "Cargo.toml" ||
@@ -203,8 +416,9 @@ done)
 # One pass over the paths, so the guard is linear in their number. A path git had to quote is unquoted only enough to
 # classify it: the class depends on its directory prefix and its final name.
 rc=0
-printf '%s\n' "$changed" | VERSION_ONLY="$version_only" OWNING="$owning_specs" awk '
+printf '%s\n' "$changed" | VERSION_ONLY="$version_only" OWNING="$owning_specs" NEW_CRATE="$new_crate" awk '
   BEGIN {
+    k = split(ENVIRON["NEW_CRATE"], c, "\n"); for (i = 1; i <= k; i++) if (c[i] != "") nc[c[i]] = 1
     k = split(ENVIRON["VERSION_ONLY"], v, "\n"); for (i = 1; i <= k; i++) if (v[i] != "") vo[v[i]] = 1
     k = split(ENVIRON["OWNING"], w, "\n"); for (i = 1; i <= k; i++) if (w[i] != "") os[w[i]] = 1
   }
@@ -220,6 +434,8 @@ printf '%s\n' "$changed" | VERSION_ONLY="$version_only" OWNING="$owning_specs" a
       class = "version"
     } else if ($0 in os) {
       class = "spec"
+    } else if ($0 in nc) {
+      class = "crate"
     } else if (p == "deny.toml" || p == ".cargo/audit.toml" || p ~ /^supply-chain\// ||
                name == "Cargo.toml" || name == "Cargo.lock" ||
                p == "spec-spine.toml" || p == "docs/adoption/spec-spine.md") {
@@ -233,7 +449,7 @@ printf '%s\n' "$changed" | VERSION_ONLY="$version_only" OWNING="$owning_specs" a
     list[class] = list[class] "  " $0 "\n"
   }
   END {
-    printf "policy-isolation: %d policy, %d generated (ignored), %d other, %d version-only (ignored), %d owning spec (ignored)\n", count["policy"], count["generated"], count["other"], count["version"], count["spec"]
+    printf "policy-isolation: %d policy, %d generated (ignored), %d other, %d version-only (ignored), %d owning spec (ignored), %d new crate (ignored)\n", count["policy"], count["generated"], count["other"], count["version"], count["spec"], count["crate"]
     if (count["policy"] > 0 && count["other"] > 0) {
       printf "this pull request changes policy paths and other paths together; split it, so the dependency or policy change is its own pull request\n"
       printf "policy:\n%s", list["policy"]

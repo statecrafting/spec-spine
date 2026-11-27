@@ -1,0 +1,109 @@
+{
+  "record": {
+    "amends": [
+      "210-profile-28-governs-this-repository"
+    ],
+    "amendsSections": [
+      "3"
+    ],
+    "amendsVerification": [
+      "210-profile-28-governs-this-repository"
+    ],
+    "created": "2026-11-26",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "210-profile-28-governs-this-repository"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/setup/github-actions-rust.json"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ci.yml"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ai-review.yml"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/statecraft/"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/environment.json"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "210-profile-28-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/REVIEW.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "210-profile-28-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/setup/github-actions-rust.remote.json"
+        }
+      }
+    ],
+    "id": "211-profile-29-governs-this-repository",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "73517065f6765ff973abae55656471e37f189a8e115f7759d86fa890f683a942",
+      "2-territory": "e04a2aa0642ed564ec19bb0c60213b66df1246e4c5096e063dd85c420be8d2ee",
+      "211-profile-29-governs-this-repository": "7c088675c3d52bf9a52788e5f6f3c36764ceb1a459b1b904813b07cf9e46f35f",
+      "3-1-revision-29-is-the-recorded-profile": "1e239ee0c162475731fcd505d3ef510f55b1b701a73dd5c79ad707badc82491b",
+      "3-2-acceptance": "c988074b2ce2b7f86e88e9ab11b55c8415b78177a36ad5ac9f615a01167b64fe",
+      "3-behavior": "c0add9951d996a13a9b837ed726ee8038c60ae64656ea1b6d1417ba68c2df2ce",
+      "4-out-of-scope": "10db6436d452e3a7c210fadc071d0fb03f2a60766b3af276c12e2e4b237774b5",
+      "decisions": "5813a68eb5caad8e1051e80673d9b754306e395242a400cf98aa9367a0766220",
+      "verification": "1748b808e9b593be1c575b2503cf641cc134ebd27c6796a7a1f734a73af0ed6c"
+    },
+    "sectionHeadings": [
+      "211: Profile 29 governs this repository",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Revision 29 is the recorded profile",
+      "3.2 Acceptance",
+      "4. Out of scope",
+      "Decisions",
+      "Verification"
+    ],
+    "specPath": "specs/211-profile-29-governs-this-repository/spec.md",
+    "status": "draft",
+    "summary": "The repository runs Statecraft's github-actions-rust profile at revision 28. Revision 29 (statecraft-cli spec 073) gives the policy-isolation guard a new-crate class, so a new workspace crate that adds no dependency lands in one pull request; any registry or git package change stays policy. This spec renders it and carries spec 210's acceptance with the profile at revision 29.\n",
+    "title": "Profile 29 governs this repository"
+  },
+  "shardHash": "26c5b226cefb9ebcd950431ed39eecbb64b28eae0cb794c7be87e1615f86a65c",
+  "specVersion": "1.11.0"
+}

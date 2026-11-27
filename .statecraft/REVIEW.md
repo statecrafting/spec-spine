@@ -1,6 +1,6 @@
 # Review guide
 
-Rendered by Statecraft from profile github-actions-rust revision 28.
+Rendered by Statecraft from profile github-actions-rust revision 29.
 A managed file, verified by digest, identical in every repository the profile
 sets up (spec 056 section 3.1). It is read by the AI review as governance
 context from the base commit, with the repository's own `REVIEW.md` beside it
