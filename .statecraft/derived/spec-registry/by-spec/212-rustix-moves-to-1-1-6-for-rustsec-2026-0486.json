@@ -1,0 +1,58 @@
+{
+  "record": {
+    "created": "2026-11-27",
+    "declaresAcceptance": true,
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "200-the-dependency-policy-has-an-owner-and-records",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/config.toml"
+        }
+      }
+    ],
+    "id": "212-rustix-moves-to-1-1-6-for-rustsec-2026-0486",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the locked tree the advisory is read against",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.lock"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "03734b6dad1c61c188a513e6509c9aae23a9569a76b15395a8f3910dbc8955bc",
+      "2-territory": "ae20bac22d7f5589b9b7956964f77493b481bbbe468874afb5f8fec80ee7a5ed",
+      "212-rustix-moves-to-1-1-6-for-rustsec-2026-0486": "5ca23f524c9b744e407b3912314d4fb63893e605d495a937a901ac2de088f9a0",
+      "3-1-the-lock": "d4ae2a2f1798b618098a4d677ab5e6c9232071edbf78bac37bb073dd9ef793a3",
+      "3-2-the-vet-exemption-follows-the-version": "e59acd80a94b4801c969fa59d849458c9c980b1f21874acd3c6dab7b1567cd21",
+      "3-behavior": "32f25aff69aab546df0689313814b1d680a6fffd8f541f2ccb2b934721aecca4",
+      "4-out-of-scope": "53d5cfa1c2ce0dc9910b419a51a6210e400d9ad1b35e39d1f012f61f8a770d00",
+      "5-resolved-decisions": "693c987c12d32ea1b022157b687f6f588be1e6980cfbe829ebcf6b9706b8a0e8",
+      "verification": "1115049b3d9680bdddfcf301adb36c79a55bf7b748a7538ce962162766b43a39"
+    },
+    "sectionHeadings": [
+      "212: rustix moves to 1.1.6 for RUSTSEC-2026-0486",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The lock",
+      "3.2 The vet exemption follows the version",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/212-rustix-moves-to-1-1-6-for-rustsec-2026-0486/spec.md",
+    "status": "draft",
+    "summary": "`cargo audit` in the required `supply-chain` job refuses `main`'s locked tree: RUSTSEC-2026-0486 names `rustix` 1.1.4, which `tempfile` pulls in as a dev-dependency. Every pull request fails that job until the lock moves. This spec moves the lock to `rustix` 1.1.6, the semver-compatible fix, and moves the crate's `cargo vet` exemption to the same version, as spec 205 did for its three crates.\n",
+    "title": "rustix moves to 1.1.6 for RUSTSEC-2026-0486"
+  },
+  "shardHash": "007cc4c9cc233d54f6d3661786124244dd7887591ed387eb007f7cae3e1e18d6",
+  "specVersion": "1.11.0"
+}

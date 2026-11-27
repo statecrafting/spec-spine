@@ -1,0 +1,42 @@
+{
+  "mapping": {
+    "implementingPaths": [
+      {
+        "path": "supply-chain/config.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "supply-chain/config.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/config.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.lock"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.lock"
+        }
+      }
+    ],
+    "specId": "212-rustix-moves-to-1-1-6-for-rustsec-2026-0486",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "007cc4c9cc233d54f6d3661786124244dd7887591ed387eb007f7cae3e1e18d6"
+}
