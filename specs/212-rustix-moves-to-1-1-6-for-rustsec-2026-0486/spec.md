@@ -8,12 +8,12 @@ implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 summary: >
-  `cargo audit` in the required `supply-chain` job refuses `main`'s locked
+  `cargo audit` in the required `supply-chain` job refused `main`'s locked
   tree: RUSTSEC-2026-0486 names `rustix` 1.1.4, which `tempfile` pulls in as
-  a dev-dependency. Every pull request fails that job until the lock moves.
-  This spec moves the lock to `rustix` 1.1.6, the semver-compatible fix, and
-  moves the crate's `cargo vet` exemption to the same version, as spec 205
-  did for its three crates.
+  a dev-dependency, so every pull request failed that job. Pull request #536
+  moved the lock to `rustix` 1.1.6, the semver-compatible fix, and moved the
+  crate's `cargo vet` exemption to the same version, as spec 205 did for its
+  three crates. This spec records that change.
 extends:
   # 3.2: the rustix exemption moves to the new version; the counts do not change.
   - { spec: "200-the-dependency-policy-has-an-owner-and-records", unit: { kind: file, path: "supply-chain/config.toml" }, nature: additive }
@@ -59,6 +59,12 @@ fully audited and 125 exempted, the counts spec 200 measured.
 - Any other lock movement. The Dependabot cargo group proposes its own.
 
 ## 5. Resolved decisions
+
+**D-2 (2026-11-27): this spec follows the change it records.** #536 merged
+the lock and the exemption on 2026-11-27 without an authoring edit to spec
+200, which owns `supply-chain/config.toml`. This spec is that edit, filed
+after the fact, so its Verification block passes on the tree it lands on; it
+failed on `a9423d37`, the base #536 moved from (`rustix` 1.1.4).
 
 **D-1 (2026-11-27): the exemption moves rather than an audit being added.**
 The change is a patch release of a crate already trusted by exemption at the
