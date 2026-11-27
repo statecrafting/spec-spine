@@ -187,7 +187,7 @@ scripts/check-authored-content.sh --self-test
 # 3.6: Statecraft's bridge is first and the local coherence guard remains.
 sh -c 'test "$(head -n 1 AGENTS.md)" = "@.statecraft/AGENTS.md"'
 grep -q 'Adversarial prompt refusal' AGENTS.md
-# 3.1 and 3.7: Profile 29 has a committed policy and no withheld managed file.
+# 156 3.1 and 3.7: Profile 29 has a committed policy and no withheld managed file.
 grep -q '"revision": 29' .statecraft/setup/github-actions-rust.json
 sh -c '! grep -q '"'"'"status"[[:space:]]*:[[:space:]]*"withheld"'"'"' .statecraft/setup/github-actions-rust.json'
 # 193 3.1: the package version and the exact pin name the same release, and the environment record agrees.
