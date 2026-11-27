@@ -50,14 +50,14 @@
     "sectionDigests": {
       "1-purpose": "6e5883d07b93fc657a8ee807bb2f30d7bbdafdfed56495e25f4e01a0760a1e36",
       "2-territory": "ac6f20f6fac1ba31872b638db7572a88179ca866adde9f5f23e13c4fa35223e2",
-      "205-the-yaml-reader-takes-serde-saphyr-2-0": "9734155461236cacc342f92ccf35a4a175943dd93b556b5f70c69f993aa5f990",
+      "205-the-yaml-reader-takes-serde-saphyr-2-0": "87675a7af873533c3967ce25f2acc5ca21eb160f82d1d59b479ea9cd7c2a87f5",
       "3-1-the-pin": "9fba8f0b52decf3e1eef4708bc43dd9a61efdda66523168aefe5040d7624a128",
       "3-2-the-non-finite-refusal-is-set-by-its-new-name": "f89ff9eaf55782f134e577ce1a7e116acbfc87768b7808ff0a7bf7e133fa24d3",
       "3-3-the-vet-exemptions-follow-the-versions": "7d595f61eda1bdda7c309ff6e9bd966a4443fbb6556fd972ef20a58f3f52ec62",
       "3-behavior": "90cb60bb3a3ae4cb3b6dfdebcb8cbde2181620006e9b7c0f5ea19bcc96d8f9ea",
       "4-out-of-scope": "7c1508edce517f38f51b6a98e1d00487f7d768e55962e31ab777f9340b3eb8c6",
       "5-resolved-decisions": "4311e0ae61aad7d2b005e929a74f6e879de663278e8c0fe6157e99fa679a5d06",
-      "verification": "937836ae7c5df17be024e0446f6fa8ccd19eded351db72fc26baffe51a517d0a"
+      "verification": "b414cec677fe017f476c36152471d8acbf4942e933d0e771579837b9233c6ad9"
     },
     "sectionHeadings": [
       "205: The YAML reader takes serde-saphyr 2.0",
@@ -76,6 +76,6 @@
     "summary": "Spec 196 pinned `serde-saphyr` at `=1.3.0` and declined 2.0.0 because it had been published the day before. Dependabot #504 proposes 2.0.0 (with `granit-parser` 2.0.0 and `sha2` 0.11.1) and fails to compile: 2.0 deprecates the option 196's reader sets to refuse a non-finite float. This spec takes 2.0.0, sets the option's replacement to the same refusal, and moves the three `cargo vet` exemptions to the new versions. Every parity row 196 pinned holds unchanged.\n",
     "title": "The YAML reader takes serde-saphyr 2.0"
   },
-  "shardHash": "af1a9816a1023cc46ffe7714256b3fe3d5649caf5b763a1c17450030a41ee4af",
+  "shardHash": "491d963f19fed44058f8c306456ddc14b398a2e04beda920ac723da5eb348542",
   "specVersion": "1.11.0"
 }

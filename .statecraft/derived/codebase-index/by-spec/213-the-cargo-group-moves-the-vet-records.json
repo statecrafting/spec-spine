@@ -1,0 +1,91 @@
+{
+  "mapping": {
+    "amends": [
+      "205-the-yaml-reader-takes-serde-saphyr-2"
+    ],
+    "dependsOn": [
+      "205-the-yaml-reader-takes-serde-saphyr-2"
+    ],
+    "implementingPaths": [
+      {
+        "path": "supply-chain/config.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "supply-chain/imports.lock",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "supply-chain/config.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/config.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "supply-chain/imports.lock"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/imports.lock"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.lock"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.lock"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/yaml.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/yaml.rs"
+        }
+      }
+    ],
+    "specId": "213-the-cargo-group-moves-the-vet-records",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "454e1427da74baffee6a621db2ed8512b108c98bb19c98c787ff3d364f370d97"
+}

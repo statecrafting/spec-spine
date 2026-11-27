@@ -88,7 +88,7 @@ version = "1.2.63"
 criteria = "safe-to-deploy"
 
 [[exemptions.clap]]
-version = "4.6.7"
+version = "4.6.9"
 criteria = "safe-to-deploy"
 
 [[exemptions.clap_builder]]
@@ -96,7 +96,7 @@ version = "4.6.7"
 criteria = "safe-to-deploy"
 
 [[exemptions.clap_derive]]
-version = "4.6.7"
+version = "4.6.9"
 criteria = "safe-to-deploy"
 
 [[exemptions.clap_lex]]
@@ -180,7 +180,7 @@ version = "0.3.4"
 criteria = "safe-to-deploy"
 
 [[exemptions.granit-parser]]
-version = "2.0.0"
+version = "2.2.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.hashbrown]]
@@ -303,6 +303,10 @@ criteria = "safe-to-run"
 version = "0.1.5"
 criteria = "safe-to-run"
 
+[[exemptions.proc-macro2]]
+version = "1.0.107"
+criteria = "safe-to-deploy"
+
 [[exemptions.r-efi]]
 version = "5.3.0"
 criteria = "safe-to-run"
@@ -348,7 +352,7 @@ version = "1.0.229"
 criteria = "safe-to-deploy"
 
 [[exemptions.serde-saphyr]]
-version = "2.0.0"
+version = "2.2.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.serde_core]]
@@ -392,7 +396,7 @@ version = "2.0.117"
 criteria = "safe-to-deploy"
 
 [[exemptions.syn]]
-version = "3.0.4"
+version = "3.0.10"
 criteria = "safe-to-deploy"
 
 [[exemptions.time]]
@@ -424,7 +428,7 @@ version = "1.1.2+spec-1.1.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.tree-sitter]]
-version = "0.27.1"
+version = "0.27.2"
 criteria = "safe-to-deploy"
 
 [[exemptions.tree-sitter-language]]
