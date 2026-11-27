@@ -1,0 +1,92 @@
+{
+  "record": {
+    "amends": [
+      "205-the-yaml-reader-takes-serde-saphyr-2"
+    ],
+    "amendsSections": [
+      "3"
+    ],
+    "amendsVerification": [
+      "205-the-yaml-reader-takes-serde-saphyr-2"
+    ],
+    "created": "2026-11-27",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "205-the-yaml-reader-takes-serde-saphyr-2"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "200-the-dependency-policy-has-an-owner-and-records",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/config.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "200-the-dependency-policy-has-an-owner-and-records",
+        "unit": {
+          "kind": "file",
+          "path": "supply-chain/imports.lock"
+        }
+      }
+    ],
+    "id": "213-the-cargo-group-moves-the-vet-records",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the workspace pins #537 moved",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "role": "the locked tree the records describe",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.lock"
+        }
+      },
+      {
+        "role": "196's reader, unchanged",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/yaml.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "59b1490834afe55c5ebb0d11a2005e6a8a65cbcb87b9482c2e6101c3ff511b4c",
+      "2-territory": "67dc76fd6c434ddd5f82259d00f4fff5d263d816239c2b7d9337a2cffa695f7f",
+      "213-the-cargo-group-moves-the-vet-records-and-205-s-pin": "d5c00d709e8e7d571665b4a898e4997114751f2a3182ae4bbb3a72f39cf4b13d",
+      "3-1-the-pin-is-2-2-0-amends-205-3-1": "ffb2237973e654c63217dd90088bb4cdbf2b3ba076dcf47109451f973044feff",
+      "3-2-the-vet-records-follow-the-versions-amends-205-3-3": "f8ac55442bb31df91923dd38e324fbaca25a7d375dbb3cf44c2d5d5304b39e90",
+      "3-behavior": "8d5d8a25cc00c1fa04946ed7166e87a47834ef86cc7fb002003a60945254aec9",
+      "4-out-of-scope": "6d3b25a9bc464e1a89d7c7e648f3205c9fe9f48702a645cc2f67fbfde5052b21",
+      "5-resolved-decisions": "d6a5d1b041cc93bb83348a59a216ca7b353ce2002466aa659bd9a9568bfc4c5a",
+      "verification": "7deee58a4f5dcf64933732fd5a05fadcdf0ece0c678e1a2990243f9fae6351fa"
+    },
+    "sectionHeadings": [
+      "213: The cargo group moves the vet records and 205's pin",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The pin is 2.2.0 (amends 205 3.1)",
+      "3.2 The vet records follow the versions (amends 205 3.3)",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/213-the-cargo-group-moves-the-vet-records/spec.md",
+    "status": "draft",
+    "summary": "Dependabot's cargo group (#537) moved `serde-saphyr` and `granit-parser` to 2.2.0, `tree-sitter` to 0.27.2, and `clap`, `clap_derive`, `syn`, `proc-macro2` and `quote` by patch releases. It merged without moving the `cargo vet` records, so `cargo vet --locked` refused eight crates and the required `supply-chain` job failed on `main` and on every pull request. It also moved the exact `serde-saphyr` pin spec 205 asserts, so 205's acceptance failed at its first command. This spec moves the exemptions, refreshes the imported audits, and carries 205's acceptance at 2.2.0.\n",
+    "title": "The cargo group moves the vet records and 205's pin"
+  },
+  "shardHash": "454e1427da74baffee6a621db2ed8512b108c98bb19c98c787ff3d364f370d97",
+  "specVersion": "1.11.0"
+}

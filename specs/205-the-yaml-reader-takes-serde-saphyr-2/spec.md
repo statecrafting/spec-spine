@@ -88,6 +88,10 @@ field) touch no path the reader uses: it parses one document through
 
 ## Verification
 
+> **Superseded acceptance (2026-11-27).** This block no longer runs.
+> `213-the-cargo-group-moves-the-vet-records` declares this spec in `amends_verification` and carries the
+> complete block with the pin at 2.2.0 (spec 213 3.1). The commands below remain unchanged.
+
 ```verify:cli
 # 3.1: the pin is exact at 2.0.0 and the locked tree carries 2.0.0 only.
 grep -qF 'serde-saphyr = { version = "=2.0.0", default-features = false, features = ["deserialize"] }' Cargo.toml
