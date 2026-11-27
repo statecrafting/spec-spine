@@ -130,8 +130,8 @@
       }
     ],
     "specId": "211-profile-29-governs-this-repository",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "1b0da9cc40cf1304bc578ebf5b1fc0c292a0f1fe655c0f1df3054a2c2689b795"
+  "shardHash": "92baf0e2b24d01e6c97eaf67bf213da9c53977b2cf5bfe3ebbb2b46182ccdd96"
 }

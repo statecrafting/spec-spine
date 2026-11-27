@@ -29,12 +29,12 @@
     "sectionDigests": {
       "1-purpose": "03734b6dad1c61c188a513e6509c9aae23a9569a76b15395a8f3910dbc8955bc",
       "2-territory": "ae20bac22d7f5589b9b7956964f77493b481bbbe468874afb5f8fec80ee7a5ed",
-      "212-rustix-moves-to-1-1-6-for-rustsec-2026-0486": "6db89814f607fb2772182e3fac91bf4e05cd984a3820a2b130e361c9d6552ad7",
+      "212-rustix-moves-to-1-1-6-for-rustsec-2026-0486": "8a17916ebf0d4dca6da5136919ffe08445a675974dcf3f60ccb3c2c7f23357e6",
       "3-1-the-lock": "d4ae2a2f1798b618098a4d677ab5e6c9232071edbf78bac37bb073dd9ef793a3",
       "3-2-the-vet-exemption-follows-the-version": "e59acd80a94b4801c969fa59d849458c9c980b1f21874acd3c6dab7b1567cd21",
       "3-behavior": "32f25aff69aab546df0689313814b1d680a6fffd8f541f2ccb2b934721aecca4",
       "4-out-of-scope": "53d5cfa1c2ce0dc9910b419a51a6210e400d9ad1b35e39d1f012f61f8a770d00",
-      "5-resolved-decisions": "a40cd69c080260663658bb46bbdcffd2f8f6f088e7a3e8e07220cfb19a3e06d1",
+      "5-resolved-decisions": "3a9ede742793f9ced3a4a9431a068552c52c4b80f81a93cc57fb7ab50c91b7ff",
       "verification": "1115049b3d9680bdddfcf301adb36c79a55bf7b748a7538ce962162766b43a39"
     },
     "sectionHeadings": [
@@ -49,10 +49,10 @@
       "Verification"
     ],
     "specPath": "specs/212-rustix-moves-to-1-1-6-for-rustsec-2026-0486/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`cargo audit` in the required `supply-chain` job refused `main`'s locked tree: RUSTSEC-2026-0486 names `rustix` 1.1.4, which `tempfile` pulls in as a dev-dependency, so every pull request failed that job. Pull request #536 moved the lock to `rustix` 1.1.6, the semver-compatible fix, and moved the crate's `cargo vet` exemption to the same version, as spec 205 did for its three crates. This spec records that change.\n",
     "title": "rustix moves to 1.1.6 for RUSTSEC-2026-0486"
   },
-  "shardHash": "c500ec4e899985f642d3c3a6ac15c90b535aaf291a90fb82b8bca12cbfcfe6d1",
+  "shardHash": "7963ed341179fb48774edff9423234b703131d1d502e0b41a2c1251ccdd8a06e",
   "specVersion": "1.11.0"
 }

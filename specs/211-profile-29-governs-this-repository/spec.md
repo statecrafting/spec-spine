@@ -1,7 +1,7 @@
 ---
 id: "211-profile-29-governs-this-repository"
 title: "Profile 29 governs this repository"
-status: draft
+status: approved
 implementation: complete
 kind: tooling
 created: "2026-11-26"
@@ -83,6 +83,13 @@ guard class joins them.
 - The engine pin, which moves only with a release.
 
 ## Decisions
+
+**2026-11-27: ratification.** This pull request flips the spec from
+`draft` to `approved`. The flip takes effect only through the owner's
+approval of the `review-exception` environment on this pull request's run,
+which the gate enforces and which is the ratification of record (spec 198).
+This entry records that mechanism; it is not itself evidence of the
+approval.
 
 **D-1 (2026-11-26, owner).** Adopt revision 29 in every Statecraft-governed
 repository. Revision 29 changes only the policy-isolation guard, so the move

@@ -1,7 +1,7 @@
 ---
 id: "212-rustix-moves-to-1-1-6-for-rustsec-2026-0486"
 title: "rustix moves to 1.1.6 for RUSTSEC-2026-0486"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-11-27"
 implementation: complete
@@ -59,6 +59,13 @@ fully audited and 125 exempted, the counts spec 200 measured.
 - Any other lock movement. The Dependabot cargo group proposes its own.
 
 ## 5. Resolved decisions
+
+**2026-11-27: ratification.** This pull request flips the spec from
+`draft` to `approved`. The flip takes effect only through the owner's
+approval of the `review-exception` environment on this pull request's run,
+which the gate enforces and which is the ratification of record (spec 198).
+This entry records that mechanism; it is not itself evidence of the
+approval.
 
 **D-2 (2026-11-27): this spec follows the change it records.** #536 merged
 the lock and the exemption on 2026-11-27 without an authoring edit to spec
